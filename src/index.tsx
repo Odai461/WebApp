@@ -9,6 +9,7 @@ import { ProductsPage } from './components/products-page'
 import { HomepageNew } from './components/homepage-modern'
 import { HomepageEnhanced } from './components/homepage-enhanced'
 import { ProductDetailPage } from './components/product-detail'
+import { CartPage } from './components/cart-page'
 import { 
   formatPrice, 
   generateOrderNumber, 
@@ -169,6 +170,15 @@ app.get('/produkt/:id', (c) => {
 app.get('/product/:id', (c) => {
   const productId = c.req.param('id')
   return c.html(<ProductDetailPage productId={productId} />)
+})
+
+// Shopping cart page
+app.get('/warenkorb', (c) => {
+  return c.html(<CartPage />)
+})
+
+app.get('/cart', (c) => {
+  return c.html(<CartPage />)
 })
 
 // ============================================
