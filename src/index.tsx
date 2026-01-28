@@ -123,8 +123,9 @@ app.onError((error, c) => {
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
 
-// Mount API routes
-app.route('/api', api)
+// Mount legacy API routes (auth only - product routes are defined below with DatabaseHelper)
+// Commented out to use database-based product routes instead
+// app.route('/api', api)
 
 // ============================================
 // MIDDLEWARE: Database Helper

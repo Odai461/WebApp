@@ -1,7 +1,7 @@
-// API Routes for Products, Cart, Checkout, Auth
+// API Routes for Cart, Checkout, Auth
+// Note: Product API routes are handled in src/index.tsx using DatabaseHelper
 import { Hono } from 'hono'
 import type { CloudflareBindings } from '../types'
-import seedProducts from '../data/seed-products.json'
 import authApi from './auth'
 import LicenseGenerator from '../lib/license-generator'
 import EmailService from '../lib/email-service'
@@ -15,132 +15,15 @@ const api = new Hono<Env>()
 // Mount Auth API
 api.route('/auth', authApi)
 
-// Transform seed products to match API format
-const transformProduct = (p: any) => ({
-  id: p.id,
-  sku: p.sku,
-  name: p.name,
-  description: p.description || `High-quality ${p.name} license. Original software from Microsoft.`,
-  price: Math.round(p.price * 100), // Convert to cents
-  sale_price: p.salePrice ? Math.round(p.salePrice * 100) : null,
-  category: p.category,
-  image_url: p.image || p.imageUrl,
-  in_stock: p.inStock ? 1 : 0,
-  stock_quantity: p.stockQty || 999,
-  is_active: 1,
-  is_featured: p.category.includes('Office 2024') || p.category.includes('Windows') ? 1 : 0,
-  created_at: new Date().toISOString()
-})
-
-// Get all transformed products
-const getAllProducts = () => seedProducts.map(transformProduct)
-
 // ============================================
-// PRODUCTS API
+// CART & CHECKOUT API
 // ============================================
 
-// Get all products with filtering and pagination
-api.get('/products', async (c) => {
-  const { category, search, page = '1', limit = '24', sort = 'name' } = c.req.query()
-  
+// Get categories (keeping for backward compatibility)
+api.get('/categories_old', async (c) => {
   try {
-    let products = getAllProducts()
-    
-    // Filter by category
-    if (category && category !== 'all') {
-      products = products.filter(p => p.category === category)
-    }
-    
-    // Search filter
-    if (search) {
-      const searchLower = search.toLowerCase()
-      products = products.filter(p => 
-        p.name.toLowerCase().includes(searchLower) ||
-        p.description.toLowerCase().includes(searchLower)
-      )
-    }
-    
-    // Sort
-    const sortMap: Record<string, (a: any, b: any) => number> = {
-      'name': (a, b) => a.name.localeCompare(b.name),
-      'price-asc': (a, b) => a.price - b.price,
-      'price-desc': (a, b) => b.price - a.price,
-      'newest': (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    }
-    
-    if (sortMap[sort]) {
-      products.sort(sortMap[sort])
-    }
-    
-    // Pagination
-    const total = products.length
-    const pageNum = parseInt(page)
-    const limitNum = parseInt(limit)
-    const offset = (pageNum - 1) * limitNum
-    const paginatedProducts = products.slice(offset, offset + limitNum)
-    
-    return c.json({
-      success: true,
-      data: paginatedProducts,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum)
-      }
-    })
-  } catch (error: any) {
-    return c.json({ success: false, error: error.message }, 500)
-  }
-})
-
-// Get featured products (MUST be before /products/:id)
-api.get('/products/featured', async (c) => {
-  try {
-    const products = getAllProducts()
-      .filter(p => p.is_featured)
-      .slice(0, 8)
-    
-    return c.json({ success: true, data: products })
-  } catch (error: any) {
-    return c.json({ success: false, error: error.message }, 500)
-  }
-})
-
-// Get single product
-api.get('/products/:id', async (c) => {
-  const id = parseInt(c.req.param('id'))
-  
-  try {
-    const product = getAllProducts().find(p => p.id === id)
-    
-    if (!product) {
-      return c.json({ success: false, error: 'Product not found' }, 404)
-    }
-    
-    return c.json({ success: true, data: product })
-  } catch (error: any) {
-    return c.json({ success: false, error: error.message }, 500)
-  }
-})
-
-// Get categories
-api.get('/categories', async (c) => {
-  try {
-    const products = getAllProducts()
-    const categoryMap = new Map()
-    
-    products.forEach(p => {
-      const count = categoryMap.get(p.category) || 0
-      categoryMap.set(p.category, count + 1)
-    })
-    
-    const categories = Array.from(categoryMap.entries()).map(([category, count]) => ({
-      category,
-      count
-    })).sort((a, b) => a.category.localeCompare(b.category))
-    
-    return c.json({ success: true, data: categories })
+    // This endpoint is deprecated - use /api/categories in main index
+    return c.json({ success: true, data: [] })
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500)
   }
