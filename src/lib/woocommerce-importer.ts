@@ -175,6 +175,7 @@ export class WooCommerceImporter {
     const features = extractFeatures(description);
 
     return {
+      woocommerce_id: wcProduct.ID || null, // Store original WooCommerce ID for license linking
       sku: wcProduct.SKU || `WC-${wcProduct.ID}`,
       name: wcProduct.Name,
       short_description: shortDesc,
@@ -267,14 +268,14 @@ export class WooCommerceImporter {
     // Insert product
     const result = await this.db.db.prepare(`
       INSERT INTO products (
-        sku, category_id, brand_id, slug, product_type,
+        woocommerce_id, sku, category_id, brand_id, slug, product_type,
         base_price, discount_price, discount_percentage, vat_rate,
         stock_type, available_licenses, license_type, license_duration,
         delivery_type, activation_limit,
         is_featured, is_new, is_bestseller, is_active,
         rating_average, rating_count, created_at
       ) VALUES (
-        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?,
@@ -282,6 +283,7 @@ export class WooCommerceImporter {
         ?, ?, datetime('now')
       )
     `).bind(
+      product.woocommerce_id,
       product.sku,
       category.id,
       brand.id,
@@ -340,6 +342,7 @@ export class WooCommerceImporter {
     // Update product
     await this.db.db.prepare(`
       UPDATE products SET
+        woocommerce_id = ?,
         base_price = ?,
         discount_price = ?,
         discount_percentage = ?,
@@ -351,6 +354,7 @@ export class WooCommerceImporter {
         rating_count = ?
       WHERE id = ?
     `).bind(
+      product.woocommerce_id,
       product.base_price,
       product.discount_price,
       product.discount_percentage,

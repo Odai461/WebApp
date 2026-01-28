@@ -1,5 +1,7 @@
+import { html } from 'hono/html';
+
 export const AdminProductImport = () => {
-  return `
+  return html`
     <div class="p-6">
       <div class="mb-6">
         <h2 class="text-2xl font-bold" style="color: var(--navy-dark);">
@@ -447,5 +449,6 @@ export const AdminProductImport = () => {
         location.reload();
       });
     </script>
+    </div>
   `;
 };
