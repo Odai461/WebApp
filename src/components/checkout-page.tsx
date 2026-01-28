@@ -2,525 +2,708 @@ export const CheckoutPage = () => {
   return `
     <!DOCTYPE html>
     <html lang="de">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Kasse - SoftwareKing24</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="/static/cart-manager-enhanced.js"></script>
-        <script src="https://js.stripe.com/v3/"></script>
-    </head>
-    <body class="bg-gradient-to-br from-gray-50 to-blue-50">
-        
+        <style>
+          :root {
+            --navy-dark: #1a2a4e;
+            --navy-medium: #2d3e6f;
+            --gold: #d4af37;
+          }
+          .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+          }
+          .step-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-center;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s;
+          }
+          .step.active .step-circle {
+            background: var(--gold);
+            color: var(--navy-dark);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+          }
+          .step.completed .step-circle {
+            background: #10b981;
+            color: white;
+          }
+          .step-line {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            right: -50%;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: 1;
+          }
+          .step.completed .step-line {
+            background: #10b981;
+          }
+          .step:last-child .step-line {
+            display: none;
+          }
+          .checkout-section {
+            display: none;
+          }
+          .checkout-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        </style>
+      </head>
+      <body class="bg-gray-50">
         <!-- Header -->
-        <header class="bg-white shadow-md sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4">
-                <div class="flex items-center justify-between py-4">
-                    <a href="/" class="flex items-center space-x-3">
-                        <img src="/static/logo.png" alt="SoftwareKing24" class="h-12" />
-                    </a>
-                    <nav class="flex items-center space-x-6">
-                        <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
-                        <a href="/produkte" class="text-gray-700 hover:text-blue-600">Produkte</a>
-                        <a href="/warenkorb" class="text-gray-700 hover:text-blue-600 relative">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span class="absolute -top-1 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center" data-cart-count>0</span>
-                        </a>
-                        <a href="/login" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login</a>
-                    </nav>
+        <header class="bg-white shadow-sm sticky top-0 z-50">
+          <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+              <a href="/" class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-shopping-bag text-white text-xl"></i>
                 </div>
+                <span class="text-2xl font-bold" style="color: var(--navy-dark);">SoftwareKing24</span>
+              </a>
+              <div class="flex items-center space-x-4">
+                <a href="/warenkorb" class="text-gray-600 hover:text-blue-600">
+                  <i class="fas fa-shopping-cart mr-2"></i>Zurück zum Warenkorb
+                </a>
+              </div>
             </div>
+          </div>
         </header>
-        
-        <!-- Checkout Process -->
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <!-- Progress Steps -->
-            <div class="mb-8">
-                <div class="flex items-center justify-center space-x-4">
-                    <div class="flex-1 max-w-xs">
-                        <div class="flex items-center">
-                            <div id="step1-icon" class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold">
-                                1
-                            </div>
-                            <div class="flex-1 h-1 bg-gray-300 mx-2" id="line1"></div>
-                        </div>
-                        <p id="step1-text" class="text-sm mt-2 font-semibold text-blue-600">Warenkorb</p>
-                    </div>
-                    
-                    <div class="flex-1 max-w-xs">
-                        <div class="flex items-center">
-                            <div id="step2-icon" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-bold">
-                                2
-                            </div>
-                            <div class="flex-1 h-1 bg-gray-300 mx-2" id="line2"></div>
-                        </div>
-                        <p id="step2-text" class="text-sm mt-2 text-gray-600">Kundendaten</p>
-                    </div>
-                    
-                    <div class="flex-1 max-w-xs">
-                        <div class="flex items-center">
-                            <div id="step3-icon" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-bold">
-                                3
-                            </div>
-                            <div class="flex-1 h-1 bg-gray-300 mx-2" id="line3"></div>
-                        </div>
-                        <p id="step3-text" class="text-sm mt-2 text-gray-600">Zahlung</p>
-                    </div>
-                    
-                    <div class="flex-1 max-w-xs">
-                        <div class="flex items-center">
-                            <div id="step4-icon" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-gray-600 font-bold">
-                                <i class="fas fa-check"></i>
-                            </div>
-                        </div>
-                        <p id="step4-text" class="text-sm mt-2 text-gray-600">Bestätigung</p>
-                    </div>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+          <!-- Progress Steps -->
+          <div class="mb-8">
+            <div class="step-indicator max-w-3xl mx-auto">
+              <div class="step active" id="step-indicator-1">
+                <div class="step-circle">
+                  <i class="fas fa-user"></i>
                 </div>
+                <span class="text-sm mt-2 font-semibold">Ihre Daten</span>
+                <div class="step-line"></div>
+              </div>
+              <div class="step" id="step-indicator-2">
+                <div class="step-circle">
+                  <i class="fas fa-credit-card"></i>
+                </div>
+                <span class="text-sm mt-2">Zahlung</span>
+                <div class="step-line"></div>
+              </div>
+              <div class="step" id="step-indicator-3">
+                <div class="step-circle">
+                  <i class="fas fa-check"></i>
+                </div>
+                <span class="text-sm mt-2">Prüfen</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Checkout Form -->
+            <div class="lg:col-span-2">
+              
+              <!-- Step 1: Customer Information -->
+              <div id="step-1" class="checkout-section active">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                  <h2 class="text-2xl font-bold mb-6" style="color: var(--navy-dark);">
+                    <i class="fas fa-user mr-2"></i>Ihre Kontaktdaten
+                  </h2>
+                  
+                  <form id="customer-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          Vorname <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          name="firstName"
+                          required
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Max"
+                        />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          Nachname <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          name="lastName"
+                          required
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Mustermann"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        E-Mail-Adresse <span class="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="email" 
+                        name="email"
+                        required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="max@beispiel.de"
+                      />
+                      <p class="text-sm text-gray-500 mt-1">Ihre Lizenzen werden an diese E-Mail-Adresse gesendet</p>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Firma (optional)
+                      </label>
+                      <input 
+                        type="text" 
+                        name="company"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Firmenname"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Straße und Hausnummer <span class="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        name="street"
+                        required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Musterstraße 123"
+                      />
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          Postleitzahl <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          name="zip"
+                          required
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="12345"
+                        />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          Stadt <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                          type="text" 
+                          name="city"
+                          required
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Berlin"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Land <span class="text-red-500">*</span>
+                      </label>
+                      <select 
+                        name="country"
+                        required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="DE" selected>Deutschland</option>
+                        <option value="AT">Österreich</option>
+                        <option value="CH">Schweiz</option>
+                        <option value="LU">Luxemburg</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="flex items-start">
+                        <input 
+                          type="checkbox" 
+                          name="newsletter"
+                          class="mt-1 mr-2"
+                        />
+                        <span class="text-sm text-gray-600">
+                          Ja, ich möchte regelmäßig über Angebote und Neuigkeiten informiert werden
+                        </span>
+                      </label>
+                    </div>
+
+                    <div class="pt-4">
+                      <button 
+                        type="submit"
+                        class="w-full text-white px-6 py-3 rounded-lg transition font-bold text-lg flex items-center justify-center"
+                        style="background-color: var(--gold);"
+                      >
+                        <span>Weiter zur Zahlung</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Step 2: Payment Method -->
+              <div id="step-2" class="checkout-section">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                  <h2 class="text-2xl font-bold mb-6" style="color: var(--navy-dark);">
+                    <i class="fas fa-credit-card mr-2"></i>Zahlungsart wählen
+                  </h2>
+
+                  <div class="space-y-4">
+                    <!-- Stripe Card Payment -->
+                    <label class="block border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition">
+                      <div class="flex items-center">
+                        <input 
+                          type="radio" 
+                          name="paymentMethod" 
+                          value="stripe"
+                          checked
+                          class="mr-3"
+                        />
+                        <div class="flex-1">
+                          <div class="font-semibold text-gray-800">Kreditkarte / Debitkarte</div>
+                          <div class="text-sm text-gray-500">Visa, Mastercard, American Express</div>
+                        </div>
+                        <div class="flex space-x-2">
+                          <i class="fab fa-cc-visa text-3xl text-blue-600"></i>
+                          <i class="fab fa-cc-mastercard text-3xl text-red-600"></i>
+                        </div>
+                      </div>
+                    </label>
+
+                    <!-- PayPal -->
+                    <label class="block border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition">
+                      <div class="flex items-center">
+                        <input 
+                          type="radio" 
+                          name="paymentMethod" 
+                          value="paypal"
+                          class="mr-3"
+                        />
+                        <div class="flex-1">
+                          <div class="font-semibold text-gray-800">PayPal</div>
+                          <div class="text-sm text-gray-500">Schnell und sicher mit PayPal bezahlen</div>
+                        </div>
+                        <i class="fab fa-paypal text-3xl text-blue-600"></i>
+                      </div>
+                    </label>
+
+                    <!-- Bank Transfer -->
+                    <label class="block border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition">
+                      <div class="flex items-center">
+                        <input 
+                          type="radio" 
+                          name="paymentMethod" 
+                          value="bank_transfer"
+                          class="mr-3"
+                        />
+                        <div class="flex-1">
+                          <div class="font-semibold text-gray-800">Überweisung</div>
+                          <div class="text-sm text-gray-500">Bezahlen Sie bequem per Überweisung</div>
+                        </div>
+                        <i class="fas fa-university text-3xl text-gray-600"></i>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div class="flex space-x-4 mt-6 pt-6 border-t">
+                    <button 
+                      onclick="goToStep(1)"
+                      class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+                    >
+                      <i class="fas fa-arrow-left mr-2"></i>Zurück
+                    </button>
+                    <button 
+                      onclick="goToStep(3)"
+                      class="flex-1 text-white px-6 py-3 rounded-lg transition font-bold"
+                      style="background-color: var(--gold);"
+                    >
+                      Weiter zur Prüfung
+                      <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3: Review Order -->
+              <div id="step-3" class="checkout-section">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                  <h2 class="text-2xl font-bold mb-6" style="color: var(--navy-dark);">
+                    <i class="fas fa-check-circle mr-2"></i>Bestellung prüfen
+                  </h2>
+
+                  <!-- Customer Info Review -->
+                  <div class="mb-6 pb-6 border-b">
+                    <h3 class="font-semibold text-lg mb-3">Ihre Daten</h3>
+                    <div id="review-customer-info" class="text-gray-700 space-y-1">
+                      <!-- Will be populated by JS -->
+                    </div>
+                    <button onclick="goToStep(1)" class="text-blue-600 hover:underline text-sm mt-2">
+                      <i class="fas fa-edit mr-1"></i>Bearbeiten
+                    </button>
+                  </div>
+
+                  <!-- Payment Method Review -->
+                  <div class="mb-6 pb-6 border-b">
+                    <h3 class="font-semibold text-lg mb-3">Zahlungsart</h3>
+                    <div id="review-payment-method" class="text-gray-700">
+                      <!-- Will be populated by JS -->
+                    </div>
+                    <button onclick="goToStep(2)" class="text-blue-600 hover:underline text-sm mt-2">
+                      <i class="fas fa-edit mr-1"></i>Ändern
+                    </button>
+                  </div>
+
+                  <!-- Cart Items Review -->
+                  <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-3">Ihre Bestellung</h3>
+                    <div id="review-cart-items" class="space-y-3">
+                      <!-- Will be populated by JS -->
+                    </div>
+                  </div>
+
+                  <!-- Terms and Conditions -->
+                  <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <label class="flex items-start">
+                      <input 
+                        type="checkbox" 
+                        id="terms-checkbox"
+                        class="mt-1 mr-3"
+                        required
+                      />
+                      <span class="text-sm text-gray-700">
+                        Ich habe die <a href="/agb" class="text-blue-600 hover:underline">AGB</a> und 
+                        <a href="/datenschutz" class="text-blue-600 hover:underline">Datenschutzbestimmungen</a> gelesen und akzeptiere diese. 
+                        Mir ist bekannt, dass ich bei digitalen Produkten kein Widerrufsrecht habe, sobald der Download begonnen hat.
+                        <span class="text-red-500">*</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  <div class="flex space-x-4">
+                    <button 
+                      onclick="goToStep(2)"
+                      class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+                    >
+                      <i class="fas fa-arrow-left mr-2"></i>Zurück
+                    </button>
+                    <button 
+                      onclick="submitOrder()"
+                      id="submit-order-btn"
+                      class="flex-1 bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition font-bold text-lg"
+                    >
+                      <i class="fas fa-lock mr-2"></i>Jetzt kostenpflichtig bestellen
+                    </button>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Main Content -->
-                <div class="lg:col-span-2">
-                    <!-- Step 1: Cart Review -->
-                    <div id="step1-content" class="bg-white rounded-2xl shadow-lg p-6">
-                        <h2 class="text-2xl font-bold mb-6">
-                            <i class="fas fa-shopping-cart mr-2"></i>Ihr Warenkorb
-                        </h2>
-                        <div id="cart-items-checkout" class="space-y-4">
-                            <!-- Cart items will be loaded here -->
-                        </div>
-                        <div class="mt-6 flex justify-end">
-                            <button 
-                                onclick="nextStep(2)"
-                                class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition"
-                            >
-                                Weiter zur Kasse <i class="fas fa-arrow-right ml-2"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Customer Information -->
-                    <div id="step2-content" class="hidden bg-white rounded-2xl shadow-lg p-6">
-                        <h2 class="text-2xl font-bold mb-6">
-                            <i class="fas fa-user mr-2"></i>Kundendaten
-                        </h2>
-                        <form id="customerForm" class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Vorname *</label>
-                                    <input type="text" name="firstName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nachname *</label>
-                                    <input type="text" name="lastName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">E-Mail-Adresse *</label>
-                                <input type="email" name="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Telefon (optional)</label>
-                                <input type="tel" name="phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Straße & Hausnummer *</label>
-                                <input type="text" name="address" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">PLZ *</label>
-                                    <input type="text" name="zip" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Stadt *</label>
-                                    <input type="text" name="city" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Land *</label>
-                                <select name="country" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    <option value="DE" selected>Deutschland</option>
-                                    <option value="AT">Österreich</option>
-                                    <option value="CH">Schweiz</option>
-                                </select>
-                            </div>
-                            <div class="flex items-start">
-                                <input type="checkbox" id="agb" name="agb" required class="mt-1 w-4 h-4" />
-                                <label for="agb" class="ml-2 text-sm text-gray-600">
-                                    Ich akzeptiere die <a href="/agb" class="text-blue-600 hover:underline">AGB</a> und 
-                                    <a href="/datenschutz" class="text-blue-600 hover:underline">Datenschutzbestimmungen</a> *
-                                </label>
-                            </div>
-                            <div class="flex justify-between mt-6">
-                                <button type="button" onclick="previousStep(1)" class="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-50 transition">
-                                    <i class="fas fa-arrow-left mr-2"></i>Zurück
-                                </button>
-                                <button type="submit" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition">
-                                    Weiter zur Zahlung <i class="fas fa-arrow-right ml-2"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Step 3: Payment -->
-                    <div id="step3-content" class="hidden bg-white rounded-2xl shadow-lg p-6">
-                        <h2 class="text-2xl font-bold mb-6">
-                            <i class="fas fa-credit-card mr-2"></i>Zahlungsmethode
-                        </h2>
-                        
-                        <!-- Payment Methods -->
-                        <div class="space-y-4 mb-6">
-                            <div class="border border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition" onclick="selectPayment('stripe')">
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="paymentMethod" value="stripe" checked class="w-4 h-4" />
-                                    <div class="ml-3 flex-1">
-                                        <div class="font-semibold">Kreditkarte / Debitkarte</div>
-                                        <div class="text-sm text-gray-600">Visa, Mastercard, American Express</div>
-                                    </div>
-                                    <div class="flex space-x-2">
-                                        <i class="fab fa-cc-visa text-3xl text-blue-600"></i>
-                                        <i class="fab fa-cc-mastercard text-3xl text-red-600"></i>
-                                    </div>
-                                </label>
-                            </div>
-                            
-                            <div class="border border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition opacity-50" onclick="alert('PayPal kommt bald')">
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="paymentMethod" value="paypal" disabled class="w-4 h-4" />
-                                    <div class="ml-3 flex-1">
-                                        <div class="font-semibold">PayPal</div>
-                                        <div class="text-sm text-gray-600">Sicher mit PayPal bezahlen</div>
-                                    </div>
-                                    <i class="fab fa-paypal text-3xl text-blue-600"></i>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Stripe Payment Element -->
-                        <div id="stripe-payment-element" class="mb-6">
-                            <!-- Stripe elements will be mounted here -->
-                        </div>
-
-                        <div id="payment-error" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            <span id="payment-error-text"></span>
-                        </div>
-
-                        <div class="flex justify-between">
-                            <button type="button" onclick="previousStep(2)" class="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-50 transition">
-                                <i class="fas fa-arrow-left mr-2"></i>Zurück
-                            </button>
-                            <button 
-                                id="pay-button"
-                                onclick="processPayment()"
-                                class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition"
-                            >
-                                <i class="fas fa-lock mr-2"></i>Jetzt bezahlen
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Step 4: Confirmation -->
-                    <div id="step4-content" class="hidden bg-white rounded-2xl shadow-lg p-6 text-center">
-                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-check-circle text-green-600 text-4xl"></i>
-                        </div>
-                        <h2 class="text-3xl font-bold mb-4">Bestellung erfolgreich!</h2>
-                        <p class="text-gray-600 mb-6">Vielen Dank für Ihre Bestellung.</p>
-                        
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-                            <div class="text-sm text-gray-600 mb-2">Bestellnummer</div>
-                            <div id="order-number" class="text-2xl font-bold text-blue-600"></div>
-                        </div>
-
-                        <div class="space-y-3 text-left mb-6">
-                            <div class="flex items-start">
-                                <i class="fas fa-envelope text-green-600 mt-1 mr-3"></i>
-                                <div>
-                                    <strong>Bestätigungs-E-Mail</strong>
-                                    <p class="text-sm text-gray-600">Eine Bestätigung wurde an Ihre E-Mail-Adresse gesendet.</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start">
-                                <i class="fas fa-key text-blue-600 mt-1 mr-3"></i>
-                                <div>
-                                    <strong>Lizenzschlüssel</strong>
-                                    <p class="text-sm text-gray-600">Ihre Lizenzschlüssel finden Sie in Ihrem Konto.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a href="/konto/bestellungen" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition inline-block">
-                                <i class="fas fa-list mr-2"></i>Meine Bestellungen
-                            </a>
-                            <a href="/" class="border border-gray-300 px-8 py-3 rounded-lg hover:bg-gray-50 transition inline-block">
-                                <i class="fas fa-home mr-2"></i>Zur Startseite
-                            </a>
-                        </div>
-                    </div>
+            <!-- Order Summary Sidebar -->
+            <div class="lg:col-span-1">
+              <div class="bg-white rounded-lg shadow-sm p-6 sticky top-24">
+                <h2 class="text-xl font-bold mb-4" style="color: var(--navy-dark);">Ihre Bestellung</h2>
+                
+                <div id="checkout-summary" class="space-y-3 mb-4">
+                  <!-- Summary will be populated by JS -->
                 </div>
 
-                <!-- Order Summary Sidebar -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-4">
-                        <h3 class="text-xl font-bold mb-4">Bestellübersicht</h3>
-                        <div id="order-summary" class="space-y-3">
-                            <!-- Order summary will be loaded here -->
-                        </div>
-                        <div class="border-t border-gray-200 mt-4 pt-4">
-                            <div class="flex justify-between text-sm mb-2">
-                                <span>Zwischensumme:</span>
-                                <span id="summary-subtotal">€0.00</span>
-                            </div>
-                            <div class="flex justify-between text-sm mb-2 text-green-600" id="summary-discount-row" style="display:none">
-                                <span>Rabatt:</span>
-                                <span id="summary-discount">-€0.00</span>
-                            </div>
-                            <div class="flex justify-between text-sm mb-2">
-                                <span>MwSt. (19%):</span>
-                                <span id="summary-vat">€0.00</span>
-                            </div>
-                            <div class="flex justify-between text-lg font-bold mt-4">
-                                <span>Gesamt:</span>
-                                <span id="summary-total" class="text-blue-600">€0.00</span>
-                            </div>
-                        </div>
-
-                        <!-- Trust Badges -->
-                        <div class="mt-6 space-y-3 text-sm text-gray-600">
-                            <div class="flex items-center">
-                                <i class="fas fa-shield-alt text-green-600 mr-2"></i>
-                                SSL-verschlüsselte Zahlung
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-truck text-blue-600 mr-2"></i>
-                                Sofortiger Download
-                            </div>
-                            <div class="flex items-center">
-                                <i class="fas fa-undo text-purple-600 mr-2"></i>
-                                14 Tage Geld-zurück-Garantie
-                            </div>
-                        </div>
-                    </div>
+                <div id="checkout-totals" class="space-y-2 pt-4 border-t">
+                  <!-- Totals will be populated by JS -->
                 </div>
-            </div>
-        </div>
 
-        <!-- Footer -->
-        <footer class="bg-gray-900 text-white py-8 mt-12">
-            <div class="max-w-7xl mx-auto px-4 text-center">
-                <p class="text-gray-400">&copy; 2026 SoftwareKing24. Alle Rechte vorbehalten.</p>
+                <!-- Security Badges -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                  <div class="space-y-3 text-sm text-gray-600">
+                    <div class="flex items-center">
+                      <i class="fas fa-shield-alt text-green-600 mr-3"></i>
+                      <span>SSL-gesicherte Verbindung</span>
+                    </div>
+                    <div class="flex items-center">
+                      <i class="fas fa-bolt text-blue-600 mr-3"></i>
+                      <span>Sofortiger Lizenzversand</span>
+                    </div>
+                    <div class="flex items-center">
+                      <i class="fas fa-headset text-orange-600 mr-3"></i>
+                      <span>24/7 Support</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-        </footer>
+          </div>
+        </main>
 
         <script>
-            let currentStep = 1;
-            let customerData = {};
-            let stripe = null;
-            let elements = null;
+          let currentStep = 1;
+          let customerData = {};
+          let paymentMethod = 'stripe';
 
-            // Initialize
-            document.addEventListener('DOMContentLoaded', () => {
-                loadCartForCheckout();
-                loadOrderSummary();
-                initializeStripe();
-            });
-
-            // Step Navigation
-            function nextStep(step) {
-                if (step === 2 && !validateCart()) return;
-                
-                currentStep = step;
-                updateStepUI();
+          // Wait for cart manager
+          function initCheckout() {
+            if (!window.cartManager) {
+              setTimeout(initCheckout, 100);
+              return;
             }
 
-            function previousStep(step) {
-                currentStep = step;
-                updateStepUI();
+            const cart = window.cartManager.cart;
+            
+            // Check if cart is empty
+            if (!cart || cart.items.length === 0) {
+              alert('Ihr Warenkorb ist leer');
+              window.location.href = '/warenkorb';
+              return;
             }
 
-            function updateStepUI() {
-                // Hide all steps
-                for (let i = 1; i <= 4; i++) {
-                    document.getElementById(\`step\${i}-content\`).classList.add('hidden');
-                    document.getElementById(\`step\${i}-icon\`).classList.remove('bg-blue-600', 'text-white');
-                    document.getElementById(\`step\${i}-icon\`).classList.add('bg-gray-300', 'text-gray-600');
-                    document.getElementById(\`step\${i}-text\`).classList.remove('font-semibold', 'text-blue-600');
-                    document.getElementById(\`step\${i}-text\`).classList.add('text-gray-600');
-                }
+            updateSummary();
+            setupFormHandlers();
+          }
 
-                // Show current step
-                document.getElementById(\`step\${currentStep}-content\`).classList.remove('hidden');
-                document.getElementById(\`step\${currentStep}-icon\`).classList.add('bg-blue-600', 'text-white');
-                document.getElementById(\`step\${currentStep}-icon\`).classList.remove('bg-gray-300', 'text-gray-600');
-                document.getElementById(\`step\${currentStep}-text\`).classList.add('font-semibold', 'text-blue-600');
-                document.getElementById(\`step\${currentStep}-text\`).classList.remove('text-gray-600');
+          // Update summary sidebar
+          function updateSummary() {
+            const cart = window.cartManager.cart;
+            const summaryEl = document.getElementById('checkout-summary');
+            const totalsEl = document.getElementById('checkout-totals');
 
-                // Update progress lines
-                for (let i = 1; i <= 3; i++) {
-                    const line = document.getElementById(\`line\${i}\`);
-                    if (i < currentStep) {
-                        line.classList.remove('bg-gray-300');
-                        line.classList.add('bg-blue-600');
-                    } else {
-                        line.classList.add('bg-gray-300');
-                        line.classList.remove('bg-blue-600');
-                    }
-                }
+            // Cart items
+            summaryEl.innerHTML = cart.items.map(item => {
+              const price = item.product.discount_price || item.product.base_price;
+              return \`
+                <div class="flex justify-between text-sm">
+                  <span class="flex-1 truncate">\${item.quantity}x \${item.product.name}</span>
+                  <span class="font-semibold ml-2">€\${(price * item.quantity).toFixed(2)}</span>
+                </div>
+              \`;
+            }).join('');
+
+            // Totals
+            const subtotal = cart.subtotal || 0;
+            const discount = cart.discount || 0;
+            const vat = cart.vat || 0;
+            const total = cart.total || 0;
+
+            let totalsHTML = \`
+              <div class="flex justify-between text-gray-700">
+                <span>Zwischensumme:</span>
+                <span>€\${(subtotal / 100).toFixed(2)}</span>
+              </div>
+            \`;
+
+            if (discount > 0) {
+              totalsHTML += \`
+                <div class="flex justify-between text-green-600">
+                  <span>Rabatt:</span>
+                  <span>-€\${(discount / 100).toFixed(2)}</span>
+                </div>
+              \`;
             }
 
-            function validateCart() {
-                const cart = CartManager.getCart();
-                if (cart.items.length === 0) {
-                    alert('Ihr Warenkorb ist leer');
-                    return false;
-                }
-                return true;
-            }
+            totalsHTML += \`
+              <div class="flex justify-between text-gray-700">
+                <span>MwSt. (19%):</span>
+                <span>€\${(vat / 100).toFixed(2)}</span>
+              </div>
+              <div class="flex justify-between text-lg font-bold pt-2 border-t" style="color: var(--navy-dark);">
+                <span>Gesamt:</span>
+                <span>€\${(total / 100).toFixed(2)}</span>
+              </div>
+            \`;
 
-            // Load cart for checkout
-            function loadCartForCheckout() {
-                const cart = CartManager.getCart();
-                const container = document.getElementById('cart-items-checkout');
-                
-                if (cart.items.length === 0) {
-                    container.innerHTML = \`
-                        <div class="text-center py-8 text-gray-600">
-                            <i class="fas fa-shopping-cart text-4xl mb-4"></i>
-                            <p>Ihr Warenkorb ist leer</p>
-                            <a href="/produkte" class="text-blue-600 hover:underline mt-2 inline-block">Produkte ansehen</a>
-                        </div>
-                    \`;
-                    return;
-                }
+            totalsEl.innerHTML = totalsHTML;
+          }
 
-                container.innerHTML = cart.items.map(item => \`
-                    <div class="flex items-center space-x-4 border-b border-gray-200 pb-4">
-                        <img src="\${item.image}" alt="\${item.name}" class="w-16 h-16 object-cover rounded-lg" />
-                        <div class="flex-1">
-                            <h4 class="font-semibold">\${item.name}</h4>
-                            <p class="text-sm text-gray-600">Menge: \${item.quantity}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold text-blue-600">€\${(item.price * item.quantity).toFixed(2)}</p>
-                        </div>
-                    </div>
-                \`).join('');
-            }
-
-            // Load order summary
-            function loadOrderSummary() {
-                const cart = CartManager.getCart();
-                const container = document.getElementById('order-summary');
-                
-                container.innerHTML = cart.items.map(item => \`
-                    <div class="flex justify-between text-sm">
-                        <span>\${item.name} × \${item.quantity}</span>
-                        <span>€\${(item.price * item.quantity).toFixed(2)}</span>
-                    </div>
-                \`).join('');
-
-                document.getElementById('summary-subtotal').textContent = \`€\${cart.subtotal.toFixed(2)}\`;
-                document.getElementById('summary-vat').textContent = \`€\${cart.VAT.toFixed(2)}\`;
-                document.getElementById('summary-total').textContent = \`€\${cart.total.toFixed(2)}\`;
-
-                if (cart.discount > 0) {
-                    document.getElementById('summary-discount-row').style.display = 'flex';
-                    document.getElementById('summary-discount').textContent = \`-€\${cart.discount.toFixed(2)}\`;
-                }
-            }
-
+          // Setup form handlers
+          function setupFormHandlers() {
             // Customer form submission
-            document.getElementById('customerForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                customerData = {
-                    firstName: formData.get('firstName'),
-                    lastName: formData.get('lastName'),
-                    email: formData.get('email'),
-                    phone: formData.get('phone'),
-                    address: formData.get('address'),
-                    zip: formData.get('zip'),
-                    city: formData.get('city'),
-                    country: formData.get('country')
-                };
-                nextStep(3);
+            document.getElementById('customer-form').addEventListener('submit', (e) => {
+              e.preventDefault();
+              
+              const formData = new FormData(e.target);
+              customerData = {
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                email: formData.get('email'),
+                company: formData.get('company'),
+                street: formData.get('street'),
+                zip: formData.get('zip'),
+                city: formData.get('city'),
+                country: formData.get('country'),
+                newsletter: formData.get('newsletter') === 'on'
+              };
+
+              goToStep(2);
             });
 
-            // Initialize Stripe
-            async function initializeStripe() {
-                // Stripe public key - will be configured
-                const publicKey = 'pk_test_placeholder'; // Replace with actual key
-                stripe = Stripe(publicKey);
+            // Payment method selection
+            document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+              radio.addEventListener('change', (e) => {
+                paymentMethod = e.target.value;
+              });
+            });
+          }
 
-                const appearance = {
-                    theme: 'stripe',
-                    variables: {
-                        colorPrimary: '#2563eb',
-                    }
-                };
+          // Navigate between steps
+          function goToStep(step) {
+            // Hide all sections
+            document.querySelectorAll('.checkout-section').forEach(section => {
+              section.classList.remove('active');
+            });
 
-                // Note: This is a placeholder - actual implementation would create payment intent
-                // and mount Stripe Elements here
+            // Show target section
+            document.getElementById('step-' + step).classList.add('active');
+
+            // Update step indicators
+            for (let i = 1; i <= 3; i++) {
+              const indicator = document.getElementById('step-indicator-' + i);
+              indicator.classList.remove('active', 'completed');
+              
+              if (i < step) {
+                indicator.classList.add('completed');
+              } else if (i === step) {
+                indicator.classList.add('active');
+              }
             }
 
-            // Process payment
-            async function processPayment() {
-                const payButton = document.getElementById('pay-button');
-                const errorDiv = document.getElementById('payment-error');
-                const errorText = document.getElementById('payment-error-text');
+            currentStep = step;
 
-                payButton.disabled = true;
-                payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Zahlung wird verarbeitet...';
-                errorDiv.classList.add('hidden');
-
-                try {
-                    // Get cart
-                    const cart = CartManager.getCart();
-
-                    // Create order
-                    const orderData = {
-                        customer: customerData,
-                        items: cart.items,
-                        subtotal: cart.subtotal,
-                        vat: cart.VAT,
-                        discount: cart.discount,
-                        total: cart.total,
-                        coupon: cart.coupon
-                    };
-
-                    const response = await axios.post('/api/checkout', orderData);
-
-                    if (response.data.success) {
-                        // Clear cart
-                        CartManager.clearCart();
-
-                        // Show confirmation
-                        document.getElementById('order-number').textContent = response.data.orderNumber;
-                        nextStep(4);
-                    } else {
-                        throw new Error(response.data.error || 'Zahlung fehlgeschlagen');
-                    }
-                } catch (error) {
-                    console.error('Payment error:', error);
-                    errorText.textContent = error.response?.data?.error || error.message || 'Zahlung fehlgeschlagen';
-                    errorDiv.classList.remove('hidden');
-
-                    payButton.disabled = false;
-                    payButton.innerHTML = '<i class="fas fa-lock mr-2"></i>Jetzt bezahlen';
-                }
+            // Update review section if on step 3
+            if (step === 3) {
+              updateReviewSection();
             }
 
-            function selectPayment(method) {
-                // Handle payment method selection
-                console.log('Selected payment method:', method);
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+
+          // Update review section
+          function updateReviewSection() {
+            // Customer info
+            const customerInfoEl = document.getElementById('review-customer-info');
+            customerInfoEl.innerHTML = \`
+              <p><strong>\${customerData.firstName} \${customerData.lastName}</strong></p>
+              \${customerData.company ? \`<p>\${customerData.company}</p>\` : ''}
+              <p>\${customerData.street}</p>
+              <p>\${customerData.zip} \${customerData.city}</p>
+              <p>\${customerData.country}</p>
+              <p class="text-blue-600 mt-2"><i class="fas fa-envelope mr-1"></i>\${customerData.email}</p>
+            \`;
+
+            // Payment method
+            const paymentMethodEl = document.getElementById('review-payment-method');
+            const paymentMethods = {
+              'stripe': '<i class="fas fa-credit-card mr-2"></i>Kreditkarte / Debitkarte',
+              'paypal': '<i class="fab fa-paypal mr-2"></i>PayPal',
+              'bank_transfer': '<i class="fas fa-university mr-2"></i>Überweisung'
+            };
+            paymentMethodEl.innerHTML = paymentMethods[paymentMethod];
+
+            // Cart items
+            const cart = window.cartManager.cart;
+            const cartItemsEl = document.getElementById('review-cart-items');
+            cartItemsEl.innerHTML = cart.items.map(item => {
+              const price = item.product.discount_price || item.product.base_price;
+              return \`
+                <div class="flex justify-between text-sm py-2 border-b">
+                  <div class="flex-1">
+                    <div class="font-semibold">\${item.product.name}</div>
+                    <div class="text-gray-600">Menge: \${item.quantity}</div>
+                  </div>
+                  <div class="font-semibold">€\${(price * item.quantity).toFixed(2)}</div>
+                </div>
+              \`;
+            }).join('');
+          }
+
+          // Submit order
+          async function submitOrder() {
+            const termsCheckbox = document.getElementById('terms-checkbox');
+            
+            if (!termsCheckbox.checked) {
+              alert('Bitte akzeptieren Sie die AGB und Datenschutzbestimmungen');
+              return;
             }
+
+            const submitBtn = document.getElementById('submit-order-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Bestellung wird verarbeitet...';
+
+            try {
+              const cart = window.cartManager.cart;
+              
+              const orderData = {
+                customer: customerData,
+                paymentMethod: paymentMethod,
+                items: cart.items.map(item => ({
+                  productId: item.product.id,
+                  quantity: item.quantity,
+                  licenseType: item.licenseType,
+                  price: item.product.discount_price || item.product.base_price
+                })),
+                subtotal: cart.subtotal,
+                discount: cart.discount,
+                vat: cart.vat,
+                total: cart.total,
+                coupon: cart.coupon ? cart.coupon.code : null
+              };
+
+              const response = await axios.post('/api/orders', orderData);
+
+              if (response.data.success) {
+                // Clear cart
+                window.cartManager.clearCart();
+                
+                // Redirect to success page
+                window.location.href = '/success?order=' + response.data.data.orderNumber;
+              } else {
+                throw new Error(response.data.error || 'Bestellung fehlgeschlagen');
+              }
+            } catch (error) {
+              console.error('Order submission error:', error);
+              alert('Fehler beim Absenden der Bestellung: ' + (error.response?.data?.error || error.message));
+              
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = '<i class="fas fa-lock mr-2"></i>Jetzt kostenpflichtig bestellen';
+            }
+          }
+
+          // Initialize on load
+          window.addEventListener('DOMContentLoaded', initCheckout);
         </script>
-    </body>
+      </body>
     </html>
   `;
 };

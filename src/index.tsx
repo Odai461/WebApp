@@ -16,6 +16,7 @@ import { CartPage } from './components/cart-page'
 import { RegisterPage } from './components/register-page'
 import { LoginPage } from './components/login-page'
 import { CheckoutPage } from './components/checkout-page'
+import { OrderSuccessPage } from './components/order-success'
 import { UserDashboard } from './components/dashboard-overview'
 import { UserOrders } from './components/dashboard-orders'
 import { UserDashboard } from './components/user-dashboard'
@@ -213,11 +214,11 @@ app.get('/product/:slug', (c) => {
 
 // Shopping cart page
 app.get('/warenkorb', (c) => {
-  return c.html(<CartPage />)
+  return c.html(CartPage())
 })
 
 app.get('/cart', (c) => {
-  return c.html(<CartPage />)
+  return c.html(CartPage())
 })
 
 // ===========================
@@ -250,6 +251,14 @@ app.get('/kasse', (c) => {
 
 app.get('/checkout', (c) => {
   return c.html(CheckoutPage())
+})
+
+app.get('/success', (c) => {
+  return c.html(OrderSuccessPage())
+})
+
+app.get('/bestellung-erfolg', (c) => {
+  return c.html(OrderSuccessPage())
 })
 
 // ===========================
@@ -1195,87 +1204,95 @@ app.post('/api/orders', async (c) => {
     const db = c.get('db') as DatabaseHelper
     const body = await c.req.json()
 
-    // Validate input
-    if (!body.email || !body.first_name || !body.last_name || !body.items || body.items.length === 0) {
+    // Validate input from checkout form
+    if (!body.customer || !body.items || body.items.length === 0) {
       return c.json({ success: false, error: 'Missing required fields' }, 400)
     }
 
-    // Calculate totals
-    let subtotal = 0
-    const orderItems = []
-
-    for (const item of body.items) {
-      const product = await db.getProductBySlug(item.slug, c.get('language') || 'en')
-      if (!product) {
-        return c.json({ success: false, error: `Product not found: ${item.slug}` }, 400)
-      }
-
-      const price = product.discount_price || product.base_price
-      const quantity = item.quantity || 1
-      const itemTotal = price * quantity
-      
-      subtotal += itemTotal
-
-      orderItems.push({
-        product_id: product.id,
-        product_name: product.name,
-        product_sku: product.sku,
-        quantity,
-        unit_price: price,
-        tax_rate: product.vat_rate,
-        tax_amount: calculateVAT(itemTotal, product.vat_rate),
-        total: itemTotal
-      })
+    const customer = body.customer
+    
+    // Validate customer data
+    if (!customer.email || !customer.firstName || !customer.lastName) {
+      return c.json({ success: false, error: 'Missing customer information' }, 400)
     }
 
-    const taxAmount = calculateVAT(subtotal, 19.0) // Default VAT
-    const total = subtotal + taxAmount
+    // Calculate totals (values come from frontend in cents)
+    const subtotal = body.subtotal || 0
+    const discount = body.discount || 0
+    const vat = body.vat || 0
+    const total = body.total || 0
 
     // Create order
     const orderNumber = generateOrderNumber()
-    const orderId = await db.createOrder({
-      order_number: orderNumber,
-      user_id: body.user_id || null,
-      email: body.email,
-      first_name: body.first_name,
-      last_name: body.last_name,
-      company: body.company,
-      vat_number: body.vat_number,
-      country: body.country || 'DE',
+    
+    // Insert order into database
+    const orderResult = await db.db.prepare(`
+      INSERT INTO orders (
+        order_number, email, status, 
+        subtotal, tax, total, 
+        payment_method, payment_status,
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `).bind(
+      orderNumber,
+      customer.email,
+      'pending',
       subtotal,
-      tax_amount: taxAmount,
-      discount_amount: 0,
+      vat,
       total,
-      currency: 'EUR',
-      language: c.get('language') || 'en'
-    })
+      body.paymentMethod || 'stripe',
+      'pending'
+    ).run()
 
-    // Add order items and assign license keys
-    for (const item of orderItems) {
-      await db.addOrderItem({
-        order_id: orderId,
-        ...item
-      })
+    const orderId = orderResult.meta.last_row_id
 
-      // Assign license key if available
-      const licenseKey = await db.getAvailableLicenseKey(item.product_id)
-      if (licenseKey) {
-        await db.assignLicenseKeyToOrder(licenseKey.id, orderId)
-      }
+    // Add order items
+    for (const item of body.items) {
+      await db.db.prepare(`
+        INSERT INTO order_items (
+          order_id, product_id, quantity, 
+          unit_price, total_price
+        ) VALUES (?, ?, ?, ?, ?)
+      `).bind(
+        orderId,
+        item.productId,
+        item.quantity,
+        item.price,
+        item.price * item.quantity
+      ).run()
     }
+
+    // Store customer billing address
+    await db.db.prepare(`
+      INSERT INTO addresses (
+        user_id, address_type, first_name, last_name, 
+        company, street, city, zip, country, 
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `).bind(
+      null, // guest order
+      'billing',
+      customer.firstName,
+      customer.lastName,
+      customer.company || null,
+      customer.street,
+      customer.city,
+      customer.zip,
+      customer.country
+    ).run()
 
     return c.json({ 
       success: true, 
       data: {
-        order_number: orderNumber,
-        order_id: orderId,
-        total,
+        orderNumber: orderNumber,
+        orderId: orderId,
+        total: total,
         message: 'Order created successfully'
       }
     })
   } catch (error) {
     console.error('Order creation error:', error)
-    return c.json({ success: false, error: 'Failed to create order' }, 500)
+    return c.json({ success: false, error: 'Failed to create order: ' + error.message }, 500)
   }
 })
 
