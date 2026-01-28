@@ -757,6 +757,8 @@ import { UserDashboard } from './components/user-dashboard'
 import { OrdersPage } from './components/orders-page'
 import { LicensesPage } from './components/licenses-page'
 import { ProfilePage } from './components/profile-page'
+import { AGBPage } from './components/agb-page'
+import { KontaktPage } from './components/kontakt-page'
 
 // Product Detail Page
 app.get('/products/:slug', async (c) => {
@@ -814,6 +816,20 @@ app.get('/cart', (c) => {
 // Checkout Page
 app.get('/checkout', (c) => {
   return c.html(<Checkout />)
+})
+
+// ============================================
+// LEGAL PAGES
+// ============================================
+
+// AGB (Terms & Conditions) Page
+app.get('/agb', (c) => {
+  return c.html(<AGBPage />)
+})
+
+// Kontakt (Contact) Page
+app.get('/kontakt', (c) => {
+  return c.html(<KontaktPage />)
 })
 
 // ============================================
@@ -975,6 +991,34 @@ app.get('/account/profile', (c) => {
       <ProfilePage />
     </UserDashboard>
   )
+})
+
+// ============================================
+// CONTACT API ENDPOINT
+// ============================================
+
+app.post('/api/contact', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { name, email, phone, subject, orderNumber, message } = body
+
+    // Validate required fields
+    if (!name || !email || !subject || !message) {
+      return c.json({ success: false, error: 'Missing required fields' }, 400)
+    }
+
+    // In production, send email via SendGrid/Resend or save to database
+    console.log('Contact form submission:', { name, email, subject, orderNumber })
+
+    // Mock success response
+    return c.json({ 
+      success: true, 
+      message: 'Thank you for your message. We will get back to you soon.' 
+    })
+  } catch (error) {
+    console.error('Contact form error:', error)
+    return c.json({ success: false, error: 'Failed to submit contact form' }, 500)
+  }
 })
 
 export default app
