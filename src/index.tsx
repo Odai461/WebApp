@@ -7,7 +7,7 @@ import { Layout } from './renderer'
 import { Homepage } from './components/homepage'
 import { ProductsPage } from './components/products-page'
 import { HomepageNew } from './components/homepage-modern'
-import { HomepageEnhanced } from './components/homepage-enhanced'
+import { HomepagePrestaShop } from './components/homepage-prestashop'
 import { ProductDetailPage } from './components/product-detail'
 import { CartPage } from './components/cart-page'
 import { RegisterPage } from './components/register-page'
@@ -148,11 +148,11 @@ app.use('*', async (c, next) => {
 // ============================================
 
 app.get('/', (c) => {
-  return c.html(<HomepageEnhanced />)
+  return c.html(<HomepagePrestaShop />)
 })
 
 app.get('/de', (c) => {
-  return c.html(<HomepageEnhanced />)
+  return c.html(<HomepagePrestaShop />)
 })
 
 // Products page
