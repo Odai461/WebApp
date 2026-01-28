@@ -972,6 +972,17 @@ app.get('/categories/:slug', async (c) => {
   }
 })
 
+// Product Detail Page (German + English URLs)
+app.get('/produkt/:id', (c) => {
+  const productId = c.req.param('id')
+  return c.html(<Layout title="Produktdetails"><ProductDetail productId={productId} /></Layout>)
+})
+
+app.get('/product/:id', (c) => {
+  const productId = c.req.param('id')
+  return c.html(<Layout title="Product Details"><ProductDetail productId={productId} /></Layout>)
+})
+
 // Shopping Cart Page
 // Cart Page (German + English URLs)
 app.get('/warenkorb', (c) => {
