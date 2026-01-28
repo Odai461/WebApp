@@ -10,6 +10,8 @@ import { HomepageNew } from './components/homepage-modern'
 import { HomepageEnhanced } from './components/homepage-enhanced'
 import { ProductDetailPage } from './components/product-detail'
 import { CartPage } from './components/cart-page'
+import { RegisterPage } from './components/register-page'
+import { LoginPage } from './components/login-page'
 import { 
   formatPrice, 
   generateOrderNumber, 
@@ -179,6 +181,26 @@ app.get('/warenkorb', (c) => {
 
 app.get('/cart', (c) => {
   return c.html(<CartPage />)
+})
+
+// ===========================
+// AUTH ROUTES
+// ===========================
+
+app.get('/registrieren', (c) => {
+  return c.html(<RegisterPage />)
+})
+
+app.get('/register', (c) => {
+  return c.html(<RegisterPage />)
+})
+
+app.get('/login', (c) => {
+  return c.html(<LoginPage />)
+})
+
+app.get('/anmelden', (c) => {
+  return c.html(<LoginPage />)
 })
 
 // ============================================

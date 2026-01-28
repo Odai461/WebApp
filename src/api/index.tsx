@@ -1,13 +1,17 @@
-// API Routes for Products, Cart, Checkout
+// API Routes for Products, Cart, Checkout, Auth
 import { Hono } from 'hono'
 import type { CloudflareBindings } from '../types'
 import seedProducts from '../data/seed-products.json'
+import authApi from './auth'
 
 type Env = {
   Bindings: CloudflareBindings
 }
 
 const api = new Hono<Env>()
+
+// Mount Auth API
+api.route('/auth', authApi)
 
 // Transform seed products to match API format
 const transformProduct = (p: any) => ({
