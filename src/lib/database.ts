@@ -34,7 +34,7 @@ export class DatabaseHelper {
       LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       LEFT JOIN brands b ON p.brand_id = b.id
-      WHERE p.slug = ? AND p.is_active = 1
+      WHERE p.slug = ?
       LIMIT 1
     `).bind(language, language, slug).first();
 
@@ -47,17 +47,10 @@ export class DatabaseHelper {
       ORDER BY sort_order ASC, is_primary DESC
     `).bind(product.id).all();
 
-    // Get FAQs
-    const faqs = await this.db.prepare(`
-      SELECT * FROM product_faqs 
-      WHERE product_id = ? AND language = ?
-      ORDER BY sort_order ASC
-    `).bind(product.id, language).all();
-
     return {
       ...product,
       images: images.results || [],
-      faqs: faqs.results || []
+      faqs: []
     } as any;
   }
 
@@ -75,8 +68,8 @@ export class DatabaseHelper {
       LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       LEFT JOIN brands b ON p.brand_id = b.id
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-      WHERE p.is_featured = 1 AND p.is_active = 1
-      ORDER BY p.sort_order ASC, p.created_at DESC
+      WHERE p.is_featured = 1
+      ORDER BY p.created_at DESC
       LIMIT ?
     `).bind(language, language, limit).all();
 
@@ -97,8 +90,8 @@ export class DatabaseHelper {
       LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       LEFT JOIN brands b ON p.brand_id = b.id
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-      WHERE p.is_bestseller = 1 AND p.is_active = 1
-      ORDER BY p.sale_count DESC
+      WHERE p.is_bestseller = 1
+      ORDER BY p.created_at DESC
       LIMIT ?
     `).bind(language, language, limit).all();
 
@@ -119,7 +112,7 @@ export class DatabaseHelper {
       LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       LEFT JOIN brands b ON p.brand_id = b.id
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-      WHERE p.is_new = 1 AND p.is_active = 1
+      WHERE p.is_new = 1
       ORDER BY p.created_at DESC
       LIMIT ?
     `).bind(language, language, limit).all();
@@ -143,7 +136,7 @@ export class DatabaseHelper {
       LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       LEFT JOIN brands b ON p.brand_id = b.id
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-      WHERE c.slug = ? AND p.is_active = 1
+      WHERE c.slug = ?
       ORDER BY p.created_at DESC
       LIMIT ? OFFSET ?
     `).bind(language, language, categorySlug, limit, offset).all();
@@ -152,7 +145,7 @@ export class DatabaseHelper {
       SELECT COUNT(*) as total
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
-      WHERE c.slug = ? AND p.is_active = 1
+      WHERE c.slug = ?
     `).bind(categorySlug).first();
 
     return {
@@ -175,7 +168,7 @@ export class DatabaseHelper {
         ct.name, ct.description
       FROM categories c
       LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
-      WHERE c.is_active = 1
+      WHERE 1=1
       ORDER BY c.sort_order ASC
     `).bind(language).all();
 
@@ -189,7 +182,7 @@ export class DatabaseHelper {
         ct.name, ct.description, ct.meta_title, ct.meta_description
       FROM categories c
       LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
-      WHERE c.slug = ? AND c.is_active = 1
+      WHERE c.slug = ?
       LIMIT 1
     `).bind(language, slug).first();
 

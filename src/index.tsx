@@ -666,26 +666,79 @@ app.get('/api/init-db', async (c) => {
         return c.json({ success: true, message: 'Database already initialized', count: (check as any).count })
       }
     } catch (e) {
-      // Table doesn't exist, continue with initialization
+      // Table doesn't exist, create all tables
+      console.log('Creating database schema...')
+      
+      // Create all tables - simplified schema
+      const createQueries = [
+        // Users & Auth
+        `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, first_name TEXT NOT NULL, last_name TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'customer', status TEXT NOT NULL DEFAULT 'active', created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`,
+        `CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, token TEXT UNIQUE NOT NULL, expires_at DATETIME NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`,
+        // Categories & Brands
+        `CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT UNIQUE NOT NULL, icon TEXT, sort_order INTEGER DEFAULT 0, is_active INTEGER DEFAULT 1)`,
+        `CREATE TABLE IF NOT EXISTS category_translations (id INTEGER PRIMARY KEY AUTOINCREMENT, category_id INTEGER NOT NULL, language TEXT NOT NULL, name TEXT NOT NULL, description TEXT, FOREIGN KEY (category_id) REFERENCES categories(id), UNIQUE(category_id, language))`,
+        `CREATE TABLE IF NOT EXISTS brands (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE NOT NULL, slug TEXT UNIQUE NOT NULL, logo_url TEXT, is_featured INTEGER DEFAULT 0)`,
+        // Products
+        `CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY AUTOINCREMENT, sku TEXT UNIQUE NOT NULL, category_id INTEGER NOT NULL, brand_id INTEGER, slug TEXT UNIQUE NOT NULL, product_type TEXT DEFAULT 'license', base_price DECIMAL(10, 2) NOT NULL, discount_price DECIMAL(10, 2), discount_percentage INTEGER, vat_rate DECIMAL(5, 2) DEFAULT 19.00, stock_type TEXT DEFAULT 'unlimited', license_type TEXT, license_duration TEXT, activation_limit INTEGER DEFAULT 1, is_featured INTEGER DEFAULT 0, is_bestseller INTEGER DEFAULT 0, is_new INTEGER DEFAULT 0, rating_average DECIMAL(3, 2) DEFAULT 0, rating_count INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (category_id) REFERENCES categories(id), FOREIGN KEY (brand_id) REFERENCES brands(id))`,
+        `CREATE TABLE IF NOT EXISTS product_translations (id INTEGER PRIMARY KEY AUTOINCREMENT, product_id INTEGER NOT NULL, language TEXT NOT NULL, name TEXT NOT NULL, short_description TEXT, long_description TEXT, features TEXT, meta_title TEXT, meta_description TEXT, FOREIGN KEY (product_id) REFERENCES products(id), UNIQUE(product_id, language))`,
+        `CREATE TABLE IF NOT EXISTS product_images (id INTEGER PRIMARY KEY AUTOINCREMENT, product_id INTEGER NOT NULL, image_url TEXT NOT NULL, alt_text TEXT, sort_order INTEGER DEFAULT 0, is_primary INTEGER DEFAULT 0, FOREIGN KEY (product_id) REFERENCES products(id))`,
+        // Orders & Licenses
+        `CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY AUTOINCREMENT, order_number TEXT UNIQUE NOT NULL, user_id INTEGER, email TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', subtotal DECIMAL(10, 2) NOT NULL, tax DECIMAL(10, 2) NOT NULL, total DECIMAL(10, 2) NOT NULL, payment_method TEXT, payment_status TEXT DEFAULT 'pending', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`,
+        `CREATE TABLE IF NOT EXISTS order_items (id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER NOT NULL, product_id INTEGER NOT NULL, quantity INTEGER NOT NULL DEFAULT 1, unit_price DECIMAL(10, 2) NOT NULL, total_price DECIMAL(10, 2) NOT NULL, license_key_id INTEGER, FOREIGN KEY (order_id) REFERENCES orders(id), FOREIGN KEY (product_id) REFERENCES products(id))`,
+        `CREATE TABLE IF NOT EXISTS license_keys (id INTEGER PRIMARY KEY AUTOINCREMENT, product_id INTEGER NOT NULL, license_key TEXT UNIQUE NOT NULL, key_type TEXT DEFAULT 'standard', status TEXT DEFAULT 'available', order_id INTEGER, user_id INTEGER, activation_limit INTEGER DEFAULT 1, activation_count INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (product_id) REFERENCES products(id), FOREIGN KEY (order_id) REFERENCES orders(id), FOREIGN KEY (user_id) REFERENCES users(id))`,
+        // Create indexes
+        `CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_products_featured ON products(is_featured)`,
+        `CREATE INDEX IF NOT EXISTS idx_products_bestseller ON products(is_bestseller)`,
+        `CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_license_keys_product ON license_keys(product_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_license_keys_status ON license_keys(status)`
+      ]
+
+      for (const query of createQueries) {
+        await db.prepare(query).run()
+      }
     }
 
-    // Insert sample products
-    await db.prepare(`
-      INSERT OR IGNORE INTO products (id, sku, category_id, brand_id, slug, product_type, base_price, discount_price, discount_percentage, vat_rate, stock_type, license_type, license_duration, compatibility, activation_limit, is_featured, is_bestseller) 
-      VALUES (1, 'WIN11-PRO-001', 1, 1, 'windows-11-pro', 'license', 199.99, 79.99, 60, 19.00, 'unlimited', 'perpetual', 'lifetime', '["Windows 11 compatible PC"]', 1, 1, 1)
-    `).run()
+    // Insert sample data
+    await db.batch([
+      // Brands
+      db.prepare(`INSERT OR IGNORE INTO brands (id, name, slug, logo_url, is_featured) VALUES (1, 'Microsoft', 'microsoft', 'https://logo.clearbit.com/microsoft.com', 1)`),
+      db.prepare(`INSERT OR IGNORE INTO brands (id, name, slug, logo_url, is_featured) VALUES (2, 'Adobe', 'adobe', 'https://logo.clearbit.com/adobe.com', 1)`),
+      db.prepare(`INSERT OR IGNORE INTO brands (id, name, slug, logo_url, is_featured) VALUES (3, 'Kaspersky', 'kaspersky', 'https://logo.clearbit.com/kaspersky.com', 1)`),
+      // Categories
+      db.prepare(`INSERT OR IGNORE INTO categories (id, slug, icon, sort_order, is_active) VALUES (1, 'operating-systems', 'fa-desktop', 1, 1)`),
+      db.prepare(`INSERT OR IGNORE INTO categories (id, slug, icon, sort_order, is_active) VALUES (2, 'office-productivity', 'fa-file-alt', 2, 1)`),
+      db.prepare(`INSERT OR IGNORE INTO categories (id, slug, icon, sort_order, is_active) VALUES (3, 'security', 'fa-shield-alt', 3, 1)`),
+      db.prepare(`INSERT OR IGNORE INTO category_translations (category_id, language, name, description) VALUES (1, 'en', 'Operating Systems', 'Windows and other operating systems')`),
+      db.prepare(`INSERT OR IGNORE INTO category_translations (category_id, language, name, description) VALUES (2, 'en', 'Office & Productivity', 'Microsoft Office and productivity software')`),
+      db.prepare(`INSERT OR IGNORE INTO category_translations (category_id, language, name, description) VALUES (3, 'en', 'Security Software', 'Antivirus and security solutions')`),
+      // Products
+      db.prepare(`INSERT OR IGNORE INTO products (id, sku, category_id, brand_id, slug, base_price, discount_price, discount_percentage, is_featured, is_bestseller, rating_average, rating_count) VALUES (1, 'WIN11-PRO', 1, 1, 'windows-11-pro', 199.99, 79.99, 60, 1, 1, 4.8, 1234)`),
+      db.prepare(`INSERT OR IGNORE INTO products (id, sku, category_id, brand_id, slug, base_price, discount_price, discount_percentage, is_featured, is_bestseller, rating_average, rating_count) VALUES (2, 'OFF365-BUS', 2, 1, 'office-365-business', 149.99, 99.99, 33, 1, 1, 4.7, 987)`),
+      db.prepare(`INSERT OR IGNORE INTO products (id, sku, category_id, brand_id, slug, base_price, discount_price, discount_percentage, is_featured, rating_average, rating_count) VALUES (3, 'KAS-TOT-SEC', 3, 3, 'kaspersky-total-security', 89.99, 39.99, 56, 1, 4.6, 756)`),
+      db.prepare(`INSERT OR IGNORE INTO products (id, sku, category_id, brand_id, slug, base_price, discount_price, discount_percentage, is_featured, is_new, rating_average, rating_count) VALUES (4, 'WIN10-PRO', 1, 1, 'windows-10-pro', 159.99, 69.99, 56, 1, 0, 4.9, 2341)`),
+      db.prepare(`INSERT OR IGNORE INTO products (id, sku, category_id, brand_id, slug, base_price, discount_price, discount_percentage, is_bestseller, rating_average, rating_count) VALUES (5, 'ADOBE-CC', 2, 2, 'adobe-creative-cloud', 599.99, 399.99, 33, 1, 4.8, 654)`),
+      db.prepare(`INSERT OR IGNORE INTO products (id, sku, category_id, brand_id, slug, base_price, discount_price, discount_percentage, is_new, rating_average, rating_count) VALUES (6, 'OFF2021-PRO', 2, 1, 'office-2021-professional', 299.99, 179.99, 40, 1, 4.7, 1123)`),
+      db.prepare(`INSERT OR IGNORE INTO product_translations (product_id, language, name, short_description, long_description, features) VALUES (1, 'en', 'Windows 11 Pro', 'Latest Windows operating system for professionals', 'Microsoft Windows 11 Professional brings a fresh new look and powerful new features to enhance your productivity.', '["Advanced Security Features", "Remote Desktop", "BitLocker Encryption", "Hyper-V Virtualization"]')`),
+      db.prepare(`INSERT OR IGNORE INTO product_translations (product_id, language, name, short_description, long_description, features) VALUES (2, 'en', 'Office 365 Business', 'Complete office suite with cloud storage', 'Get Word, Excel, PowerPoint, Outlook, and 1TB OneDrive cloud storage.', '["Word, Excel, PowerPoint", "1TB Cloud Storage", "Outlook Email", "Microsoft Teams"]')`),
+      db.prepare(`INSERT OR IGNORE INTO product_translations (product_id, language, name, short_description, long_description, features) VALUES (3, 'en', 'Kaspersky Total Security', 'Complete protection for all your devices', 'Award-winning antivirus and internet security for PC, Mac, and mobile devices.', '["Real-time Protection", "VPN Included", "Password Manager", "Parental Controls"]')`),
+      db.prepare(`INSERT OR IGNORE INTO product_translations (product_id, language, name, short_description, long_description, features) VALUES (4, 'en', 'Windows 10 Pro', 'Reliable and powerful OS for business', 'Windows 10 Professional with all enterprise features and long-term support.', '["Enterprise Features", "Remote Desktop", "BitLocker", "Windows Update for Business"]')`),
+      db.prepare(`INSERT OR IGNORE INTO product_translations (product_id, language, name, short_description, long_description, features) VALUES (5, 'en', 'Adobe Creative Cloud', 'Complete creative suite for designers', 'Access to Photoshop, Illustrator, InDesign, Premiere Pro, and 20+ creative apps.', '["Photoshop & Illustrator", "Premiere Pro & After Effects", "100GB Cloud Storage", "Adobe Fonts"]')`),
+      db.prepare(`INSERT OR IGNORE INTO product_translations (product_id, language, name, short_description, long_description, features) VALUES (6, 'en', 'Office 2021 Professional', 'One-time purchase Office suite', 'Classic Office applications with one-time purchase - no subscription needed.', '["Word, Excel, PowerPoint, Outlook", "One-time Purchase", "Lifetime License", "No Subscription Required"]')`),
+      db.prepare(`INSERT OR IGNORE INTO product_images (product_id, image_url, alt_text, is_primary) VALUES (1, 'https://via.placeholder.com/600x400/1a2a4e/d4af37?text=Windows+11+Pro', 'Windows 11 Pro', 1)`),
+      db.prepare(`INSERT OR IGNORE INTO product_images (product_id, image_url, alt_text, is_primary) VALUES (2, 'https://via.placeholder.com/600x400/1a2a4e/d4af37?text=Office+365', 'Office 365 Business', 1)`),
+      db.prepare(`INSERT OR IGNORE INTO product_images (product_id, image_url, alt_text, is_primary) VALUES (3, 'https://via.placeholder.com/600x400/1a2a4e/d4af37?text=Kaspersky', 'Kaspersky Total Security', 1)`),
+      db.prepare(`INSERT OR IGNORE INTO product_images (product_id, image_url, alt_text, is_primary) VALUES (4, 'https://via.placeholder.com/600x400/1a2a4e/d4af37?text=Windows+10+Pro', 'Windows 10 Pro', 1)`),
+      db.prepare(`INSERT OR IGNORE INTO product_images (product_id, image_url, alt_text, is_primary) VALUES (5, 'https://via.placeholder.com/600x400/1a2a4e/d4af37?text=Adobe+CC', 'Adobe Creative Cloud', 1)`),
+      db.prepare(`INSERT OR IGNORE INTO product_images (product_id, image_url, alt_text, is_primary) VALUES (6, 'https://via.placeholder.com/600x400/1a2a4e/d4af37?text=Office+2021', 'Office 2021 Professional', 1)`),
+      // License keys
+      db.prepare(`INSERT OR IGNORE INTO license_keys (product_id, license_key, status) VALUES (1, 'WIN11-XXXX-XXXX-XXXX-XXXX', 'available')`),
+      db.prepare(`INSERT OR IGNORE INTO license_keys (product_id, license_key, status) VALUES (2, 'OFF365-XXXX-XXXX-XXXX-XXXX', 'available')`),
+      db.prepare(`INSERT OR IGNORE INTO license_keys (product_id, license_key, status) VALUES (3, 'KAS-XXXX-XXXX-XXXX-XXXX', 'available')`)
+    ])
 
-    await db.prepare(`
-      INSERT OR IGNORE INTO product_translations (product_id, language, name, short_description, long_description, features, meta_title, meta_description) VALUES 
-      (1, 'en', 'Windows 11 Pro', 'Official Microsoft Windows 11 Professional license key', 'Get the latest Windows 11 Professional operating system with all advanced features.', '["Enhanced Security with BitLocker", "Remote Desktop Connection", "Windows Sandbox", "Hyper-V Virtualization"]', 'Buy Windows 11 Pro License Key', 'Purchase genuine Windows 11 Professional license key')
-    `).run()
-
-    await db.prepare(`
-      INSERT OR IGNORE INTO product_images (product_id, image_url, alt_text, sort_order, is_primary) VALUES 
-      (1, 'https://via.placeholder.com/600x400/1a2a4e/d4af37?text=Windows+11+Pro', 'Windows 11 Pro', 0, 1)
-    `).run()
-
-    return c.json({ success: true, message: 'Sample data inserted successfully' })
+    return c.json({ success: true, message: 'Database initialized successfully with sample data' })
   } catch (error) {
     console.error('Database init error:', error)
     return c.json({ success: false, error: String(error) }, 500)
