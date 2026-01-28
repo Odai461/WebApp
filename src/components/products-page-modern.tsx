@@ -514,11 +514,16 @@ export const ProductsPageModern = () => {
               if (state.search) params.append('search', state.search);
 
               const response = await axios.get('/api/products?' + params.toString());
-              const { data, pagination } = response.data;
+              
+              // Handle API response format
+              let productsData = [];
+              if (response.data.success && response.data.data) {
+                productsData = response.data.data;
+              }
 
               // Filter by price and other criteria
-              let filtered = data.filter(p => {
-                const price = (p.sale_price || p.price) / 100;
+              let filtered = productsData.filter(p => {
+                const price = (p.discount_price || p.base_price);
                 return price <= state.priceMax;
               });
 
@@ -538,7 +543,7 @@ export const ProductsPageModern = () => {
               }
 
               renderProducts(filtered);
-              renderPagination(pagination);
+              renderPagination({ total: filtered.length, page: state.page, limit: state.limit });
               updateResultCount(filtered.length);
               updateActiveFilters();
               initScrollAnimations();
@@ -562,11 +567,20 @@ export const ProductsPageModern = () => {
             container.className = isListView ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8';
 
             container.innerHTML = products.map(product => {
-              const price = formatPrice(product.price);
-              const salePrice = product.sale_price ? formatPrice(product.sale_price) : null;
-              const savings = salePrice ? Math.round(((product.price - product.sale_price) / product.price) * 100) : 0;
+              const basePrice = product.base_price || 0;
+              const discountPrice = product.discount_price || null;
+              const price = discountPrice || basePrice;
+              const savings = discountPrice ? Math.round(((basePrice - discountPrice) / basePrice) * 100) : 0;
               const rating = product.rating_average || 4.5;
               const stars = Math.round(rating);
+              
+              // Format prices (already in euros, not cents)
+              const formattedPrice = price.toFixed(2).replace('.', ',') + ' €';
+              const formattedBasePrice = basePrice.toFixed(2).replace('.', ',') + ' €';
+              
+              // For template compatibility
+              const salePrice = discountPrice ? formattedPrice : null;
+              const priceDisplay = discountPrice ? formattedBasePrice : formattedPrice;
 
               if (isListView) {
                 return \`
@@ -591,10 +605,10 @@ export const ProductsPageModern = () => {
                           \${salePrice ? \`
                             <div class="flex items-center space-x-2">
                               <span class="text-3xl font-bold text-red-600">\${salePrice}</span>
-                              <span class="text-lg text-gray-400 line-through">\${price}</span>
+                              <span class="text-lg text-gray-400 line-through">\${priceDisplay}</span>
                             </div>
                           \` : \`
-                            <span class="text-3xl font-bold text-navy-dark">\${price}</span>
+                            <span class="text-3xl font-bold text-navy-dark">\${priceDisplay}</span>
                           \`}
                         </div>
                         <div class="flex space-x-2">
@@ -644,10 +658,10 @@ export const ProductsPageModern = () => {
                         \${salePrice ? \`
                           <div class="flex items-center space-x-2">
                             <span class="text-2xl font-bold text-red-600">\${salePrice}</span>
-                            <span class="text-sm text-gray-400 line-through">\${price}</span>
+                            <span class="text-sm text-gray-400 line-through">\${priceDisplay}</span>
                           </div>
                         \` : \`
-                          <span class="text-2xl font-bold text-navy-dark">\${price}</span>
+                          <span class="text-2xl font-bold text-navy-dark">\${priceDisplay}</span>
                         \`}
                       </div>
                     </div>

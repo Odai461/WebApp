@@ -55,7 +55,7 @@ export const AdminProducts: FC = () => {
       <script dangerouslySetInnerHTML={{__html: `
         async function loadProducts() {
           try {
-            const response = await fetch('/api/products/featured?limit=100');
+            const response = await fetch('/api/products?limit=100');
             const data = await response.json();
             
             if (data.success && data.data.length > 0) {
