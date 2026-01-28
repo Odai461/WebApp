@@ -821,6 +821,8 @@ import { LicensesPage } from './components/licenses-page'
 import { ProfilePage } from './components/profile-page'
 import { AGBPage } from './components/agb-page'
 import { KontaktPage } from './components/kontakt-page'
+import { FAQPage } from './components/faq-page'
+import { UeberUnsPage } from './components/ueber-uns-page'
 
 // Product Detail Page
 app.get('/products/:slug', async (c) => {
@@ -892,6 +894,16 @@ app.get('/agb', (c) => {
 // Kontakt (Contact) Page
 app.get('/kontakt', (c) => {
   return c.html(<KontaktPage />)
+})
+
+// FAQ Page
+app.get('/faq', (c) => {
+  return c.html(<FAQPage />)
+})
+
+// Über Uns (About Us) Page
+app.get('/ueber-uns', (c) => {
+  return c.html(<UeberUnsPage />)
 })
 
 // ============================================

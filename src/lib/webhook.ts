@@ -3,19 +3,17 @@
  * Validates webhook signatures from payment providers
  */
 
-import crypto from 'crypto'
-
 /**
  * Verify Stripe webhook signature
  * @param payload Raw webhook payload
  * @param signature Stripe-Signature header
  * @param secret Webhook secret from Stripe dashboard
  */
-export function verifyStripeSignature(
+export async function verifyStripeSignature(
   payload: string,
   signature: string | undefined,
   secret: string
-): boolean {
+): Promise<boolean> {
   if (!signature) {
     throw new Error('No signature provided')
   }
@@ -38,18 +36,41 @@ export function verifyStripeSignature(
       throw new Error('Webhook timestamp too old')
     }
 
-    // Compute expected signature
+    // Compute expected signature using Web Crypto API
     const signedPayload = `${timestamp}.${payload}`
-    const expectedSig = crypto
-      .createHmac('sha256', secret)
-      .update(signedPayload, 'utf8')
-      .digest('hex')
+    const encoder = new TextEncoder()
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    )
+    
+    const signature_bytes = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(signedPayload)
+    )
+    
+    const expectedSig = Array.from(new Uint8Array(signature_bytes))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
 
     // Compare signatures (constant-time comparison)
-    return crypto.timingSafeEqual(
-      Buffer.from(sig, 'hex'),
-      Buffer.from(expectedSig, 'hex')
-    )
+    const sigBytes = new TextEncoder().encode(sig)
+    const expectedBytes = new TextEncoder().encode(expectedSig)
+    
+    if (sigBytes.length !== expectedBytes.length) {
+      return false
+    }
+    
+    let result = 0
+    for (let i = 0; i < sigBytes.length; i++) {
+      result |= sigBytes[i] ^ expectedBytes[i]
+    }
+    
+    return result === 0
   } catch (error) {
     console.error('Stripe signature verification failed:', error)
     return false
@@ -85,15 +106,18 @@ export async function verifyPayPalSignature(
     // 2. Construct expected message
     // 3. Verify signature using certificate
     
-    // Expected message format:
-    const expectedMsg = `${transmissionId}|${transmissionTime}|${webhookId}|${crypto
-      .createHash('sha256')
-      .update(eventBody)
-      .digest('hex')}`
+    // Expected message format using Web Crypto API
+    const encoder = new TextEncoder()
+    const data = encoder.encode(eventBody)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const bodyHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    
+    const expectedMsg = `${transmissionId}|${transmissionTime}|${webhookId}|${bodyHash}`
 
     // In production, you would:
     // 1. Fetch cert from certUrl (validate it's from paypal.com)
-    // 2. Use crypto.createVerify with the cert and signature
+    // 2. Use crypto.subtle.verify with the cert and signature
     // 3. Return verification result
     
     // For now, return true if all headers present (implement full verification in production)
@@ -116,15 +140,23 @@ export async function verifyPayPalSignature(
 
 /**
  * Idempotency key storage (in-memory for now, use KV in production)
+ * Note: Map is initialized on first use to avoid global scope async operations
  */
-const processedWebhooks = new Map<string, boolean>()
+let processedWebhooks: Map<string, boolean> | null = null
+
+function getProcessedWebhooks(): Map<string, boolean> {
+  if (!processedWebhooks) {
+    processedWebhooks = new Map<string, boolean>()
+  }
+  return processedWebhooks
+}
 
 /**
  * Check if webhook has been processed (prevent duplicate processing)
  * @param eventId Unique event ID from webhook
  */
 export function isWebhookProcessed(eventId: string): boolean {
-  return processedWebhooks.has(eventId)
+  return getProcessedWebhooks().has(eventId)
 }
 
 /**
@@ -132,11 +164,12 @@ export function isWebhookProcessed(eventId: string): boolean {
  * @param eventId Unique event ID from webhook
  */
 export function markWebhookProcessed(eventId: string): void {
-  processedWebhooks.set(eventId, true)
+  getProcessedWebhooks().set(eventId, true)
   
   // Cleanup old entries after 24 hours
+  // Note: In production, use Cloudflare KV or D1 for persistence
   setTimeout(() => {
-    processedWebhooks.delete(eventId)
+    getProcessedWebhooks().delete(eventId)
   }, 24 * 60 * 60 * 1000)
 }
 

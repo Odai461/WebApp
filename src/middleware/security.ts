@@ -1,11 +1,10 @@
-// Security Middleware Module
+// Security Middleware Module (Cloudflare Workers Compatible)
 // Implements CSRF, Rate Limiting, and Security Headers
 
 import type { Context, Next } from 'hono'
-import { randomBytes, createHmac } from 'crypto'
 
 // ============================================
-// CSRF PROTECTION
+// CSRF PROTECTION (Web Crypto API)
 // ============================================
 
 interface CSRFConfig {
@@ -21,44 +20,85 @@ export class CSRFProtection {
 
   constructor(config: CSRFConfig) {
     this.secret = config.secret
-    this.cookieName = config.cookieName || 'csrf-token'
-    this.headerName = config.headerName || 'x-csrf-token'
+    this.cookieName = config.cookieName || 'csrf_token'
+    this.headerName = config.headerName || 'X-CSRF-Token'
   }
 
-  generateToken(): string {
-    const token = randomBytes(32).toString('hex')
+  // Generate random token (Web Crypto API)
+  private generateRandomToken(): string {
+    const array = new Uint8Array(32)
+    crypto.getRandomValues(array)
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
+  }
+
+  // Generate CSRF token with timestamp and signature
+  async generateToken(): Promise<string> {
+    const token = this.generateRandomToken()
     const timestamp = Date.now().toString()
-    const signature = createHmac('sha256', this.secret)
-      .update(`${token}:${timestamp}`)
-      .digest('hex')
+    
+    // Create HMAC signature using Web Crypto API
+    const encoder = new TextEncoder()
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(this.secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    )
+    
+    const signature_bytes = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(`${token}:${timestamp}`)
+    )
+    
+    const signature = Array.from(new Uint8Array(signature_bytes))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+    
     return `${token}:${timestamp}:${signature}`
   }
 
-  validateToken(token: string): boolean {
+  async validateToken(token: string): Promise<boolean> {
     if (!token) return false
 
     const parts = token.split(':')
     if (parts.length !== 3) return false
 
-    const [tokenPart, timestamp, signature] = parts
+    const [tokenPart, timestamp, providedSig] = parts
     
     // Check if token is too old (1 hour max)
     const tokenAge = Date.now() - parseInt(timestamp)
     if (tokenAge > 3600000) return false
 
     // Verify signature
-    const expectedSignature = createHmac('sha256', this.secret)
-      .update(`${tokenPart}:${timestamp}`)
-      .digest('hex')
+    const encoder = new TextEncoder()
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(this.secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    )
+    
+    const signature_bytes = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(`${tokenPart}:${timestamp}`)
+    )
+    
+    const expectedSig = Array.from(new Uint8Array(signature_bytes))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
 
-    return signature === expectedSignature
+    return providedSig === expectedSig
   }
 
   middleware() {
     return async (c: Context, next: Next) => {
       // GET requests: generate and set token
       if (c.req.method === 'GET') {
-        const token = this.generateToken()
+        const token = await this.generateToken()
         c.set('csrfToken', token)
         await next()
         return
@@ -70,7 +110,7 @@ export class CSRFProtection {
                      c.req.header('X-CSRF-TOKEN') ||
                      c.req.header('x-csrf-token')
         
-        if (!token || !this.validateToken(token)) {
+        if (!token || !(await this.validateToken(token))) {
           return c.json({ 
             success: false, 
             error: 'Invalid or missing CSRF token' 
@@ -79,6 +119,22 @@ export class CSRFProtection {
       }
 
       await next()
+    }
+  }
+}
+
+// Create CSRF instance (lazy initialization to avoid global scope issues)
+let csrfInstance: CSRFProtection | null = null
+
+export const csrf = {
+  middleware: () => {
+    return async (c: Context, next: Next) => {
+      if (!csrfInstance) {
+        csrfInstance = new CSRFProtection({
+          secret: c.env.CSRF_SECRET || 'default-csrf-secret-change-in-production'
+        })
+      }
+      return csrfInstance.middleware()(c, next)
     }
   }
 }
@@ -93,223 +149,129 @@ interface RateLimitConfig {
   keyGenerator?: (c: Context) => string
 }
 
-interface RateLimitEntry {
-  count: number
-  resetAt: number
-}
-
 export class RateLimiter {
-  private store: Map<string, RateLimitEntry>
-  private windowMs: number
-  private maxRequests: number
-  private keyGenerator: (c: Context) => string
+  private config: RateLimitConfig
+  private requests: Map<string, { count: number; resetTime: number }> | null = null
 
   constructor(config: RateLimitConfig) {
-    this.store = new Map()
-    this.windowMs = config.windowMs
-    this.maxRequests = config.maxRequests
-    this.keyGenerator = config.keyGenerator || ((c: Context) => {
-      return c.req.header('x-forwarded-for') || 
-             c.req.header('cf-connecting-ip') || 
-             'unknown'
-    })
-
-    // Cleanup old entries every minute
-    setInterval(() => this.cleanup(), 60000)
+    this.config = config
   }
 
-  private cleanup() {
-    const now = Date.now()
-    for (const [key, entry] of this.store.entries()) {
-      if (entry.resetAt < now) {
-        this.store.delete(key)
-      }
+  private getRequests() {
+    if (!this.requests) {
+      this.requests = new Map()
     }
+    return this.requests
+  }
+
+  private getKey(c: Context): string {
+    if (this.config.keyGenerator) {
+      return this.config.keyGenerator(c)
+    }
+    return c.req.header('cf-connecting-ip') || 
+           c.req.header('x-forwarded-for') || 
+           c.req.header('x-real-ip') || 
+           'unknown'
   }
 
   middleware() {
     return async (c: Context, next: Next) => {
-      const key = this.keyGenerator(c)
+      const key = this.getKey(c)
       const now = Date.now()
-      
-      let entry = this.store.get(key)
-      
-      if (!entry || entry.resetAt < now) {
-        entry = {
-          count: 0,
-          resetAt: now + this.windowMs
-        }
-        this.store.set(key, entry)
+      const requests = this.getRequests()
+      const record = requests.get(key)
+
+      if (!record || now > record.resetTime) {
+        requests.set(key, {
+          count: 1,
+          resetTime: now + this.config.windowMs
+        })
+        await next()
+        return
       }
 
-      entry.count++
-
-      // Set rate limit headers
-      c.header('X-RateLimit-Limit', this.maxRequests.toString())
-      c.header('X-RateLimit-Remaining', Math.max(0, this.maxRequests - entry.count).toString())
-      c.header('X-RateLimit-Reset', new Date(entry.resetAt).toISOString())
-
-      if (entry.count > this.maxRequests) {
+      if (record.count >= this.config.maxRequests) {
+        const retryAfter = Math.ceil((record.resetTime - now) / 1000)
+        
         return c.json({
           success: false,
-          error: 'Too many requests. Please try again later.',
-          retryAfter: Math.ceil((entry.resetAt - now) / 1000)
-        }, 429)
+          error: 'Too many requests',
+          retryAfter
+        }, 429, {
+          'Retry-After': retryAfter.toString(),
+          'X-RateLimit-Limit': this.config.maxRequests.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': record.resetTime.toString()
+        })
       }
 
+      record.count++
       await next()
     }
   }
 }
 
+// Rate limiter instances (lazy initialization)
+export const loginRateLimiter = new RateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5
+})
+
+export const apiRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 100
+})
+
+export const adminRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 50
+})
+
 // ============================================
 // SECURITY HEADERS
 // ============================================
 
-export const securityHeaders = () => {
+export function securityHeaders() {
   return async (c: Context, next: Next) => {
     await next()
-
-    // Prevent clickjacking
-    c.header('X-Frame-Options', 'DENY')
     
-    // Prevent MIME type sniffing
     c.header('X-Content-Type-Options', 'nosniff')
-    
-    // Enable XSS protection
+    c.header('X-Frame-Options', 'DENY')
     c.header('X-XSS-Protection', '1; mode=block')
-    
-    // Referrer policy
     c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
-    
-    // Content Security Policy
-    c.header('Content-Security-Policy', [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://js.stripe.com",
-      "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net",
-      "img-src 'self' data: https: blob:",
-      "font-src 'self' https://cdn.jsdelivr.net",
-      "connect-src 'self' https://api.stripe.com",
-      "frame-src https://js.stripe.com https://hooks.stripe.com",
-      "object-src 'none'",
-      "base-uri 'self'"
-    ].join('; '))
-    
-    // Permissions Policy
-    c.header('Permissions-Policy', [
-      'geolocation=()',
-      'microphone=()',
-      'camera=()',
-      'payment=(self)'
-    ].join(', '))
+    c.header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()')
+    c.header(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com;"
+    )
   }
 }
 
 // ============================================
-// IP WHITELIST (for admin routes)
-// ============================================
-
-export const ipWhitelist = (allowedIPs: string[]) => {
-  return async (c: Context, next: Next) => {
-    const clientIP = c.req.header('x-forwarded-for') || 
-                    c.req.header('cf-connecting-ip') || 
-                    'unknown'
-
-    if (!allowedIPs.includes(clientIP) && !allowedIPs.includes('*')) {
-      return c.json({
-        success: false,
-        error: 'Access denied from your IP address'
-      }, 403)
-    }
-
-    await next()
-  }
-}
-
-// ============================================
-// REQUEST SIZE LIMITER
-// ============================================
-
-export const requestSizeLimit = (maxSizeBytes: number) => {
-  return async (c: Context, next: Next) => {
-    const contentLength = c.req.header('content-length')
-    
-    if (contentLength && parseInt(contentLength) > maxSizeBytes) {
-      return c.json({
-        success: false,
-        error: `Request body too large. Maximum size: ${maxSizeBytes} bytes`
-      }, 413)
-    }
-
-    await next()
-  }
-}
-
-// ============================================
-// ADMIN AUTHENTICATION (Enhanced)
+// ENHANCED ADMIN AUTH
 // ============================================
 
 export const enhancedAdminAuth = async (c: Context, next: Next) => {
-  const db = c.get('db')
   const authHeader = c.req.header('Authorization')
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return c.json({ success: false, error: 'Unauthorized' }, 401)
+    return c.json({ error: 'Unauthorized' }, 401)
   }
 
   const token = authHeader.substring(7)
   
-  // Get session with user details
-  const session = await db.db.prepare(`
-    SELECT 
-      s.id as session_id,
-      s.expires_at,
-      u.id as user_id,
-      u.email,
-      u.role,
-      u.status,
-      u.last_login
+  const session = await c.env.DB.prepare(`
+    SELECT u.id, u.email, u.role, u.status, s.expires_at
     FROM sessions s
     JOIN users u ON s.user_id = u.id
-    WHERE s.token = ?
-    LIMIT 1
-  `).bind(token).first()
+    WHERE s.token = ? AND s.expires_at > datetime('now')
+  `).bind(token).first() as any
 
-  if (!session) {
-    return c.json({ success: false, error: 'Invalid session' }, 401)
+  if (!session || session.role !== 'admin' || session.status !== 'active') {
+    return c.json({ error: 'Admin access required' }, 403)
   }
 
-  // Check session expiration
-  const expiresAt = new Date(session.expires_at as string)
-  if (expiresAt < new Date()) {
-    return c.json({ success: false, error: 'Session expired' }, 401)
-  }
-
-  // Check admin role
-  if (session.role !== 'admin') {
-    return c.json({ success: false, error: 'Admin access required' }, 403)
-  }
-
-  // Check account status
-  if (session.status !== 'active') {
-    return c.json({ success: false, error: 'Account is not active' }, 403)
-  }
-
-  // Store user info in context
-  c.set('currentUser', {
-    id: session.user_id,
-    email: session.email,
-    role: session.role,
-    sessionId: session.session_id
-  })
-
-  // Log admin action (will be implemented in audit module)
-  c.set('auditAction', {
-    userId: session.user_id,
-    action: `${c.req.method} ${c.req.path}`,
-    timestamp: new Date().toISOString()
-  })
-
+  c.set('currentUser', session)
   await next()
 }
 
@@ -317,90 +279,31 @@ export const enhancedAdminAuth = async (c: Context, next: Next) => {
 // BRUTE FORCE PROTECTION
 // ============================================
 
-interface BruteForceEntry {
-  attempts: number
-  lockUntil: number
-}
-
-export class BruteForceProtection {
-  private store: Map<string, BruteForceEntry>
-  private maxAttempts: number
-  private lockDuration: number
-
-  constructor(maxAttempts: number = 5, lockDurationMs: number = 900000) {
-    this.store = new Map()
-    this.maxAttempts = maxAttempts
-    this.lockDuration = lockDurationMs
-
-    // Cleanup every 5 minutes
-    setInterval(() => this.cleanup(), 300000)
+export const bruteForceProtection = new RateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 5,
+  keyGenerator: (c) => {
+    const email = c.req.query('email') || c.req.json().then(body => body.email).catch(() => '')
+    const ip = c.req.header('cf-connecting-ip') || 'unknown'
+    return `${ip}:${email}`
   }
+})
 
-  private cleanup() {
-    const now = Date.now()
-    for (const [key, entry] of this.store.entries()) {
-      if (entry.lockUntil < now) {
-        this.store.delete(key)
-      }
+// ============================================
+// REQUEST SIZE LIMIT
+// ============================================
+
+export function requestSizeLimit(maxBytes: number) {
+  return async (c: Context, next: Next) => {
+    const contentLength = c.req.header('content-length')
+    
+    if (contentLength && parseInt(contentLength) > maxBytes) {
+      return c.json({
+        success: false,
+        error: `Request body too large. Maximum size is ${maxBytes / 1024 / 1024}MB`
+      }, 413)
     }
-  }
 
-  recordAttempt(identifier: string): void {
-    const now = Date.now()
-    const entry = this.store.get(identifier) || { attempts: 0, lockUntil: 0 }
-    
-    entry.attempts++
-    
-    if (entry.attempts >= this.maxAttempts) {
-      entry.lockUntil = now + this.lockDuration
-    }
-    
-    this.store.set(identifier, entry)
-  }
-
-  resetAttempts(identifier: string): void {
-    this.store.delete(identifier)
-  }
-
-  isLocked(identifier: string): boolean {
-    const entry = this.store.get(identifier)
-    if (!entry) return false
-    
-    const now = Date.now()
-    if (entry.lockUntil < now) {
-      this.store.delete(identifier)
-      return false
-    }
-    
-    return entry.attempts >= this.maxAttempts
-  }
-
-  getRemainingLockTime(identifier: string): number {
-    const entry = this.store.get(identifier)
-    if (!entry || entry.lockUntil < Date.now()) return 0
-    
-    return Math.ceil((entry.lockUntil - Date.now()) / 1000)
+    await next()
   }
 }
-
-// Export singleton instances
-export const csrf = new CSRFProtection({
-  secret: process.env.CSRF_SECRET || 'your-csrf-secret-change-in-production'
-})
-
-export const loginRateLimiter = new RateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 10
-})
-
-export const apiRateLimiter = new RateLimiter({
-  windowMs: 15 * 60 * 1000,
-  maxRequests: 100
-})
-
-export const adminRateLimiter = new RateLimiter({
-  windowMs: 15 * 60 * 1000,
-  maxRequests: 50
-})
-
-export const bruteForceProtection = new BruteForceProtection(5, 900000)
