@@ -1131,6 +1131,82 @@ export const ProductDetailPageModern = () => {
             localStorage.setItem('wishlist', JSON.stringify(wishlist));
           });
 
+          // Comparison button
+          const comparisonButtons = document.querySelectorAll('[title="Zum Vergleich hinzufügen"]');
+          comparisonButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+              if (!currentProduct) return;
+
+              const isInComparison = comparison.includes(currentProduct.id);
+
+              if (isInComparison) {
+                comparison = comparison.filter(id => id !== currentProduct.id);
+                btn.innerHTML = '<i class="fas fa-exchange-alt text-xl"></i>';
+                showNotification('Aus Vergleich entfernt', 'info');
+              } else {
+                if (comparison.length >= 4) {
+                  showNotification('Maximal 4 Produkte können verglichen werden', 'error');
+                  return;
+                }
+                comparison.push(currentProduct.id);
+                btn.innerHTML = '<i class="fas fa-check-circle text-xl"></i>';
+                showNotification('Zum Vergleich hinzugefügt', 'success');
+              }
+
+              localStorage.setItem('comparison', JSON.stringify(comparison));
+              updateComparisonBadge();
+            });
+          });
+
+          // Share button
+          const shareButtons = document.querySelectorAll('[title="Teilen"]');
+          shareButtons.forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const url = window.location.href;
+              const title = currentProduct ? currentProduct.name : 'Produkt';
+
+              // Try native share API first
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: title,
+                    text: \`Schau dir dieses Produkt an: \${title}\`,
+                    url: url
+                  });
+                  showNotification('Erfolgreich geteilt', 'success');
+                } catch (err) {
+                  if (err.name !== 'AbortError') {
+                    // Fall back to clipboard
+                    copyToClipboard(url);
+                  }
+                }
+              } else {
+                // Fall back to clipboard
+                copyToClipboard(url);
+              }
+            });
+          });
+
+          // Copy to clipboard helper
+          function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(() => {
+                showNotification('Link in Zwischenablage kopiert', 'success');
+              }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showNotification('Link in Zwischenablage kopiert', 'success');
+              });
+            }
+          }
+
           // Update comparison badge
           function updateComparisonBadge() {
             const badge = document.getElementById('comparison-badge');
@@ -1145,42 +1221,64 @@ export const ProductDetailPageModern = () => {
           }
 
           // Load related products
-          async function loadRelatedProducts(category) {
+          async function loadRelatedProducts(categoryId) {
             try {
-              const response = await axios.get('/api/products?category=' + category + '&limit=3');
+              // If no category ID, just get any products
+              const url = categoryId ? \`/api/products?category=\${categoryId}&limit=4\` : '/api/products?limit=4';
+              const response = await axios.get(url);
               if (response.data.success) {
                 const products = response.data.data.filter(p => p.id !== currentProduct.id).slice(0, 3);
                 renderRelatedProducts(products);
               }
             } catch (error) {
               console.error('Error loading related products:', error);
+              // If category filter fails, try without it
+              try {
+                const response = await axios.get('/api/products?limit=4');
+                if (response.data.success) {
+                  const products = response.data.data.filter(p => p.id !== currentProduct.id).slice(0, 3);
+                  renderRelatedProducts(products);
+                }
+              } catch (fallbackError) {
+                console.error('Fallback also failed:', fallbackError);
+              }
             }
           }
 
           // Render related products
           function renderRelatedProducts(products) {
+            if (!products || products.length === 0) {
+              document.getElementById('related-products').innerHTML = '<p class="text-gray-500 text-center col-span-3">Keine ähnlichen Produkte gefunden</p>';
+              return;
+            }
+
             document.getElementById('related-products').innerHTML = products.map(product => {
               const price = product.base_price || product.price || 0;
               const salePrice = product.discount_price || product.sale_price;
               const hasDiscount = salePrice && salePrice < price;
+              const imageUrl = product.image_url || (product.images && product.images[0]?.image_url);
 
               return \`
-                <div class="product-card-related">
-                  <div class="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                    <i class="fas fa-box text-5xl text-gray-300"></i>
+                <div class="product-card-related bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
+                  <div class="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
+                    \${imageUrl ? 
+                      \`<img src="\${imageUrl}" alt="\${product.name}" class="w-full h-full object-cover" />\` :
+                      \`<i class="fas fa-box text-5xl text-gray-300"></i>\`
+                    }
                   </div>
                   <div class="p-4">
-                    <h3 class="font-semibold mb-2 line-clamp-2" style="color: var(--navy-dark);">\${product.name}</h3>
+                    <h3 class="font-semibold mb-2 line-clamp-2 min-h-[3rem]" style="color: var(--navy-dark);">\${product.name}</h3>
                     <div class="flex items-baseline space-x-2 mb-3">
                       \${hasDiscount ? \`
                         <span class="text-xl font-bold text-red-600">\${formatPrice(salePrice)}</span>
                         <span class="text-sm text-gray-400 line-through">\${formatPrice(price)}</span>
+                        <span class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded">-\${Math.round(((price - salePrice) / price) * 100)}%</span>
                       \` : \`
                         <span class="text-xl font-bold" style="color: var(--navy-dark);">\${formatPrice(price)}</span>
                       \`}
                     </div>
-                    <a href="/produkt/\${product.slug}" class="block w-full text-center py-2 rounded-lg font-semibold transition text-white" style="background-color: var(--gold);">
-                      Ansehen
+                    <a href="/produkt/\${product.slug}" class="block w-full text-center py-2 rounded-lg font-semibold transition text-white hover:opacity-90" style="background-color: var(--gold);">
+                      <i class="fas fa-eye mr-2"></i>Ansehen
                     </a>
                   </div>
                 </div>
