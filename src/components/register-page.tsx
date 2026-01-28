@@ -14,7 +14,24 @@ export const RegisterPage = () => {
     <body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
         
         <!-- Header -->
-        ${require('./site-header').SiteHeader()}
+        <header class="bg-white shadow-md sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex items-center justify-between py-4">
+                    <a href="/" class="flex items-center space-x-3">
+                        <img src="/static/logo.png" alt="SoftwareKing24" class="h-12" />
+                    </a>
+                    <nav class="flex items-center space-x-6">
+                        <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
+                        <a href="/produkte" class="text-gray-700 hover:text-blue-600">Produkte</a>
+                        <a href="/warenkorb" class="text-gray-700 hover:text-blue-600 relative">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="absolute -top-1 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center" data-cart-count>0</span>
+                        </a>
+                        <a href="/login" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
         
         <!-- Registration Form -->
         <div class="max-w-md mx-auto px-4 py-12">
