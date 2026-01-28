@@ -96,16 +96,36 @@ export const HomepagePrestaShopEnhanced = () => {
                 position: absolute;
                 top: 100%;
                 left: 0;
-                right: 0;
+                min-width: 800px;
                 background: white;
                 box-shadow: 0 10px 40px rgba(0,0,0,0.15);
                 z-index: 1000;
                 border-top: 3px solid var(--gold);
+                border-radius: 0 0 8px 8px;
+                padding: 1.5rem;
+            }
+            
+            .mega-menu-trigger {
+                position: relative;
             }
             
             .mega-menu-trigger:hover .mega-menu {
                 display: block;
                 animation: slideDown 0.3s ease-out;
+            }
+            
+            .mega-menu h3 {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .mega-menu ul li a {
+                display: block;
+                padding: 0.5rem 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             /* Trust Badge */

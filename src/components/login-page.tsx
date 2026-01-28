@@ -10,24 +10,49 @@ export const LoginPage = () => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="/static/cart-manager-enhanced.js"></script>
+        <style>
+            :root {
+                --navy-dark: #1a2a4e;
+                --navy-medium: #2d3e6f;
+                --gold: #d4af37;
+                --gold-light: #e8c966;
+            }
+            .bg-navy-dark { background-color: var(--navy-dark); }
+            .bg-navy-medium { background-color: var(--navy-medium); }
+            .text-navy-dark { color: var(--navy-dark); }
+            .text-gold { color: var(--gold); }
+            .bg-gold { background-color: var(--gold); }
+            .border-gold { border-color: var(--gold); }
+            .hover\:bg-gold:hover { background-color: var(--gold); }
+            .hover\:bg-navy-medium:hover { background-color: var(--navy-medium); }
+            .gradient-navy-gold {
+                background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-medium) 100%);
+            }
+        </style>
     </head>
-    <body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+    <body class="bg-gray-50 min-h-screen">
         
         <!-- Header -->
-        <header class="bg-white shadow-md sticky top-0 z-50">
+        <header class="bg-white shadow-lg sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4">
-                <div class="flex items-center justify-between py-4">
-                    <a href="/" class="flex items-center space-x-3">
-                        <img src="/static/logo.png" alt="SoftwareKing24" class="h-12" />
+                <div class="flex items-center justify-between py-3">
+                    <a href="/" class="flex items-center">
+                        <img src="/static/logo.png" alt="SoftwareKing24" class="h-16" />
                     </a>
                     <nav class="flex items-center space-x-6">
-                        <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
-                        <a href="/produkte" class="text-gray-700 hover:text-blue-600">Produkte</a>
-                        <a href="/warenkorb" class="text-gray-700 hover:text-blue-600 relative">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span class="absolute -top-1 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center" data-cart-count>0</span>
+                        <a href="/" class="text-navy-dark hover:text-gold transition-colors font-semibold">
+                            <i class="fas fa-home mr-2"></i>Startseite
                         </a>
-                        <a href="/registrieren" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Registrieren</a>
+                        <a href="/produkte" class="text-navy-dark hover:text-gold transition-colors font-semibold">
+                            <i class="fas fa-shopping-bag mr-2"></i>Produkte
+                        </a>
+                        <a href="/warenkorb" class="bg-navy-dark hover:bg-navy-medium text-white px-4 py-2 rounded-lg transition-all flex items-center relative">
+                            <i class="fas fa-shopping-cart mr-2"></i>Warenkorb
+                            <span class="absolute -top-2 -right-2 bg-gold text-navy-dark w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" data-cart-count>0</span>
+                        </a>
+                        <a href="/registrieren" class="bg-gold hover:bg-gold-light text-navy-dark px-6 py-2 rounded-lg font-bold transition-all">
+                            <i class="fas fa-user-plus mr-2"></i>Registrieren
+                        </a>
                     </nav>
                 </div>
             </div>
@@ -41,12 +66,12 @@ export const LoginPage = () => {
                 Registrierung erfolgreich! Bitte melden Sie sich an.
             </div>
 
-            <div class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100">
                 <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-sign-in-alt text-white text-2xl"></i>
+                    <div class="w-20 h-20 gradient-navy-gold rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fas fa-sign-in-alt text-gold text-3xl"></i>
                     </div>
-                    <h1 class="text-3xl font-bold text-gray-800">Willkommen zurück</h1>
+                    <h1 class="text-3xl font-bold text-navy-dark">Willkommen zurück</h1>
                     <p class="text-gray-600 mt-2">Melden Sie sich bei Ihrem Konto an</p>
                 </div>
 
@@ -62,7 +87,7 @@ export const LoginPage = () => {
                             name="email" 
                             required
                             autofocus
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold transition"
                             placeholder="ihre@email.de"
                         />
                     </div>
@@ -78,7 +103,7 @@ export const LoginPage = () => {
                                 id="password" 
                                 name="password" 
                                 required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition pr-12"
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold transition pr-12"
                                 placeholder="Ihr Passwort"
                             />
                             <button 
@@ -98,11 +123,11 @@ export const LoginPage = () => {
                                 type="checkbox" 
                                 id="remember" 
                                 name="remember" 
-                                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                class="w-4 h-4 text-gold border-gray-300 rounded focus:ring-gold"
                             />
                             <span class="ml-2 text-sm text-gray-600">Angemeldet bleiben</span>
                         </label>
-                        <a href="/passwort-vergessen" class="text-sm text-blue-600 hover:underline">
+                        <a href="/passwort-vergessen" class="text-sm text-gold hover:underline font-semibold">
                             Passwort vergessen?
                         </a>
                     </div>
@@ -117,7 +142,7 @@ export const LoginPage = () => {
                     <button 
                         type="submit"
                         id="submitBtn"
-                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition transform hover:scale-105 shadow-lg"
+                        class="w-full gradient-navy-gold text-white py-3 rounded-lg font-bold hover:opacity-90 transition transform hover:scale-105 shadow-lg"
                     >
                         <i class="fas fa-sign-in-alt mr-2"></i>Anmelden
                     </button>
@@ -127,7 +152,7 @@ export const LoginPage = () => {
                 <div class="mt-6 text-center">
                     <p class="text-gray-600">
                         Noch kein Konto? 
-                        <a href="/registrieren" class="text-blue-600 hover:underline font-semibold">Jetzt registrieren</a>
+                        <a href="/registrieren" class="text-gold hover:underline font-bold">Jetzt registrieren</a>
                     </p>
                 </div>
 
@@ -154,10 +179,10 @@ export const LoginPage = () => {
             </div>
 
             <!-- Security Info -->
-            <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="mt-8 bg-navy-dark bg-opacity-5 border-2 border-gold rounded-lg p-4">
                 <div class="flex items-start">
-                    <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
-                    <div class="text-sm text-blue-800">
+                    <i class="fas fa-shield-check text-gold text-xl mt-1 mr-3"></i>
+                    <div class="text-sm text-navy-dark">
                         <strong>Ihre Sicherheit ist uns wichtig:</strong>
                         <ul class="list-disc list-inside mt-2 space-y-1">
                             <li>SSL-verschlüsselte Verbindung</li>
@@ -170,9 +195,14 @@ export const LoginPage = () => {
         </div>
 
         <!-- Footer -->
-        <footer class="bg-gray-900 text-white py-8 mt-12">
+        <footer class="bg-navy-dark text-white py-8 mt-12">
             <div class="max-w-7xl mx-auto px-4 text-center">
-                <p class="text-gray-400">&copy; 2026 SoftwareKing24. Alle Rechte vorbehalten.</p>
+                <p class="text-gray-300">&copy; 2026 SoftwareKing24. Alle Rechte vorbehalten.</p>
+                <div class="mt-4 flex items-center justify-center space-x-6 text-sm">
+                    <a href="/agb" class="text-gray-400 hover:text-gold transition-colors">AGB</a>
+                    <a href="/datenschutz" class="text-gray-400 hover:text-gold transition-colors">Datenschutz</a>
+                    <a href="/impressum" class="text-gray-400 hover:text-gold transition-colors">Impressum</a>
+                </div>
             </div>
         </footer>
 
