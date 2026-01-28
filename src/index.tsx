@@ -12,6 +12,7 @@ import { ProductDetailPage } from './components/product-detail'
 import { CartPage } from './components/cart-page'
 import { RegisterPage } from './components/register-page'
 import { LoginPage } from './components/login-page'
+import { CheckoutPage } from './components/checkout-page'
 import { 
   formatPrice, 
   generateOrderNumber, 
@@ -201,6 +202,18 @@ app.get('/login', (c) => {
 
 app.get('/anmelden', (c) => {
   return c.html(<LoginPage />)
+})
+
+// ===========================
+// CHECKOUT ROUTES
+// ===========================
+
+app.get('/kasse', (c) => {
+  return c.html(<CheckoutPage />)
+})
+
+app.get('/checkout', (c) => {
+  return c.html(<CheckoutPage />)
 })
 
 // ============================================
