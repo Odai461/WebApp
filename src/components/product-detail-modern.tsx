@@ -914,7 +914,7 @@ export const ProductDetailPageModern = () => {
               if (response.data.success) {
                 currentProduct = response.data.data;
                 renderProduct(currentProduct);
-                loadRelatedProducts(currentProduct.category);
+                loadRelatedProducts(currentProduct.category_id || currentProduct.category);
               } else {
                 showError('Produkt nicht gefunden');
               }
@@ -933,7 +933,7 @@ export const ProductDetailPageModern = () => {
             document.getElementById('og-description').content = product.short_description || product.long_description;
 
             // Breadcrumb
-            document.getElementById('breadcrumb-category').textContent = product.category;
+            document.getElementById('breadcrumb-category').textContent = product.category_name || 'Software';
             document.getElementById('breadcrumb-product').textContent = product.name;
 
             // Image Gallery
@@ -966,10 +966,10 @@ export const ProductDetailPageModern = () => {
             }
 
             // Product Info
-            document.getElementById('product-category').textContent = product.category || 'Software';
+            document.getElementById('product-category').textContent = product.category_name || 'Software';
             document.getElementById('product-name').textContent = product.name;
             document.getElementById('product-sku').textContent = product.sku || '-';
-            document.getElementById('product-brand').textContent = product.brand || '-';
+            document.getElementById('product-brand').textContent = product.brand_name || '-';
 
             // Rating
             const rating = product.rating_average || 4.9;
