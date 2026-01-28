@@ -43,6 +43,26 @@ A full-featured, enterprise-grade digital software eCommerce platform built with
 - [x] Order submission to API
 - [x] LocalStorage cart persistence
 
+### ✅ **User Dashboard**
+- [x] Professional dashboard layout with sidebar navigation
+- [x] Overview page with statistics (orders, licenses, spending)
+- [x] Order history page with detailed order information
+- [x] License keys management page
+- [x] License activation and download functionality
+- [x] Profile management page
+- [x] Password change functionality
+- [x] User preferences and settings
+- [x] Quick action buttons
+
+### ✅ **Payment Integration**
+- [x] Stripe payment API integration
+- [x] PayPal payment API integration
+- [x] Payment intent creation
+- [x] Webhook handlers for payment events
+- [x] Payment verification system
+- [x] Support for multiple payment methods
+- [x] Mock payment processing for development
+
 ### ✅ **Product Pages**
 - [x] Product detail pages with full information
 - [x] Product images gallery
@@ -292,6 +312,28 @@ GET  /api/auth/me
 ```
 POST /api/orders
 GET  /api/orders/:orderNumber
+```
+
+#### Payments
+```
+POST /api/payments/stripe/create-intent
+POST /api/payments/stripe/webhook
+POST /api/payments/paypal/create-order
+POST /api/payments/paypal/capture
+POST /api/payments/paypal/webhook
+POST /api/payments/verify
+```
+
+#### User Account (Protected)
+```
+GET  /api/account/stats
+GET  /api/account/orders
+GET  /api/account/licenses
+GET  /api/account/profile
+PUT  /api/account/profile
+PUT  /api/account/password
+POST /api/account/licenses/:id/activate
+GET  /api/account/licenses/:id/download
 ```
 
 ### Admin APIs (Protected)
