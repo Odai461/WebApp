@@ -168,15 +168,17 @@ app.get('/products', (c) => {
   return c.html(<ProductsPage />)
 })
 
-// Product detail page
-app.get('/produkt/:id', (c) => {
-  const productId = c.req.param('id')
-  return c.html(<ProductDetailPage productId={productId} />)
+// Product detail page (using slug for SEO)
+app.get('/produkt/:slug', (c) => {
+  const productSlug = c.req.param('slug')
+  const html = ProductDetailPage({ productSlug })
+  return c.html(html)
 })
 
-app.get('/product/:id', (c) => {
-  const productId = c.req.param('id')
-  return c.html(<ProductDetailPage productId={productId} />)
+app.get('/product/:slug', (c) => {
+  const productSlug = c.req.param('slug')
+  const html = ProductDetailPage({ productSlug })
+  return c.html(html)
 })
 
 // Shopping cart page
@@ -1062,26 +1064,7 @@ app.get('/categories/:slug', async (c) => {
   }
 })
 
-// Product Detail Page (German + English URLs)
-app.get('/produkt/:id', (c) => {
-  const productId = c.req.param('id')
-  return c.html(<Layout title="Produktdetails"><ProductDetail productId={productId} /></Layout>)
-})
-
-app.get('/product/:id', (c) => {
-  const productId = c.req.param('id')
-  return c.html(<Layout title="Product Details"><ProductDetail productId={productId} /></Layout>)
-})
-
-// Shopping Cart Page
-// Cart Page (German + English URLs)
-app.get('/warenkorb', (c) => {
-  return c.html(<Layout title="Warenkorb"><Cart /></Layout>)
-})
-
-app.get('/cart', (c) => {
-  return c.html(<Layout title="Shopping Cart"><Cart /></Layout>)
-})
+// Note: Product and Cart routes are defined above with proper components
 
 // Checkout Page (German + English URLs)
 app.get('/kasse', (c) => {
