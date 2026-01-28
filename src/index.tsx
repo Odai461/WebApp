@@ -115,8 +115,9 @@ app.use('/admin/*', adminRateLimiter.middleware())
 // CSRF protection for state-changing operations
 // Exclude import endpoint from CSRF (it's accessed from admin panel which has its own auth)
 app.use('/api/*', async (c, next) => {
-  // Skip CSRF for import endpoint
-  if (c.req.path === '/api/admin/import/woocommerce') {
+  // Skip CSRF for import endpoint and section products
+  if (c.req.path === '/api/admin/import/woocommerce' || 
+      c.req.path.startsWith('/api/admin/homepage-sections/') && c.req.path.endsWith('/products')) {
     return next();
   }
   return csrf.middleware()(c, next);
