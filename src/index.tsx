@@ -264,6 +264,24 @@ app.get('/account', (c) => {
 // API ROUTES: Products
 // ============================================
 
+// Get all products with pagination
+app.get('/api/products', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const language = c.get('language') || 'de'
+    const page = parseInt(c.req.query('page') || '1')
+    const limit = parseInt(c.req.query('limit') || '20')
+    const offset = (page - 1) * limit
+
+    const products = await db.getAllProducts(language, limit, offset)
+
+    return c.json({ success: true, data: products })
+  } catch (error) {
+    console.error('Failed to fetch products:', error)
+    return c.json({ success: false, error: 'Failed to fetch products' }, 500)
+  }
+})
+
 app.get('/api/products/featured', async (c) => {
   try {
     const db = c.get('db') as DatabaseHelper

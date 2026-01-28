@@ -54,6 +54,28 @@ export class DatabaseHelper {
     } as any;
   }
 
+  async getAllProducts(language: Language = 'en', limit: number = 20, offset: number = 0): Promise<ProductWithDetails[]> {
+    const products = await this.db.prepare(`
+      SELECT 
+        p.*,
+        pt.name, pt.short_description,
+        ct.name as category_name,
+        b.name as brand_name,
+        pi.image_url, pi.alt_text
+      FROM products p
+      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.language = ?
+      LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
+      LEFT JOIN brands b ON p.brand_id = b.id
+      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+      WHERE p.is_active = 1
+      ORDER BY p.created_at DESC
+      LIMIT ? OFFSET ?
+    `).bind(language, language, limit, offset).all();
+
+    return products.results as any[];
+  }
+
   async getFeaturedProducts(language: Language = 'en', limit: number = 8): Promise<ProductWithDetails[]> {
     const products = await this.db.prepare(`
       SELECT 
