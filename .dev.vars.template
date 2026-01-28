@@ -1,0 +1,87 @@
+# ============================================
+# SOFTWAREKING24 - ENVIRONMENT VARIABLES
+# ============================================
+# Copy this file to .dev.vars and fill in real values
+# NEVER commit .dev.vars to git!
+
+# ============================================
+# DATABASE
+# ============================================
+# Get this from: npx wrangler d1 create webapp-production
+DATABASE_ID=your-d1-database-id-here
+
+# ============================================
+# AUTHENTICATION & SECURITY
+# ============================================
+# Generate with: openssl rand -hex 32
+JWT_SECRET=generate-a-secure-random-64-character-hex-string-here
+SESSION_EXPIRE_HOURS=24
+BCRYPT_ROUNDS=10
+
+# ============================================
+# PAYMENT GATEWAYS
+# ============================================
+
+# Stripe (https://dashboard.stripe.com/apikeys)
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
+# PayPal (https://developer.paypal.com)
+PAYPAL_CLIENT_ID=your_paypal_client_id_here
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret_here
+PAYPAL_MODE=sandbox
+# Use 'live' for production
+
+# ============================================
+# EMAIL SERVICE
+# ============================================
+
+# SendGrid (https://app.sendgrid.com/settings/api_keys)
+SENDGRID_API_KEY=SG.your_sendgrid_api_key_here
+FROM_EMAIL=noreply@softwareking24.de
+FROM_NAME=SoftwareKing24
+
+# Alternative: Mailgun
+# MAILGUN_API_KEY=your_mailgun_api_key_here
+# MAILGUN_DOMAIN=mg.softwareking24.de
+
+# ============================================
+# APPLICATION SETTINGS
+# ============================================
+ENVIRONMENT=development
+BASE_URL=http://localhost:3000
+SITE_NAME=SoftwareKing24
+SUPPORT_EMAIL=support@softwareking24.de
+
+# ============================================
+# LICENSE SETTINGS
+# ============================================
+LICENSE_PREFIX=SK24
+LICENSE_LENGTH=20
+MAX_ACTIVATIONS_PER_LICENSE=1
+
+# ============================================
+# SECURITY SETTINGS
+# ============================================
+# Rate limiting (requests per minute)
+RATE_LIMIT_LOGIN=5
+RATE_LIMIT_API=100
+RATE_LIMIT_ADMIN=50
+
+# CSRF token expiry (seconds)
+CSRF_TOKEN_EXPIRY=3600
+
+# ============================================
+# OPTIONAL: THIRD-PARTY INTEGRATIONS
+# ============================================
+
+# Google Analytics
+# GA_TRACKING_ID=G-XXXXXXXXXX
+
+# Google reCAPTCHA
+# RECAPTCHA_SITE_KEY=your_site_key_here
+# RECAPTCHA_SECRET_KEY=your_secret_key_here
+
+# Sentry (Error Tracking)
+# SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
