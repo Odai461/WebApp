@@ -7,6 +7,8 @@ import { Layout } from './renderer'
 import { Homepage } from './components/homepage'
 import { ProductsPage } from './components/products-page'
 import { HomepageNew } from './components/homepage-modern'
+import { HomepageEnhanced } from './components/homepage-enhanced'
+import { ProductDetailPage } from './components/product-detail'
 import { 
   formatPrice, 
   generateOrderNumber, 
@@ -142,11 +144,11 @@ app.use('*', async (c, next) => {
 // ============================================
 
 app.get('/', (c) => {
-  return c.html(<HomepageNew />)
+  return c.html(<HomepageEnhanced />)
 })
 
 app.get('/de', (c) => {
-  return c.html(<HomepageNew />)
+  return c.html(<HomepageEnhanced />)
 })
 
 // Products page
@@ -156,6 +158,17 @@ app.get('/produkte', (c) => {
 
 app.get('/products', (c) => {
   return c.html(<ProductsPage />)
+})
+
+// Product detail page
+app.get('/produkt/:id', (c) => {
+  const productId = c.req.param('id')
+  return c.html(<ProductDetailPage productId={productId} />)
+})
+
+app.get('/product/:id', (c) => {
+  const productId = c.req.param('id')
+  return c.html(<ProductDetailPage productId={productId} />)
 })
 
 // ============================================
@@ -919,19 +932,6 @@ app.get('/api/init-db', async (c) => {
 // ============================================
 // PRODUCT & CATEGORY PAGES
 // ============================================
-
-import { ProductDetail } from './components/product-detail'
-import { CategoryListing } from './components/category-listing'
-import { Cart } from './components/cart'
-import { Checkout } from './components/checkout'
-import { UserDashboard } from './components/user-dashboard'
-import { OrdersPage } from './components/orders-page'
-import { LicensesPage } from './components/licenses-page'
-import { ProfilePage } from './components/profile-page'
-import { AGBPage } from './components/agb-page'
-import { KontaktPage } from './components/kontakt-page'
-import { FAQPage } from './components/faq-page'
-import { UeberUnsPage } from './components/ueber-uns-page'
 
 // Product Detail Page
 app.get('/products/:slug', async (c) => {

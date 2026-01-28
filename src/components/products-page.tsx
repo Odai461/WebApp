@@ -292,13 +292,16 @@ export const ProductsPage = () => {
 
                     <div class="flex items-center justify-between space-x-2">
                       <button 
+                        onclick="viewProduct(\${product.id})" 
+                        class="flex-1 bg-gray-100 text-gray-800 px-4 py-2.5 rounded-lg hover:bg-gray-200 transition font-semibold text-sm"
+                      >
+                        <i class="fas fa-eye mr-1"></i>Ansehen
+                      </button>
+                      <button 
                         onclick="addToCart(\${product.id})" 
                         class="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition font-semibold text-sm"
                       >
-                        <i class="fas fa-cart-plus mr-2"></i>In den Warenkorb
-                      </button>
-                      <button class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:border-blue-600 hover:text-blue-600 transition">
-                        <i class="fas fa-heart"></i>
+                        <i class="fas fa-cart-plus mr-1"></i>Warenkorb
                       </button>
                     </div>
                     
@@ -396,6 +399,11 @@ export const ProductsPage = () => {
             currentPage = page;
             loadProducts();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+
+          // View product
+          function viewProduct(productId) {
+            window.location.href = '/produkt/' + productId;
           }
 
           // Add to cart
