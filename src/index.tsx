@@ -393,6 +393,241 @@ app.get('/api/brands/featured', async (c) => {
 })
 
 // ============================================
+// API ROUTES: Admin - Sliders
+// ============================================
+
+// Get all sliders
+app.get('/api/admin/sliders', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const sliders = await db.db.prepare(`
+      SELECT * FROM sliders ORDER BY sort_order ASC
+    `).all()
+
+    return c.json({ success: true, data: sliders.results })
+  } catch (error) {
+    console.error('Error fetching sliders:', error)
+    return c.json({ success: false, error: 'Failed to fetch sliders' }, 500)
+  }
+})
+
+// Create slider
+app.post('/api/admin/sliders', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const body = await c.req.json()
+
+    const result = await db.db.prepare(`
+      INSERT INTO sliders (title, subtitle, button_text, button_link, image_url, background_color, text_color, is_active, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      body.title,
+      body.subtitle || null,
+      body.button_text || null,
+      body.button_link || null,
+      body.image_url || null,
+      body.background_color || '#1a2a4e',
+      body.text_color || '#ffffff',
+      body.is_active ? 1 : 0,
+      body.sort_order || 0
+    ).run()
+
+    return c.json({ success: true, data: { id: result.meta.last_row_id } })
+  } catch (error) {
+    console.error('Error creating slider:', error)
+    return c.json({ success: false, error: 'Failed to create slider' }, 500)
+  }
+})
+
+// Update slider
+app.put('/api/admin/sliders/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    const body = await c.req.json()
+
+    await db.db.prepare(`
+      UPDATE sliders SET
+        title = ?,
+        subtitle = ?,
+        button_text = ?,
+        button_link = ?,
+        image_url = ?,
+        background_color = ?,
+        text_color = ?,
+        is_active = ?,
+        sort_order = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      body.title,
+      body.subtitle || null,
+      body.button_text || null,
+      body.button_link || null,
+      body.image_url || null,
+      body.background_color || '#1a2a4e',
+      body.text_color || '#ffffff',
+      body.is_active ? 1 : 0,
+      body.sort_order || 0,
+      id
+    ).run()
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error updating slider:', error)
+    return c.json({ success: false, error: 'Failed to update slider' }, 500)
+  }
+})
+
+// Patch slider (partial update)
+app.patch('/api/admin/sliders/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    const body = await c.req.json()
+
+    if (body.sort_order !== undefined) {
+      await db.db.prepare(`UPDATE sliders SET sort_order = ? WHERE id = ?`).bind(body.sort_order, id).run()
+    }
+
+    return c.json({ success: true })
+  } catch (error) {
+    return c.json({ success: false, error: 'Failed to update slider' }, 500)
+  }
+})
+
+// Delete slider
+app.delete('/api/admin/sliders/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+
+    await db.db.prepare(`DELETE FROM sliders WHERE id = ?`).bind(id).run()
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting slider:', error)
+    return c.json({ success: false, error: 'Failed to delete slider' }, 500)
+  }
+})
+
+// ============================================
+// API ROUTES: Admin - Homepage Sections
+// ============================================
+
+// Get all homepage sections
+app.get('/api/admin/homepage-sections', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const sections = await db.db.prepare(`
+      SELECT * FROM homepage_sections ORDER BY display_order ASC
+    `).all()
+
+    return c.json({ success: true, data: sections.results })
+  } catch (error) {
+    console.error('Error fetching sections:', error)
+    return c.json({ success: false, error: 'Failed to fetch sections' }, 500)
+  }
+})
+
+// Create section
+app.post('/api/admin/homepage-sections', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const body = await c.req.json()
+
+    const result = await db.db.prepare(`
+      INSERT INTO homepage_sections (section_key, title, subtitle, section_type, display_order, is_active, limit_items, layout)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      body.section_key,
+      body.title,
+      body.subtitle || null,
+      body.section_type,
+      body.display_order || 0,
+      body.is_active ? 1 : 0,
+      body.limit_items || 8,
+      body.layout || 'grid'
+    ).run()
+
+    return c.json({ success: true, data: { id: result.meta.last_row_id } })
+  } catch (error) {
+    console.error('Error creating section:', error)
+    return c.json({ success: false, error: 'Failed to create section' }, 500)
+  }
+})
+
+// Update section
+app.put('/api/admin/homepage-sections/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    const body = await c.req.json()
+
+    await db.db.prepare(`
+      UPDATE homepage_sections SET
+        section_key = ?,
+        title = ?,
+        subtitle = ?,
+        section_type = ?,
+        display_order = ?,
+        is_active = ?,
+        limit_items = ?,
+        layout = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      body.section_key,
+      body.title,
+      body.subtitle || null,
+      body.section_type,
+      body.display_order || 0,
+      body.is_active ? 1 : 0,
+      body.limit_items || 8,
+      body.layout || 'grid',
+      id
+    ).run()
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error updating section:', error)
+    return c.json({ success: false, error: 'Failed to update section' }, 500)
+  }
+})
+
+// Patch section (partial update)
+app.patch('/api/admin/homepage-sections/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    const body = await c.req.json()
+
+    if (body.display_order !== undefined) {
+      await db.db.prepare(`UPDATE homepage_sections SET display_order = ? WHERE id = ?`).bind(body.display_order, id).run()
+    }
+
+    return c.json({ success: true })
+  } catch (error) {
+    return c.json({ success: false, error: 'Failed to update section' }, 500)
+  }
+})
+
+// Delete section
+app.delete('/api/admin/homepage-sections/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+
+    await db.db.prepare(`DELETE FROM homepage_sections WHERE id = ?`).bind(id).run()
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting section:', error)
+    return c.json({ success: false, error: 'Failed to delete section' }, 500)
+  }
+})
+
+// ============================================
 // API ROUTES: Authentication
 // ============================================
 
@@ -798,6 +1033,8 @@ app.post('/api/admin/licenses/import', adminAuth, async (c) => {
 import { AdminLayout, AdminDashboard } from './components/admin'
 import { AdminProducts, AdminProductForm } from './components/admin-products'
 import { AdminProductImport } from './components/admin-product-import'
+import { AdminSliders } from './components/admin-sliders'
+import { AdminHomepageSections } from './components/admin-homepage-sections'
 import { AdminLicenses, AdminLicenseImport } from './components/admin-licenses'
 import { AdminOrders } from './components/admin-orders'
 import { AdminCustomers } from './components/admin-customers'
@@ -850,6 +1087,24 @@ app.get('/admin/products/import', (c) => {
   return c.html(
     <AdminLayout title="Product Import" currentUser={{ first_name: 'Admin' }}>
       <AdminProductImport />
+    </AdminLayout>
+  )
+})
+
+// Admin Sliders Management
+app.get('/admin/sliders', (c) => {
+  return c.html(
+    <AdminLayout title="Hero Sliders" currentUser={{ first_name: 'Admin' }}>
+      <AdminSliders />
+    </AdminLayout>
+  )
+})
+
+// Admin Homepage Sections Management
+app.get('/admin/homepage-sections', (c) => {
+  return c.html(
+    <AdminLayout title="Homepage Sections" currentUser={{ first_name: 'Admin' }}>
+      <AdminHomepageSections />
     </AdminLayout>
   )
 })

@@ -217,6 +217,20 @@ export const AdminLayout: FC<AdminLayoutProps> = ({ title, currentUser, children
             </a>
             
             <div class="px-4 py-2 text-xs text-gray-400 uppercase font-semibold mt-4">
+              Homepage Management
+            </div>
+            
+            <a href="/admin/sliders" class="admin-nav-item">
+              <i class="fas fa-images w-5"></i>
+              <span>Hero Sliders</span>
+            </a>
+            
+            <a href="/admin/homepage-sections" class="admin-nav-item">
+              <i class="fas fa-th-large w-5"></i>
+              <span>Homepage Sections</span>
+            </a>
+            
+            <div class="px-4 py-2 text-xs text-gray-400 uppercase font-semibold mt-4">
               Orders & Sales
             </div>
             
