@@ -11,6 +11,7 @@ import { HomepageNew } from './components/homepage-modern'
 import { HomepagePrestaShop } from './components/homepage-prestashop'
 import { HomepagePrestaShopEnhanced } from './components/homepage-prestashop-enhanced'
 import { ProductDetailPage } from './components/product-detail'
+import { ProductDetailPageModern } from './components/product-detail-modern'
 import { CartPage } from './components/cart-page'
 import { RegisterPage } from './components/register-page'
 import { LoginPage } from './components/login-page'
@@ -172,15 +173,11 @@ app.get('/products', (c) => {
 
 // Product detail page (using slug for SEO)
 app.get('/produkt/:slug', (c) => {
-  const productSlug = c.req.param('slug')
-  const html = ProductDetailPage({ productSlug })
-  return c.html(html)
+  return c.html(ProductDetailPageModern())
 })
 
 app.get('/product/:slug', (c) => {
-  const productSlug = c.req.param('slug')
-  const html = ProductDetailPage({ productSlug })
-  return c.html(html)
+  return c.html(ProductDetailPageModern())
 })
 
 // Shopping cart page
