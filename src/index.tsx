@@ -8,6 +8,7 @@ import { Homepage } from './components/homepage'
 import { ProductsPage } from './components/products-page'
 import { HomepageNew } from './components/homepage-modern'
 import { HomepagePrestaShop } from './components/homepage-prestashop'
+import { HomepagePrestaShopEnhanced } from './components/homepage-prestashop-enhanced'
 import { ProductDetailPage } from './components/product-detail'
 import { CartPage } from './components/cart-page'
 import { RegisterPage } from './components/register-page'
@@ -151,11 +152,11 @@ app.use('*', async (c, next) => {
 // ============================================
 
 app.get('/', (c) => {
-  return c.html(HomepagePrestaShop())
+  return c.html(HomepagePrestaShopEnhanced())
 })
 
 app.get('/de', (c) => {
-  return c.html(HomepagePrestaShop())
+  return c.html(HomepagePrestaShopEnhanced())
 })
 
 // Products page
