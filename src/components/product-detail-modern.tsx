@@ -378,12 +378,8 @@ export const ProductDetailPageModern = () => {
           <div class="container mx-auto px-6">
             <div class="flex items-center justify-between py-4">
               <!-- Logo -->
-              <a href="/" class="flex items-center space-x-3">
+              <a href="/" class="flex items-center">
                 <img src="/static/logo.png" alt="SOFTWAREKING24" class="h-16" onerror="this.outerHTML='<div class=\\'w-12 h-12 bg-gradient-to-br from-navy-dark to-navy-light rounded-lg flex items-center justify-center text-white font-bold text-xl\\' style=\\'background: linear-gradient(135deg, var(--navy-dark), var(--navy-light))\\'>SK24</div>';" />
-                <div>
-                  <div class="text-2xl font-bold" style="color: var(--navy-dark);">SOFTWAREKING24</div>
-                  <div class="text-xs text-gray-500">Original Software Lizenzen</div>
-                </div>
               </a>
 
               <!-- Search Bar with Autocomplete -->

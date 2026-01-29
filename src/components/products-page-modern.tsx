@@ -158,14 +158,10 @@ export const ProductsPageModern = () => {
           <div className="container mx-auto px-6">
             <div className="flex items-center justify-between py-4">
               {/* Logo */}
-              <a href="/" className="flex items-center space-x-3">
+              <a href="/" className="flex items-center">
                 <img src="/static/logo.png" alt="SOFTWAREKING24" className="h-16" onError={(e) => {
                   e.currentTarget.outerHTML = '<div class="w-12 h-12 bg-gradient-to-br from-navy-dark to-navy-light rounded-lg flex items-center justify-center text-white font-bold text-xl">SK</div>';
                 }} />
-                <div>
-                  <div className="text-2xl font-bold text-navy-dark">SOFTWAREKING24</div>
-                  <div className="text-xs text-gray-500">Original Software Lizenzen</div>
-                </div>
               </a>
 
               {/* Search Bar */}
