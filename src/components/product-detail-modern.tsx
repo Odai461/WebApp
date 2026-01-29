@@ -24,6 +24,8 @@ export const ProductDetailPageModern = () => {
         <script src="/static/cart-manager-enhanced.js"></script>
         <link href="/static/search-autocomplete.css" rel="stylesheet" />
         <script src="/static/search-autocomplete.js" defer></script>
+        <link href="/static/reviews.css" rel="stylesheet" />
+        <script src="/static/reviews.js" defer></script>
         
         <style>
           :root {
@@ -604,128 +606,7 @@ export const ProductDetailPageModern = () => {
                 </div>
               </div>
 
-              <!-- Reviews Section -->
-              <div id="reviews" class="bg-white rounded-2xl shadow-lg p-6 mt-8">
-                <div class="flex items-center justify-between mb-6">
-                  <h2 class="text-2xl font-bold" style="color: var(--navy-dark);">
-                    <i class="fas fa-star mr-2" style="color: var(--gold);"></i>
-                    Kundenbewertungen
-                  </h2>
-                  <button class="px-6 py-2 rounded-lg font-semibold transition text-white" style="background-color: var(--gold);">
-                    Bewertung schreiben
-                  </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-6 bg-gray-50 rounded-xl">
-                  <div class="text-center">
-                    <div class="text-5xl font-bold mb-2" style="color: var(--gold);">4.9</div>
-                    <div class="rating-stars justify-center mb-2">
-                      <i class="fas fa-star rating-star"></i>
-                      <i class="fas fa-star rating-star"></i>
-                      <i class="fas fa-star rating-star"></i>
-                      <i class="fas fa-star rating-star"></i>
-                      <i class="fas fa-star rating-star"></i>
-                    </div>
-                    <div class="text-sm text-gray-600">Basierend auf 2.347 Bewertungen</div>
-                  </div>
-                  <div class="col-span-2 space-y-2">
-                    <div class="flex items-center space-x-3">
-                      <span class="text-sm w-16">5 Sterne</span>
-                      <div class="flex-1 bg-gray-200 rounded-full h-2">
-                        <div class="h-2 rounded-full" style="width: 85%; background-color: var(--gold);"></div>
-                      </div>
-                      <span class="text-sm text-gray-600 w-12">85%</span>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                      <span class="text-sm w-16">4 Sterne</span>
-                      <div class="flex-1 bg-gray-200 rounded-full h-2">
-                        <div class="h-2 rounded-full" style="width: 10%; background-color: var(--gold);"></div>
-                      </div>
-                      <span class="text-sm text-gray-600 w-12">10%</span>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                      <span class="text-sm w-16">3 Sterne</span>
-                      <div class="flex-1 bg-gray-200 rounded-full h-2">
-                        <div class="h-2 rounded-full" style="width: 3%; background-color: var(--gold);"></div>
-                      </div>
-                      <span class="text-sm text-gray-600 w-12">3%</span>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                      <span class="text-sm w-16">2 Sterne</span>
-                      <div class="flex-1 bg-gray-200 rounded-full h-2">
-                        <div class="h-2 rounded-full" style="width: 1%; background-color: var(--gold);"></div>
-                      </div>
-                      <span class="text-sm text-gray-600 w-12">1%</span>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                      <span class="text-sm w-16">1 Stern</span>
-                      <div class="flex-1 bg-gray-200 rounded-full h-2">
-                        <div class="h-2 rounded-full" style="width: 1%; background-color: var(--gold);"></div>
-                      </div>
-                      <span class="text-sm text-gray-600 w-12">1%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Sample Reviews -->
-                <div class="space-y-4">
-                  <div class="review-card">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="flex items-center space-x-3">
-                        <img src="https://i.pravatar.cc/48?img=11" alt="User" class="w-12 h-12 rounded-full" />
-                        <div>
-                          <div class="font-semibold" style="color: var(--navy-dark);">Michael Schmidt</div>
-                          <div class="text-sm text-gray-500">vor 2 Tagen</div>
-                        </div>
-                      </div>
-                      <div class="rating-stars">
-                        <i class="fas fa-star rating-star"></i>
-                        <i class="fas fa-star rating-star"></i>
-                        <i class="fas fa-star rating-star"></i>
-                        <i class="fas fa-star rating-star"></i>
-                        <i class="fas fa-star rating-star"></i>
-                      </div>
-                    </div>
-                    <h4 class="font-semibold mb-2">Sehr gute Erfahrung!</h4>
-                    <p class="text-gray-700 mb-3">Schnelle Lieferung, originale Lizenz und günstiger Preis. Aktivierung hat problemlos funktioniert. Sehr zu empfehlen!</p>
-                    <div class="flex items-center space-x-4 text-sm text-gray-500">
-                      <button class="hover:text-gold transition"><i class="far fa-thumbs-up mr-1"></i>Hilfreich (23)</button>
-                      <button class="hover:text-gold transition"><i class="far fa-flag mr-1"></i>Melden</button>
-                    </div>
-                  </div>
-
-                  <div class="review-card">
-                    <div class="flex items-center justify-between mb-3">
-                      <div class="flex items-center space-x-3">
-                        <img src="https://i.pravatar.cc/48?img=26" alt="User" class="w-12 h-12 rounded-full" />
-                        <div>
-                          <div class="font-semibold" style="color: var(--navy-dark);">Sarah Müller</div>
-                          <div class="text-sm text-gray-500">vor 1 Woche</div>
-                        </div>
-                      </div>
-                      <div class="rating-stars">
-                        <i class="fas fa-star rating-star"></i>
-                        <i class="fas fa-star rating-star"></i>
-                        <i class="fas fa-star rating-star"></i>
-                        <i class="fas fa-star rating-star"></i>
-                        <i class="fas fa-star rating-star"></i>
-                      </div>
-                    </div>
-                    <h4 class="font-semibold mb-2">Top Preis-Leistung</h4>
-                    <p class="text-gray-700 mb-3">Habe schon mehrmals hier bestellt. Immer zuverlässig und deutlich günstiger als direkt bei Microsoft. Klare Empfehlung!</p>
-                    <div class="flex items-center space-x-4 text-sm text-gray-500">
-                      <button class="hover:text-gold transition"><i class="far fa-thumbs-up mr-1"></i>Hilfreich (18)</button>
-                      <button class="hover:text-gold transition"><i class="far fa-flag mr-1"></i>Melden</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="text-center mt-6">
-                  <button class="px-8 py-3 border-2 rounded-lg font-semibold transition" style="border-color: var(--gold); color: var(--gold);">
-                    Alle Bewertungen anzeigen
-                  </button>
-                </div>
-              </div>
+              <!-- Reviews Section -->\n              <div id="reviews-section" class="mt-8">\n                <!-- Review Stats -->\n                <div id="review-stats"></div>\n                \n                <!-- Review Submission Form (only if logged in) -->\n                <div id="review-form-container" class="mb-8" style="display: none;">\n                  <form id="review-form" class="review-form-container">\n                    <h3 class="text-xl font-bold mb-4" style="color: var(--navy-dark);">\n                      <i class="fas fa-pen mr-2" style="color: var(--gold);"></i>\n                      Schreiben Sie eine Bewertung\n                    </h3>\n                    \n                    <div class="mb-4">\n                      <label class="block text-sm font-medium text-gray-700 mb-2">\n                        Bewertung *\n                      </label>\n                      <div class="star-rating flex space-x-1">\n                        <i class="far fa-star text-3xl text-gray-300 hover:text-gold transition"></i>\n                        <i class="far fa-star text-3xl text-gray-300 hover:text-gold transition"></i>\n                        <i class="far fa-star text-3xl text-gray-300 hover:text-gold transition"></i>\n                        <i class="far fa-star text-3xl text-gray-300 hover:text-gold transition"></i>\n                        <i class="far fa-star text-3xl text-gray-300 hover:text-gold transition"></i>\n                      </div>\n                      <input type="hidden" id="review-rating" value="0" />\n                    </div>\n                    \n                    <div class="mb-4">\n                      <label for="review-title" class="block text-sm font-medium text-gray-700 mb-2">\n                        Titel *\n                      </label>\n                      <input \n                        type="text" \n                        id="review-title" \n                        class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-gold transition"\n                        placeholder="Zusammenfassung Ihrer Erfahrung"\n                        required\n                        maxlength="100"\n                      />\n                    </div>\n                    \n                    <div class="mb-4">\n                      <label for="review-content" class="block text-sm font-medium text-gray-700 mb-2">\n                        Ihre Bewertung * (mindestens 20 Zeichen)\n                      </label>\n                      <textarea \n                        id="review-content" \n                        rows="5"\n                        class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-gold transition resize-none"\n                        placeholder="Teilen Sie Ihre Erfahrungen mit diesem Produkt..."\n                        required\n                        minlength="20"\n                        maxlength="1000"\n                      ></textarea>\n                      <div class="char-counter" id="char-counter">0 / 1000 Zeichen</div>\n                    </div>\n                    \n                    <button \n                      type="submit"\n                      class="w-full px-6 py-3 bg-gold text-white font-semibold rounded-lg hover:bg-gold-dark transition flex items-center justify-center"\n                    >\n                      <i class="fas fa-paper-plane mr-2"></i>\n                      Bewertung absenden\n                    </button>\n                  </form>\n                </div>\n                \n                <!-- Reviews List -->\n                <div id="reviews-list" class="bg-white rounded-2xl shadow-lg p-6"></div>\n              </div>
 
               <!-- Related Products -->
               <div class="bg-white rounded-2xl shadow-lg p-6 mt-8">
@@ -1352,6 +1233,38 @@ export const ProductDetailPageModern = () => {
 
           // Initial load
           loadProduct();
+          
+          // Initialize reviews system after product is loaded
+          setTimeout(() => {
+            const productId = parseInt(window.location.pathname.split('/').pop());
+            if (productId && window.ReviewsManager) {
+              // For testing, use user ID 1. In production, get from session
+              const userId = 1; // TODO: Get from session/auth
+              ReviewsManager.init(productId, userId);
+              
+              // Show review form if user is logged in
+              if (userId) {
+                document.getElementById('review-form-container').style.display = 'block';
+                
+                // Character counter
+                const contentField = document.getElementById('review-content');
+                const charCounter = document.getElementById('char-counter');
+                contentField.addEventListener('input', () => {
+                  const length = contentField.value.length;
+                  charCounter.textContent = length + ' / 1000 Zeichen';
+                  if (length < 20) {
+                    charCounter.classList.add('error');
+                    charCounter.classList.remove('warning');
+                  } else if (length > 900) {
+                    charCounter.classList.add('warning');
+                    charCounter.classList.remove('error');
+                  } else {
+                    charCounter.classList.remove('error', 'warning');
+                  }
+                });
+              }
+            }
+          }, 1000);
         </script>
       </body>
     </html>
