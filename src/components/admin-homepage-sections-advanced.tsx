@@ -685,6 +685,21 @@ export const AdminHomepageSectionsAdvanced: FC = () => {
             initSidebar();
             loadSections();
             renderSectionTypes();
+            
+            // ESC key to close modals
+            document.addEventListener('keydown', (e) => {
+              if (e.key === 'Escape') {
+                const templatesModal = document.getElementById('templates-modal');
+                const addSectionModal = document.getElementById('add-section-modal');
+                
+                if (templatesModal && !templatesModal.classList.contains('hidden')) {
+                  hideTemplates();
+                }
+                if (addSectionModal && !addSectionModal.classList.contains('hidden')) {
+                  hideAddSection();
+                }
+              }
+            });
           });
 
           function initSidebar() {
