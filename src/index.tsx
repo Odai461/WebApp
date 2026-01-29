@@ -537,6 +537,135 @@ app.get('/api/products', async (c) => {
   }
 })
 
+// Admin Products API
+app.get('/api/admin/products', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const page = parseInt(c.req.query('page') || '1')
+    const limit = parseInt(c.req.query('limit') || '20')
+    const offset = (page - 1) * limit
+    const search = c.req.query('search') || ''
+    const category = c.req.query('category') || ''
+    const brand = c.req.query('brand') || ''
+    const status = c.req.query('status') || ''
+    const type = c.req.query('type') || ''
+
+    let query = `
+      SELECT 
+        p.*,
+        pt.name,
+        pt.short_description,
+        c.name as category_name,
+        b.name as brand_name,
+        COUNT(DISTINCT pi.id) as image_count
+      FROM products p
+      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.language = 'de'
+      LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN brands b ON p.brand_id = b.id
+      LEFT JOIN product_images pi ON p.id = pi.product_id
+      WHERE 1=1
+    `
+    
+    const params: any[] = []
+
+    if (search) {
+      query += ` AND (pt.name LIKE ? OR p.sku LIKE ?)`
+      params.push(`%${search}%`, `%${search}%`)
+    }
+
+    if (category) {
+      query += ` AND p.category_id = ?`
+      params.push(parseInt(category))
+    }
+
+    if (brand) {
+      query += ` AND p.brand_id = ?`
+      params.push(parseInt(brand))
+    }
+
+    if (status === 'active') {
+      query += ` AND p.is_active = 1`
+    } else if (status === 'inactive') {
+      query += ` AND p.is_active = 0`
+    }
+
+    if (type === 'featured') {
+      query += ` AND p.is_featured = 1`
+    } else if (type === 'bestseller') {
+      query += ` AND p.is_bestseller = 1`
+    } else if (type === 'new') {
+      query += ` AND p.is_new = 1`
+    }
+
+    query += ` GROUP BY p.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`
+    params.push(limit, offset)
+
+    const products = await db.db.prepare(query).bind(...params).all()
+
+    // Get total count
+    let countQuery = 'SELECT COUNT(DISTINCT p.id) as total FROM products p LEFT JOIN product_translations pt ON p.id = pt.product_id WHERE 1=1'
+    const countParams: any[] = []
+    
+    if (search) {
+      countQuery += ` AND (pt.name LIKE ? OR p.sku LIKE ?)`
+      countParams.push(`%${search}%`, `%${search}%`)
+    }
+    if (category) {
+      countQuery += ` AND p.category_id = ?`
+      countParams.push(parseInt(category))
+    }
+    if (brand) {
+      countQuery += ` AND p.brand_id = ?`
+      countParams.push(parseInt(brand))
+    }
+    if (status === 'active') {
+      countQuery += ` AND p.is_active = 1`
+    } else if (status === 'inactive') {
+      countQuery += ` AND p.is_active = 0`
+    }
+
+    const countResult = await db.db.prepare(countQuery).bind(...countParams).first()
+
+    return c.json({
+      success: true,
+      data: products.results,
+      pagination: {
+        page,
+        limit,
+        total: countResult?.total || 0,
+        totalPages: Math.ceil((countResult?.total || 0) / limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching admin products:', error)
+    return c.json({ success: false, error: 'Failed to fetch products' }, 500)
+  }
+})
+
+// Admin Products Stats
+app.get('/api/admin/products/stats', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    
+    const stats = await db.db.prepare(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
+        SUM(CASE WHEN available_licenses <= 5 AND available_licenses > 0 THEN 1 ELSE 0 END) as low_stock,
+        SUM(CASE WHEN base_price > 0 THEN base_price ELSE 0 END) as total_value
+      FROM products
+    `).first()
+
+    return c.json({
+      success: true,
+      data: stats
+    })
+  } catch (error) {
+    console.error('Error fetching product stats:', error)
+    return c.json({ success: false, error: 'Failed to fetch stats' }, 500)
+  }
+})
+
 app.get('/api/products/featured', async (c) => {
   try {
     const db = c.get('db') as DatabaseHelper
