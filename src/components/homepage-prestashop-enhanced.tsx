@@ -1950,6 +1950,66 @@ export const HomepagePrestaShopEnhanced = () => {
             </div>
         </section>
 
+        <!-- Newsletter Section -->
+        <section class="py-16 bg-gradient-to-br from-navy-dark to-navy-medium">
+            <div class="w-full px-6">
+                <div class="max-w-4xl mx-auto text-center">
+                    <div class="mb-6">
+                        <i class="fas fa-envelope-open-text text-6xl text-gold mb-4"></i>
+                        <h2 class="text-3xl font-bold text-white mb-3">
+                            Newsletter abonnieren
+                        </h2>
+                        <p class="text-gray-300 text-lg">
+                            Erhalten Sie exklusive Angebote, neue Produkte und die besten Deals direkt in Ihr Postfach!
+                        </p>
+                    </div>
+                    
+                    <form id="newsletter-form" class="max-w-2xl mx-auto">
+                        <div class="flex flex-col md:flex-row gap-3">
+                            <div class="flex-1">
+                                <input 
+                                    type="email" 
+                                    id="newsletter-email"
+                                    placeholder="Ihre E-Mail-Adresse" 
+                                    required
+                                    class="w-full px-6 py-4 rounded-lg text-navy-dark font-medium focus:outline-none focus:ring-4 focus:ring-gold transition-all"
+                                />
+                            </div>
+                            <button 
+                                type="submit"
+                                class="bg-gold hover:bg-gold-light text-navy-dark px-8 py-4 rounded-lg font-bold transition-all hover-lift flex items-center justify-center whitespace-nowrap"
+                            >
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Jetzt abonnieren
+                            </button>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-4">
+                            <i class="fas fa-shield-alt mr-1"></i>
+                            Ihre Daten sind bei uns sicher. Sie können sich jederzeit abmelden.
+                        </p>
+                    </form>
+                    
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                        <div class="bg-white bg-opacity-10 rounded-lg p-4 backdrop-blur-sm">
+                            <i class="fas fa-tag text-gold text-2xl mb-2"></i>
+                            <h3 class="font-bold text-white mb-1">Exklusive Rabatte</h3>
+                            <p class="text-gray-300 text-sm">Bis zu 20% Rabatt nur für Newsletter-Abonnenten</p>
+                        </div>
+                        <div class="bg-white bg-opacity-10 rounded-lg p-4 backdrop-blur-sm">
+                            <i class="fas fa-rocket text-gold text-2xl mb-2"></i>
+                            <h3 class="font-bold text-white mb-1">Früher Zugang</h3>
+                            <p class="text-gray-300 text-sm">Neue Produkte vor allen anderen entdecken</p>
+                        </div>
+                        <div class="bg-white bg-opacity-10 rounded-lg p-4 backdrop-blur-sm">
+                            <i class="fas fa-gift text-gold text-2xl mb-2"></i>
+                            <h3 class="font-bold text-white mb-1">Gewinnspiele</h3>
+                            <p class="text-gray-300 text-sm">Teilnahme an exklusiven Verlosungen</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Footer -->
         <footer class="bg-navy-dark text-white py-12">
             <div class="w-full px-6">
@@ -2359,6 +2419,72 @@ export const HomepagePrestaShopEnhanced = () => {
             // Initialize scroll animations on page load
             document.addEventListener('DOMContentLoaded', () => {
                 initScrollAnimations();
+                
+                // Newsletter form handler
+                const newsletterForm = document.getElementById('newsletter-form');
+                if (newsletterForm) {
+                    newsletterForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        
+                        const emailInput = document.getElementById('newsletter-email');
+                        const email = emailInput.value.trim();
+                        const submitBtn = newsletterForm.querySelector('button[type="submit"]');
+                        const originalText = submitBtn.innerHTML;
+                        
+                        if (!email) return;
+                        
+                        // Show loading state
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Wird verarbeitet...';
+                        
+                        try {
+                            // Simulate API call (replace with actual endpoint later)
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            
+                            // Success notification
+                            submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Erfolgreich!';
+                            submitBtn.classList.remove('bg-gold', 'hover:bg-gold-light');
+                            submitBtn.classList.add('bg-green-500');
+                            
+                            emailInput.value = '';
+                            
+                            // Show success message
+                            const successMsg = document.createElement('div');
+                            successMsg.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 flex items-center space-x-3 animate-slide-in';
+                            successMsg.innerHTML = \`
+                                <i class="fas fa-check-circle text-2xl"></i>
+                                <div>
+                                    <div class="font-bold">Vielen Dank!</div>
+                                    <div class="text-sm">Sie wurden erfolgreich angemeldet.</div>
+                                </div>
+                            \`;
+                            document.body.appendChild(successMsg);
+                            
+                            setTimeout(() => {
+                                successMsg.remove();
+                                submitBtn.innerHTML = originalText;
+                                submitBtn.classList.remove('bg-green-500');
+                                submitBtn.classList.add('bg-gold', 'hover:bg-gold-light');
+                                submitBtn.disabled = false;
+                            }, 3000);
+                            
+                        } catch (error) {
+                            console.error('Newsletter error:', error);
+                            
+                            // Error notification
+                            submitBtn.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Fehler';
+                            submitBtn.classList.remove('bg-gold');
+                            submitBtn.classList.add('bg-red-500');
+                            
+                            setTimeout(() => {
+                                submitBtn.innerHTML = originalText;
+                                submitBtn.classList.remove('bg-red-500');
+                                submitBtn.classList.add('bg-gold');
+                                submitBtn.disabled = false;
+                            }, 2000);
+                        }
+                    });
+                }
             });
 
             // Toggle user dropdown menu
