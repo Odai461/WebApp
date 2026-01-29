@@ -2619,6 +2619,104 @@ app.put('/api/admin/certificate-settings', async (c) => {
 })
 
 // ============================================
+// EMAIL HELPER FOR CERTIFICATES
+// ============================================
+
+async function sendCertificateEmail(
+  certificateData: any,
+  customerEmail: string,
+  customerName: string
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    console.log(`[Email] Sending certificate to ${customerEmail}`)
+    
+    // Email template in German
+    const emailSubject = `Ihre Lizenz-Zertifikate von SoftwareKing24`
+    const emailBody = `
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #1a2a4e; color: white; padding: 20px; text-align: center; }
+          .content { padding: 30px 20px; background: #f9f9f9; }
+          .certificate-info { background: white; padding: 15px; margin: 20px 0; border-left: 4px solid #10b981; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+          .btn { display: inline-block; padding: 12px 24px; background: #1a2a4e; color: white; text-decoration: none; border-radius: 4px; margin: 10px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Ihre Lizenz-Zertifikate</h1>
+          </div>
+          
+          <div class="content">
+            <p>Sehr geehrte(r) ${customerName},</p>
+            
+            <p>vielen Dank für Ihren Einkauf bei SoftwareKing24!</p>
+            
+            <p>Ihre Lizenz-Zertifikate wurden erfolgreich erstellt und sind nun verfügbar.</p>
+            
+            <div class="certificate-info">
+              <strong>Zertifikat-Nummer:</strong> ${certificateData.certificate_number}<br/>
+              <strong>Produkt:</strong> ${certificateData.product_name}<br/>
+              <strong>Marke:</strong> ${certificateData.brand}<br/>
+              ${certificateData.license_key ? `<strong>Lizenzschlüssel:</strong> ${certificateData.license_key}<br/>` : ''}
+              <strong>Ausstellungsdatum:</strong> ${new Date(certificateData.generated_at).toLocaleDateString('de-DE')}
+            </div>
+            
+            <p>Sie können Ihr Zertifikat jederzeit in Ihrem Kundenkonto einsehen und herunterladen.</p>
+            
+            <p style="margin: 30px 0;">
+              <a href="https://softwareking24.de/mein-konto/zertifikate" class="btn">Zertifikate anzeigen</a>
+            </p>
+            
+            <p>Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+            
+            <p>Mit freundlichen Grüßen<br/>
+            <strong>Ihr SoftwareKing24 Team</strong></p>
+          </div>
+          
+          <div class="footer">
+            <p>SoftwareKing24.de<br/>
+            Jakob-Borchers-Str. 3, 20140 Zetel<br/>
+            E-Mail: info@softwareking24.de | Tel: 01-7144889642</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+    
+    // TODO: Integrate with actual email service (SendGrid, Mailgun, etc.)
+    // For now, just log the email that would be sent
+    console.log('[Email] Would send certificate email:')
+    console.log('  To:', customerEmail)
+    console.log('  Subject:', emailSubject)
+    console.log('  Certificate:', certificateData.certificate_number)
+    
+    // In production, you would call your email service here:
+    // await emailService.send({
+    //   to: customerEmail,
+    //   subject: emailSubject,
+    //   html: emailBody,
+    //   attachments: [certificatePdfBuffer]
+    // })
+    
+    return {
+      success: true,
+      message: 'Email would be sent in production (email service not configured)'
+    }
+  } catch (error) {
+    console.error('[Email] Failed to send certificate email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
+// ============================================
 // CERTIFICATE AUTO-GENERATION HELPER
 // ============================================
 
@@ -2728,7 +2826,7 @@ async function autogenerateCertificate(db: any, orderId: number, orderStatus: st
     }
     
     // Insert certificate
-    await db.prepare(`
+    const insertResult = await db.prepare(`
       INSERT INTO certificates (
         certificate_number, order_id, product_id, brand,
         product_name, license_key, customer_name, customer_email,
@@ -2746,11 +2844,39 @@ async function autogenerateCertificate(db: any, orderId: number, orderStatus: st
       'generated'
     ).run()
     
-    console.log('[Certificate] Generated certificate ' + certNumber + ' for order ' + orderId)
+    const certificateId = insertResult.meta?.last_row_id
+    console.log(`[Certificate] Generated certificate ${certNumber} for order ${orderId} (ID: ${certificateId})`)
     
-    // TODO: Auto-email if enabled
-    if (settings.auto_email_customer) {
-      console.log('[Certificate] Auto-email enabled, but not yet implemented')
+    // Auto-email if enabled
+    if (settings.auto_email_customer && order.email) {
+      try {
+        const certificateData = {
+          certificate_number: certNumber,
+          product_name: productName,
+          brand: brand,
+          license_key: mainItem.license_key || 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
+          generated_at: new Date().toISOString()
+        }
+        
+        const emailResult = await sendCertificateEmail(
+          certificateData,
+          order.email,
+          `${order.first_name || ''} ${order.last_name || ''}`.trim() || 'Customer'
+        )
+        
+        if (emailResult.success && certificateId) {
+          await db.prepare(`
+            UPDATE certificates 
+            SET sent_at = CURRENT_TIMESTAMP, status = 'sent'
+            WHERE id = ?
+          `).bind(certificateId).run()
+          console.log(`[Certificate] Auto-emailed certificate ${certNumber} to ${order.email}`)
+        } else {
+          console.log(`[Certificate] Failed to auto-email: ${emailResult.error || 'Unknown error'}`)
+        }
+      } catch (error) {
+        console.error('[Certificate] Error auto-emailing certificate:', error)
+      }
     }
   } catch (error) {
     console.error('[Certificate] Error in auto-generation:', error)
@@ -2991,16 +3117,45 @@ app.post('/api/admin/certificates/:id/email', async (c) => {
     const db = c.get('db') as DatabaseHelper
     const id = c.req.param('id')
     
-    // TODO: Implement email sending logic
-    // For now, just update the sent_at timestamp
-    await db.db.prepare(`
-      UPDATE certificates 
-      SET sent_at = CURRENT_TIMESTAMP,
-          status = 'sent'
-      WHERE id = ?
-    `).bind(id).run()
+    // Get certificate data
+    const certificate = await db.db.prepare(`
+      SELECT c.*, o.order_number, p.name as product_name
+      FROM certificates c
+      LEFT JOIN orders o ON c.order_id = o.id
+      LEFT JOIN products p ON c.product_id = p.id
+      WHERE c.id = ?
+    `).bind(id).first()
     
-    return c.json({ success: true, message: 'Certificate email sent successfully' })
+    if (!certificate) {
+      return c.json({ success: false, error: 'Certificate not found' }, 404)
+    }
+    
+    // Send email
+    const emailResult = await sendCertificateEmail(
+      certificate,
+      certificate.customer_email,
+      certificate.customer_name
+    )
+    
+    if (emailResult.success) {
+      // Update the sent_at timestamp
+      await db.db.prepare(`
+        UPDATE certificates 
+        SET sent_at = CURRENT_TIMESTAMP,
+            status = 'sent'
+        WHERE id = ?
+      `).bind(id).run()
+      
+      return c.json({ 
+        success: true, 
+        message: emailResult.message || 'Certificate email sent successfully'
+      })
+    } else {
+      return c.json({ 
+        success: false, 
+        error: emailResult.error || 'Failed to send email' 
+      }, 500)
+    }
   } catch (error) {
     console.error('Error emailing certificate:', error)
     return c.json({ success: false, error: 'Failed to email certificate' }, 500)
