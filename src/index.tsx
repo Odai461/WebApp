@@ -2251,6 +2251,270 @@ app.post('/api/admin/licenses/bulk-delete', async (c) => {
 })
 
 // ============================================
+// INVOICE API ENDPOINTS
+// ============================================
+
+// Get all invoices with filters
+app.get('/api/admin/invoices', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const { status, search, date_from, date_to } = c.req.query()
+
+    let sql = `SELECT * FROM invoices WHERE 1=1`
+    const params: any[] = []
+
+    if (status) {
+      sql += ` AND status = ?`
+      params.push(status)
+    }
+
+    if (search) {
+      sql += ` AND (invoice_number LIKE ? OR customer_name LIKE ? OR customer_email LIKE ?)`
+      const searchPattern = `%${search}%`
+      params.push(searchPattern, searchPattern, searchPattern)
+    }
+
+    if (date_from) {
+      sql += ` AND invoice_date >= ?`
+      params.push(date_from)
+    }
+
+    if (date_to) {
+      sql += ` AND invoice_date <= ?`
+      params.push(date_to)
+    }
+
+    sql += ` ORDER BY created_at DESC LIMIT 100`
+
+    const invoices = await db.db.prepare(sql).bind(...params).all()
+    return c.json({ success: true, data: invoices.results || [] })
+  } catch (error) {
+    console.error('Error loading invoices:', error)
+    return c.json({ success: false, error: 'Failed to load invoices' }, 500)
+  }
+})
+
+// Get invoice stats (must be before :id route)
+app.get('/api/admin/invoices/stats', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+
+    const stats = await db.db.prepare(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid,
+        SUM(CASE WHEN status = 'overdue' THEN 1 ELSE 0 END) as overdue,
+        SUM(CASE WHEN status = 'paid' THEN total_amount ELSE 0 END) as total_revenue
+      FROM invoices
+    `).first()
+
+    return c.json({ success: true, data: stats })
+  } catch (error) {
+    console.error('Error loading stats:', error)
+    return c.json({ success: false, error: 'Failed to load stats' }, 500)
+  }
+})
+
+// Get invoice by ID with items
+app.get('/api/admin/invoices/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+
+    const invoice = await db.db.prepare(`SELECT * FROM invoices WHERE id = ?`).bind(id).first()
+    
+    if (!invoice) {
+      return c.json({ success: false, error: 'Invoice not found' }, 404)
+    }
+
+    const items = await db.db.prepare(`SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order`).bind(id).all()
+    
+    return c.json({ 
+      success: true, 
+      data: { ...invoice, items: items.results || [] } 
+    })
+  } catch (error) {
+    console.error('Error loading invoice:', error)
+    return c.json({ success: false, error: 'Failed to load invoice' }, 500)
+  }
+})
+
+// Create new invoice
+app.post('/api/admin/invoices', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const body = await c.req.json()
+
+    // Calculate totals
+    let subtotal = 0
+    if (body.items && Array.isArray(body.items)) {
+      body.items.forEach((item: any) => {
+        subtotal += (item.quantity || 0) * (item.unit_price || 0)
+      })
+    }
+
+    const taxRate = 19.0
+    const taxAmount = Math.round(subtotal * (taxRate / 100))
+    const totalAmount = subtotal + taxAmount
+
+    // Insert invoice
+    const result = await db.db.prepare(`
+      INSERT INTO invoices (
+        invoice_number, customer_name, customer_email, customer_company, customer_tax_id,
+        billing_address, billing_city, billing_postal_code, billing_country,
+        invoice_date, due_date, status, notes, terms,
+        subtotal, tax_rate, tax_amount, total_amount
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      body.invoice_number,
+      body.customer_name,
+      body.customer_email,
+      body.customer_company || null,
+      body.customer_tax_id || null,
+      body.billing_address,
+      body.billing_city,
+      body.billing_postal_code,
+      body.billing_country || 'Deutschland',
+      body.invoice_date,
+      body.due_date || null,
+      body.status || 'draft',
+      body.notes || null,
+      body.terms || 'Zahlbar innerhalb von 14 Tagen ohne Abzug.',
+      subtotal,
+      taxRate,
+      taxAmount,
+      totalAmount
+    ).run()
+
+    const invoiceId = result.meta.last_row_id
+
+    // Insert items
+    if (body.items && Array.isArray(body.items)) {
+      for (let i = 0; i < body.items.length; i++) {
+        const item = body.items[i]
+        const lineTotal = (item.quantity || 0) * (item.unit_price || 0)
+        
+        await db.db.prepare(`
+          INSERT INTO invoice_items (
+            invoice_id, description, quantity, unit_price, tax_rate, line_total, sort_order
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          invoiceId,
+          item.description,
+          item.quantity || 1,
+          item.unit_price || 0,
+          item.tax_rate || 19.0,
+          lineTotal,
+          i
+        ).run()
+      }
+    }
+
+    return c.json({ success: true, data: { id: invoiceId } })
+  } catch (error) {
+    console.error('Error creating invoice:', error)
+    return c.json({ success: false, error: 'Failed to create invoice' }, 500)
+  }
+})
+
+// Update invoice
+app.put('/api/admin/invoices/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    const body = await c.req.json()
+
+    // Calculate totals
+    let subtotal = 0
+    if (body.items && Array.isArray(body.items)) {
+      body.items.forEach((item: any) => {
+        subtotal += (item.quantity || 0) * (item.unit_price || 0)
+      })
+    }
+
+    const taxRate = 19.0
+    const taxAmount = Math.round(subtotal * (taxRate / 100))
+    const totalAmount = subtotal + taxAmount
+
+    // Update invoice
+    await db.db.prepare(`
+      UPDATE invoices SET
+        invoice_number = ?, customer_name = ?, customer_email = ?, customer_company = ?, customer_tax_id = ?,
+        billing_address = ?, billing_city = ?, billing_postal_code = ?, billing_country = ?,
+        invoice_date = ?, due_date = ?, status = ?, notes = ?, terms = ?,
+        subtotal = ?, tax_rate = ?, tax_amount = ?, total_amount = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      body.invoice_number,
+      body.customer_name,
+      body.customer_email,
+      body.customer_company || null,
+      body.customer_tax_id || null,
+      body.billing_address,
+      body.billing_city,
+      body.billing_postal_code,
+      body.billing_country || 'Deutschland',
+      body.invoice_date,
+      body.due_date || null,
+      body.status || 'draft',
+      body.notes || null,
+      body.terms || 'Zahlbar innerhalb von 14 Tagen ohne Abzug.',
+      subtotal,
+      taxRate,
+      taxAmount,
+      totalAmount,
+      id
+    ).run()
+
+    // Delete old items
+    await db.db.prepare(`DELETE FROM invoice_items WHERE invoice_id = ?`).bind(id).run()
+
+    // Insert new items
+    if (body.items && Array.isArray(body.items)) {
+      for (let i = 0; i < body.items.length; i++) {
+        const item = body.items[i]
+        const lineTotal = (item.quantity || 0) * (item.unit_price || 0)
+        
+        await db.db.prepare(`
+          INSERT INTO invoice_items (
+            invoice_id, description, quantity, unit_price, tax_rate, line_total, sort_order
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          id,
+          item.description,
+          item.quantity || 1,
+          item.unit_price || 0,
+          item.tax_rate || 19.0,
+          lineTotal,
+          i
+        ).run()
+      }
+    }
+
+    return c.json({ success: true, message: 'Invoice updated successfully' })
+  } catch (error) {
+    console.error('Error updating invoice:', error)
+    return c.json({ success: false, error: 'Failed to update invoice' }, 500)
+  }
+})
+
+// Delete invoice
+app.delete('/api/admin/invoices/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+
+    await db.db.prepare(`DELETE FROM invoices WHERE id = ?`).bind(id).run()
+    
+    return c.json({ success: true, message: 'Invoice deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting invoice:', error)
+    return c.json({ success: false, error: 'Failed to delete invoice' }, 500)
+  }
+})
+
+// ============================================
 // ADMIN PAGE ROUTES
 // ============================================
 
@@ -2537,6 +2801,12 @@ app.get('/admin/licenses/import', (c) => {
       <AdminLicenseImport />
     </AdminLayout>
   )
+})
+
+// Invoice Management
+app.get('/admin/invoices', (c) => {
+  const html = AdminInvoices()
+  return c.html(html)
 })
 
 // Reports & Analytics

@@ -1,599 +1,859 @@
-import type { FC } from 'hono/jsx'
-
-export const AdminInvoices: FC = () => {
-  return (
-    <div class="admin-invoices">
-      <div class="admin-header">
-        <h2><i class="fas fa-file-invoice"></i> Invoice Management</h2>
-        <button class="btn-primary" onclick="createNewInvoice()">
-          <i class="fas fa-plus"></i> Create Invoice
-        </button>
-      </div>
-
-      {/* Invoice List */}
-      <div class="admin-card" style="margin-bottom: 20px;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-          <input 
-            type="text" 
-            id="search-invoice" 
-            placeholder="Search invoices..." 
-            class="form-control"
-            onkeyup="filterInvoices()"
-          />
-          <select id="filter-status" class="form-control" onchange="filterInvoices()">
-            <option value="">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="sent">Sent</option>
-            <option value="paid">Paid</option>
-            <option value="overdue">Overdue</option>
-          </select>
-        </div>
-
-        <div class="table-responsive">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Invoice #</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th>Due Date</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="invoices-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Invoice Editor Modal */}
-      <div id="invoice-editor-modal" class="modal">
-        <div class="modal-content" style="max-width: 1200px;">
-          <div class="modal-header">
-            <h3><i class="fas fa-file-invoice"></i> Invoice Editor</h3>
-            <button class="modal-close" onclick="closeInvoiceEditor()">&times;</button>
-          </div>
-          <div class="modal-body">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-              {/* Left: Invoice Form */}
-              <div>
-                <h4>Invoice Details</h4>
-                <div class="form-group">
-                  <label>Invoice Number</label>
-                  <input type="text" id="invoice-number" class="form-control" placeholder="INV-2024-001" />
-                </div>
-                <div class="form-group">
-                  <label>Customer Email</label>
-                  <input type="email" id="invoice-customer" class="form-control" placeholder="customer@example.com" />
-                </div>
-                <div class="form-group">
-                  <label>Customer Name</label>
-                  <input type="text" id="invoice-customer-name" class="form-control" placeholder="Max Mustermann" />
-                </div>
-                <div class="form-group">
-                  <label>Issue Date</label>
-                  <input type="date" id="invoice-date" class="form-control" />
-                </div>
-                <div class="form-group">
-                  <label>Due Date</label>
-                  <input type="date" id="invoice-due-date" class="form-control" />
-                </div>
-                <div class="form-group">
-                  <label>Items</label>
-                  <div id="invoice-items"></div>
-                  <button class="btn-secondary" onclick="addInvoiceItem()">
-                    <i class="fas fa-plus"></i> Add Item
-                  </button>
-                </div>
-                <div class="form-group">
-                  <label>VAT Rate (%)</label>
-                  <input type="number" id="invoice-vat" class="form-control" value="19" step="0.01" />
-                </div>
-                <div class="form-group">
-                  <label>Notes</label>
-                  <textarea id="invoice-notes" class="form-control" rows="3" placeholder="Payment terms, additional notes..."></textarea>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                  <button class="btn-primary" onclick="generateInvoicePreview()">
-                    <i class="fas fa-eye"></i> Preview
-                  </button>
-                  <button class="btn-success" onclick="saveInvoice()">
-                    <i class="fas fa-save"></i> Save Invoice
-                  </button>
-                </div>
-              </div>
-
-              {/* Right: Preview */}
-              <div>
-                <h4>Preview</h4>
-                <div id="invoice-preview" style="border: 1px solid #ddd; padding: 20px; background: white; min-height: 500px;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* HTML Template Editor Modal */}
-      <div id="template-editor-modal" class="modal">
-        <div class="modal-content" style="max-width: 1400px;">
-          <div class="modal-header">
-            <h3><i class="fas fa-code"></i> Invoice Template Editor</h3>
-            <button class="modal-close" onclick="closeTemplateEditor()">&times;</button>
-          </div>
-          <div class="modal-body">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-              {/* HTML Editor */}
-              <div>
-                <h4>HTML Template</h4>
-                <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
-                  Available variables: {'{'}{'{'} invoiceNumber {'}'}{'}'},  {'{'}{'{'} customerName {'}'}{'}'},  {'{'}{'{'} customerEmail {'}'}{'}'},  {'{'}{'{'} invoiceDate {'}'}{'}'},  {'{'}{'{'} dueDate {'}'}{'}'},  {'{'}{'{'} items {'}'}{'}'},  {'{'}{'{'} subtotal {'}'}{'}'},  {'{'}{'{'} vat {'}'}{'}'},  {'{'}{'{'} total {'}'}{'}'},  {'{'}{'{'} notes {'}'}{'}'} 
-                </p>
-                <textarea 
-                  id="template-html" 
-                  class="code-editor"
-                  rows="25"
-                  spellcheck="false"
-                ></textarea>
-                <div style="margin-top: 10px;">
-                  <button class="btn-primary" onclick="previewTemplate()">
-                    <i class="fas fa-eye"></i> Preview Template
-                  </button>
-                  <button class="btn-success" onclick="saveTemplate()">
-                    <i class="fas fa-save"></i> Save Template
-                  </button>
-                  <button class="btn-secondary" onclick="resetToDefault()">
-                    <i class="fas fa-undo"></i> Reset to Default
-                  </button>
-                </div>
-              </div>
-
-              {/* Preview */}
-              <div>
-                <h4>Template Preview</h4>
-                <div id="template-preview" style="border: 1px solid #ddd; padding: 20px; background: white; min-height: 600px; overflow-y: auto;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <style>{`
-        .admin-invoices {
-          padding: 20px;
+export const AdminInvoices = () => {
+  return `
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Rechnungsverwaltung - Admin - SOFTWAREKING24</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+      <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+      <style>
+        :root {
+          --navy-dark: #1a2a4e;
+          --gold: #d4af37;
         }
-        .form-group {
-          margin-bottom: 15px;
-        }
-        .form-group label {
-          display: block;
-          margin-bottom: 5px;
-          font-weight: 600;
-          color: #1a2a4e;
-        }
-        .form-control {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          font-size: 14px;
-        }
-        .btn-secondary {
-          background: #6c757d;
+        .admin-sidebar {
+          width: 260px;
+          background: #1a2a4e;
           color: white;
-          border: none;
-          padding: 8px 15px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 14px;
+          min-height: 100vh;
+          position: fixed;
+          left: 0;
+          top: 0;
+          z-index: 40;
         }
-        .btn-success {
-          background: #28a745;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-weight: 600;
-          margin-left: 10px;
+        .admin-content {
+          margin-left: 260px;
+          min-height: 100vh;
         }
-        .code-editor {
+        .invoice-preview {
+          background: white;
+          box-shadow: 0 0 20px rgba(0,0,0,0.1);
+          padding: 40px;
+          max-width: 800px;
+          margin: 0 auto;
+        }
+        .invoice-header {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 40px;
+          padding-bottom: 20px;
+          border-bottom: 3px solid var(--gold);
+        }
+        .invoice-section {
+          margin-bottom: 30px;
+        }
+        .invoice-table {
           width: 100%;
-          font-family: 'Courier New', monospace;
+          border-collapse: collapse;
+        }
+        .invoice-table th {
+          background: var(--navy-dark);
+          color: white;
+          padding: 12px;
+          text-align: left;
+        }
+        .invoice-table td {
+          padding: 10px 12px;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .invoice-table tfoot td {
+          font-weight: bold;
+          border-top: 2px solid var(--navy-dark);
+        }
+        .status-badge {
+          display: inline-block;
+          padding: 4px 12px;
+          border-radius: 20px;
           font-size: 12px;
-          padding: 10px;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          background: #f8f9fa;
+          font-weight: 600;
         }
-        .invoice-item {
-          display: grid;
-          grid-template-columns: 2fr 1fr 1fr auto;
-          gap: 10px;
-          margin-bottom: 10px;
-          padding: 10px;
-          background: #f8f9fa;
-          border-radius: 5px;
+        .status-draft { background: #f3f4f6; color: #6b7280; }
+        .status-sent { background: #dbeafe; color: #1e40af; }
+        .status-paid { background: #d1fae5; color: #065f46; }
+        .status-overdue { background: #fee2e2; color: #991b1b; }
+        .status-cancelled { background: #f3f4f6; color: #374151; }
+        
+        @media print {
+          .no-print { display: none; }
+          .admin-sidebar { display: none; }
+          .admin-content { margin-left: 0; }
         }
-        .invoice-item input {
-          padding: 8px;
-          border: 1px solid #ddd;
-          border-radius: 3px;
-        }
-        .invoice-item button {
-          background: #dc3545;
-          color: white;
-          border: none;
-          padding: 8px 12px;
-          border-radius: 3px;
-          cursor: pointer;
-        }
-      `}</style>
+      </style>
+    </head>
+    <body class="bg-gray-100">
+      <div class="flex min-h-screen">
+        ${AdminSidebar('/admin/invoices')}
+        
+        <div class="admin-content flex-1 p-8">
+          <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8">
+              <div>
+                <h1 class="text-3xl font-bold" style="color: var(--navy-dark)">
+                  <i class="fas fa-file-invoice mr-3"></i>
+                  Rechnungsverwaltung
+                </h1>
+                <p class="text-gray-600 mt-2">Verwalten Sie Ihre Rechnungen und Zahlungen</p>
+              </div>
+              <button onclick="showInvoiceEditor()" class="px-6 py-3 rounded-lg text-white font-semibold hover:opacity-90 transition-all" style="background: var(--gold)">
+                <i class="fas fa-plus mr-2"></i>Neue Rechnung
+              </button>
+            </div>
 
-      <script dangerouslySetInnerHTML={{ __html: `
-        let invoicesData = [];
-        let currentInvoiceTemplate = '';
-        
-        // Default invoice HTML template
-        const defaultInvoiceTemplate = \`
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: Arial, sans-serif; color: #333; }
-    .invoice-container { max-width: 800px; margin: 0 auto; padding: 40px; }
-    .invoice-header { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 3px solid #1a2a4e; padding-bottom: 20px; }
-    .company-info { color: #1a2a4e; }
-    .company-info h1 { margin: 0; color: #d4af37; }
-    .invoice-details { text-align: right; }
-    .invoice-details h2 { margin: 0; color: #1a2a4e; }
-    .customer-info { margin-bottom: 30px; padding: 15px; background: #f8f9fa; border-left: 4px solid #d4af37; }
-    table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-    th { background: #1a2a4e; color: white; padding: 12px; text-align: left; }
-    td { padding: 10px; border-bottom: 1px solid #ddd; }
-    .totals { text-align: right; margin-top: 20px; }
-    .totals table { width: 300px; margin-left: auto; }
-    .total-row { font-weight: bold; font-size: 18px; color: #1a2a4e; }
-    .notes { margin-top: 40px; padding: 15px; background: #fff9e6; border-left: 4px solid #d4af37; }
-    .footer { margin-top: 60px; text-align: center; color: #666; font-size: 12px; border-top: 1px solid #ddd; padding-top: 20px; }
-  </style>
-</head>
-<body>
-  <div class="invoice-container">
-    <div class="invoice-header">
-      <div class="company-info">
-        <h1>Premium Software Store</h1>
-        <p>Musterstraße 123<br>12345 Berlin, Deutschland<br>Tel: +49 30 12345678<br>Email: info@premium-software.de</p>
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div class="bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-gray-500 text-sm">Gesamt</p>
+                    <p class="text-2xl font-bold" style="color: var(--navy-dark)" id="total-invoices">0</p>
+                  </div>
+                  <div class="bg-blue-100 p-3 rounded-lg">
+                    <i class="fas fa-file-invoice text-blue-600 text-xl"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-gray-500 text-sm">Bezahlt</p>
+                    <p class="text-2xl font-bold text-green-600" id="paid-count">0</p>
+                  </div>
+                  <div class="bg-green-100 p-3 rounded-lg">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-gray-500 text-sm">Überfällig</p>
+                    <p class="text-2xl font-bold text-red-600" id="overdue-count">0</p>
+                  </div>
+                  <div class="bg-red-100 p-3 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-gray-500 text-sm">Gesamtwert</p>
+                    <p class="text-2xl font-bold" style="color: var(--gold)" id="total-revenue">€0</p>
+                  </div>
+                  <div style="background: rgba(212, 175, 55, 0.1)" class="p-3 rounded-lg">
+                    <i class="fas fa-euro-sign text-xl" style="color: var(--gold)"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-xl p-6 shadow-md mb-6">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <select id="filter-status" onchange="loadInvoices()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent">
+                    <option value="">Alle Status</option>
+                    <option value="draft">Entwurf</option>
+                    <option value="sent">Versendet</option>
+                    <option value="paid">Bezahlt</option>
+                    <option value="overdue">Überfällig</option>
+                    <option value="cancelled">Storniert</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Suche</label>
+                  <input type="text" id="search-query" onkeyup="loadInvoices()" placeholder="Rechnungsnummer, Kunde..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent">
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Von</label>
+                  <input type="date" id="filter-date-from" onchange="loadInvoices()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent">
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Bis</label>
+                  <input type="date" id="filter-date-to" onchange="loadInvoices()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent">
+                </div>
+              </div>
+            </div>
+
+            <!-- Invoices List -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+              <table class="w-full">
+                <thead style="background: var(--navy-dark); color: white;">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Rechnungs-Nr.</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Kunde</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Datum</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Fällig am</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Betrag</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold">Aktionen</th>
+                  </tr>
+                </thead>
+                <tbody id="invoices-list">
+                  <tr>
+                    <td colspan="7" class="px-6 py-8 text-center">
+                      <i class="fas fa-spinner fa-spin text-3xl" style="color: var(--gold)"></i>
+                      <p class="text-gray-500 mt-2">Lade Rechnungen...</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="invoice-details">
-        <h2>RECHNUNG</h2>
-        <p><strong>Rechnungsnummer:</strong> {{invoiceNumber}}<br><strong>Datum:</strong> {{invoiceDate}}<br><strong>Fälligkeitsdatum:</strong> {{dueDate}}</p>
+
+      <!-- Invoice Editor Modal -->
+      <div id="invoice-editor-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+        <div class="min-h-screen px-4 py-8">
+          <div class="bg-white rounded-2xl max-w-6xl mx-auto shadow-2xl">
+            <div class="p-6 border-b flex justify-between items-center" style="background: var(--navy-dark); color: white;">
+              <h2 class="text-2xl font-bold">
+                <i class="fas fa-edit mr-2"></i>
+                <span id="editor-title">Neue Rechnung</span>
+              </h2>
+              <button onclick="closeInvoiceEditor()" class="text-white hover:text-gray-300">
+                <i class="fas fa-times text-2xl"></i>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+              <!-- Left: Form -->
+              <div class="space-y-6">
+                <input type="hidden" id="invoice-id">
+
+                <!-- Customer Information -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h3 class="font-bold text-lg mb-4" style="color: var(--navy-dark)">
+                    <i class="fas fa-user mr-2"></i>Kundeninformationen
+                  </h3>
+                  
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-sm font-medium mb-1">Name *</label>
+                      <input type="text" id="customer-name" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" placeholder="Max Mustermann">
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium mb-1">E-Mail *</label>
+                      <input type="email" id="customer-email" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" placeholder="max@example.com">
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium mb-1">Firma</label>
+                      <input type="text" id="customer-company" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" placeholder="Musterfirma GmbH">
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium mb-1">Steuernummer</label>
+                      <input type="text" id="customer-tax-id" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" placeholder="DE123456789">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Billing Address -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h3 class="font-bold text-lg mb-4" style="color: var(--navy-dark)">
+                    <i class="fas fa-map-marker-alt mr-2"></i>Rechnungsadresse
+                  </h3>
+                  
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-sm font-medium mb-1">Straße & Hausnummer *</label>
+                      <input type="text" id="billing-address" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" placeholder="Musterstraße 123">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-sm font-medium mb-1">PLZ *</label>
+                        <input type="text" id="billing-postal-code" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" placeholder="10115">
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium mb-1">Stadt *</label>
+                        <input type="text" id="billing-city" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" placeholder="Berlin">
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium mb-1">Land *</label>
+                      <input type="text" id="billing-country" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" value="Deutschland">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Invoice Details -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h3 class="font-bold text-lg mb-4" style="color: var(--navy-dark)">
+                    <i class="fas fa-file-invoice mr-2"></i>Rechnungsdetails
+                  </h3>
+                  
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-sm font-medium mb-1">Rechnungsnummer *</label>
+                      <input type="text" id="invoice-number" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" placeholder="RE-2026-0001">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-sm font-medium mb-1">Rechnungsdatum *</label>
+                        <input type="date" id="invoice-date" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold">
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium mb-1">Fälligkeitsdatum</label>
+                        <input type="date" id="due-date" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold">
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium mb-1">Status</label>
+                      <select id="invoice-status" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold">
+                        <option value="draft">Entwurf</option>
+                        <option value="sent">Versendet</option>
+                        <option value="paid">Bezahlt</option>
+                        <option value="overdue">Überfällig</option>
+                        <option value="cancelled">Storniert</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg" style="color: var(--navy-dark)">
+                      <i class="fas fa-list mr-2"></i>Positionen
+                    </h3>
+                    <button onclick="addInvoiceItem()" class="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                      <i class="fas fa-plus mr-1"></i>Position
+                    </button>
+                  </div>
+                  
+                  <div id="invoice-items" class="space-y-2">
+                    <!-- Items will be added here dynamically -->
+                  </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h3 class="font-bold text-lg mb-4" style="color: var(--navy-dark)">
+                    <i class="fas fa-sticky-note mr-2"></i>Notizen & Bedingungen
+                  </h3>
+                  
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-sm font-medium mb-1">Interne Notizen</label>
+                      <textarea id="invoice-notes" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold" placeholder="Interne Bemerkungen..."></textarea>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium mb-1">Zahlungsbedingungen</label>
+                      <textarea id="invoice-terms" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gold">Zahlbar innerhalb von 14 Tagen ohne Abzug.</textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                  <button onclick="saveInvoice('draft')" class="flex-1 px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold">
+                    <i class="fas fa-save mr-2"></i>Als Entwurf speichern
+                  </button>
+                  <button onclick="saveInvoice('sent')" class="flex-1 px-4 py-3 text-white rounded-lg font-semibold hover:opacity-90" style="background: var(--gold)">
+                    <i class="fas fa-paper-plane mr-2"></i>Speichern & Versenden
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right: Live Preview -->
+              <div class="bg-gray-100 p-4 rounded-lg" style="max-height: 800px; overflow-y: auto;">
+                <div class="invoice-preview" id="invoice-preview">
+                  <!-- Preview will be generated here -->
+                  <div class="text-center text-gray-400 py-20">
+                    <i class="fas fa-file-invoice text-6xl mb-4"></i>
+                    <p>Fülle das Formular aus, um eine Vorschau zu sehen</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    
-    <div class="customer-info">
-      <strong>Rechnungsempfänger:</strong><br>
-      {{customerName}}<br>
-      {{customerEmail}}
-    </div>
-    
-    <table>
-      <thead>
-        <tr>
-          <th>Artikel</th>
-          <th style="text-align: right;">Menge</th>
-          <th style="text-align: right;">Einzelpreis</th>
-          <th style="text-align: right;">Gesamt</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{items}}
-      </tbody>
-    </table>
-    
-    <div class="totals">
-      <table>
-        <tr>
-          <td>Zwischensumme:</td>
-          <td style="text-align: right;">€{{subtotal}}</td>
-        </tr>
-        <tr>
-          <td>MwSt ({{vatRate}}%):</td>
-          <td style="text-align: right;">€{{vat}}</td>
-        </tr>
-        <tr class="total-row">
-          <td>Gesamtbetrag:</td>
-          <td style="text-align: right;">€{{total}}</td>
-        </tr>
-      </table>
-    </div>
-    
-    {{#if notes}}
-    <div class="notes">
-      <strong>Anmerkungen:</strong><br>
-      {{notes}}
-    </div>
-    {{/if}}
-    
-    <div class="footer">
-      <p>Zahlbar innerhalb von 14 Tagen nach Rechnungsdatum.<br>Vielen Dank für Ihren Einkauf!</p>
-    </div>
-  </div>
-</body>
-</html>
-\`;
+
+      <script src="/static/auth.js"></script>
+      <script>
+        ${AdminSidebarScript()}
         
-        function loadInvoices() {
-          // Demo invoices
-          invoicesData = [
-            {
-              id: 1,
-              invoiceNumber: 'INV-2024-001',
-              customer: 'Max Mustermann',
-              email: 'max@example.com',
-              date: '2024-01-15',
-              dueDate: '2024-01-29',
-              amount: 299.99,
-              status: 'paid'
-            },
-            {
-              id: 2,
-              invoiceNumber: 'INV-2024-002',
-              customer: 'Anna Schmidt',
-              email: 'anna@example.com',
-              date: '2024-01-20',
-              dueDate: '2024-02-03',
-              amount: 149.99,
-              status: 'sent'
-            },
-            {
-              id: 3,
-              invoiceNumber: 'INV-2024-003',
-              customer: 'Peter Müller',
-              email: 'peter@example.com',
-              date: '2024-01-10',
-              dueDate: '2024-01-24',
-              amount: 499.99,
-              status: 'overdue'
-            }
-          ];
+        let invoiceItems = [];
+
+        // Load invoices on page load
+        document.addEventListener('DOMContentLoaded', () => {
+          ${AdminSidebar('/admin/invoices')}
+          loadInvoices();
+          loadStats();
           
-          renderInvoices(invoicesData);
-          currentInvoiceTemplate = localStorage.getItem('invoiceTemplate') || defaultInvoiceTemplate;
-        }
-        
-        function renderInvoices(invoices) {
-          const tbody = document.getElementById('invoices-tbody');
-          tbody.innerHTML = invoices.map(inv => \`
-            <tr>
-              <td><strong>\${inv.invoiceNumber}</strong></td>
-              <td>\${inv.customer}</td>
-              <td>\${new Date(inv.date).toLocaleDateString('de-DE')}</td>
-              <td>\${new Date(inv.dueDate).toLocaleDateString('de-DE')}</td>
-              <td>€\${inv.amount.toFixed(2)}</td>
-              <td><span class="status-badge status-\${inv.status}">\${inv.status.toUpperCase()}</span></td>
-              <td>
-                <button class="action-btn btn-view" onclick="viewInvoice(\${inv.id})">
-                  <i class="fas fa-eye"></i> View
-                </button>
-                <button class="action-btn btn-edit" onclick="editInvoice(\${inv.id})">
-                  <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="action-btn" style="background: #17a2b8; color: white;" onclick="downloadInvoice(\${inv.id})">
-                  <i class="fas fa-download"></i> PDF
-                </button>
-              </td>
-            </tr>
-          \`).join('');
-        }
-        
-        function filterInvoices() {
-          const search = document.getElementById('search-invoice').value.toLowerCase();
-          const status = document.getElementById('filter-status').value;
-          
-          let filtered = invoicesData.filter(inv => {
-            const matchesSearch = !search || 
-              inv.invoiceNumber.toLowerCase().includes(search) ||
-              inv.customer.toLowerCase().includes(search);
-            const matchesStatus = !status || inv.status === status;
-            return matchesSearch && matchesStatus;
-          });
-          
-          renderInvoices(filtered);
-        }
-        
-        function createNewInvoice() {
-          document.getElementById('invoice-number').value = 'INV-' + new Date().getFullYear() + '-' + String(invoicesData.length + 1).padStart(3, '0');
+          // Set default dates
           document.getElementById('invoice-date').value = new Date().toISOString().split('T')[0];
           const dueDate = new Date();
           dueDate.setDate(dueDate.getDate() + 14);
-          document.getElementById('invoice-due-date').value = dueDate.toISOString().split('T')[0];
-          document.getElementById('invoice-items').innerHTML = '';
-          addInvoiceItem();
-          document.getElementById('invoice-editor-modal').style.display = 'block';
-        }
-        
-        function addInvoiceItem() {
-          const itemsContainer = document.getElementById('invoice-items');
-          const itemId = Date.now();
-          const itemHtml = \`
-            <div class="invoice-item" id="item-\${itemId}">
-              <input type="text" placeholder="Description" class="item-desc" />
-              <input type="number" placeholder="Qty" class="item-qty" value="1" min="1" />
-              <input type="number" placeholder="Price" class="item-price" value="0" step="0.01" />
-              <button onclick="removeInvoiceItem(\${itemId})"><i class="fas fa-times"></i></button>
-            </div>
-          \`;
-          itemsContainer.insertAdjacentHTML('beforeend', itemHtml);
-        }
-        
-        function removeInvoiceItem(itemId) {
-          document.getElementById('item-' + itemId).remove();
-        }
-        
-        function generateInvoicePreview() {
-          const data = collectInvoiceData();
-          const html = renderInvoiceTemplate(currentInvoiceTemplate, data);
-          document.getElementById('invoice-preview').innerHTML = html;
-        }
-        
-        function collectInvoiceData() {
-          const items = [];
-          document.querySelectorAll('.invoice-item').forEach(item => {
-            const desc = item.querySelector('.item-desc').value;
-            const qty = parseFloat(item.querySelector('.item-qty').value) || 0;
-            const price = parseFloat(item.querySelector('.item-price').value) || 0;
-            if (desc && qty && price) {
-              items.push({ description: desc, quantity: qty, price: price, total: qty * price });
+          document.getElementById('due-date').value = dueDate.toISOString().split('T')[0];
+          
+          // Auto-update preview on input changes
+          const formInputs = ['customer-name', 'customer-email', 'customer-company', 'billing-address', 'billing-city', 'billing-postal-code', 'invoice-number', 'invoice-date', 'due-date'];
+          formInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+              el.addEventListener('input', updatePreview);
+              el.addEventListener('change', updatePreview);
             }
           });
-          
-          const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-          const vatRate = parseFloat(document.getElementById('invoice-vat').value) || 0;
-          const vat = subtotal * (vatRate / 100);
-          const total = subtotal + vat;
-          
-          return {
-            invoiceNumber: document.getElementById('invoice-number').value,
-            customerName: document.getElementById('invoice-customer-name').value,
-            customerEmail: document.getElementById('invoice-customer').value,
-            invoiceDate: new Date(document.getElementById('invoice-date').value).toLocaleDateString('de-DE'),
-            dueDate: new Date(document.getElementById('invoice-due-date').value).toLocaleDateString('de-DE'),
-            items: items,
-            subtotal: subtotal.toFixed(2),
-            vatRate: vatRate.toFixed(0),
-            vat: vat.toFixed(2),
-            total: total.toFixed(2),
-            notes: document.getElementById('invoice-notes').value
-          };
+        });
+
+        function generateNextInvoiceNumber() {
+          const year = new Date().getFullYear();
+          const random = Math.floor(Math.random() * 9000) + 1000;
+          return \`RE-\${year}-\${random}\`;
         }
-        
-        function renderInvoiceTemplate(template, data) {
-          let html = template;
-          
-          // Replace simple variables
-          html = html.replace(/{{invoiceNumber}}/g, data.invoiceNumber);
-          html = html.replace(/{{customerName}}/g, data.customerName);
-          html = html.replace(/{{customerEmail}}/g, data.customerEmail);
-          html = html.replace(/{{invoiceDate}}/g, data.invoiceDate);
-          html = html.replace(/{{dueDate}}/g, data.dueDate);
-          html = html.replace(/{{subtotal}}/g, data.subtotal);
-          html = html.replace(/{{vatRate}}/g, data.vatRate);
-          html = html.replace(/{{vat}}/g, data.vat);
-          html = html.replace(/{{total}}/g, data.total);
-          
-          // Replace items
-          const itemsHtml = data.items.map(item => \`
-            <tr>
-              <td>\${item.description}</td>
-              <td style="text-align: right;">\${item.quantity}</td>
-              <td style="text-align: right;">€\${item.price.toFixed(2)}</td>
-              <td style="text-align: right;">€\${item.total.toFixed(2)}</td>
-            </tr>
-          \`).join('');
-          html = html.replace(/{{items}}/g, itemsHtml);
-          
-          // Handle conditional notes
-          if (data.notes) {
-            html = html.replace(/{{#if notes}}([\\s\\S]*?){{\/if}}/g, '$1');
-            html = html.replace(/{{notes}}/g, data.notes);
-          } else {
-            html = html.replace(/{{#if notes}}[\\s\\S]*?{{\/if}}/g, '');
+
+        async function loadStats() {
+          try {
+            const response = await axios.get('/api/admin/invoices/stats');
+            if (response.data.success) {
+              const stats = response.data.data;
+              document.getElementById('total-invoices').textContent = stats.total || 0;
+              document.getElementById('paid-count').textContent = stats.paid || 0;
+              document.getElementById('overdue-count').textContent = stats.overdue || 0;
+              document.getElementById('total-revenue').textContent = \`€\${((stats.total_revenue || 0) / 100).toFixed(2)}\`;
+            }
+          } catch (error) {
+            console.error('Error loading stats:', error);
           }
+        }
+
+        async function loadInvoices() {
+          const status = document.getElementById('filter-status').value;
+          const search = document.getElementById('search-query').value;
+          const dateFrom = document.getElementById('filter-date-from').value;
+          const dateTo = document.getElementById('filter-date-to').value;
+
+          try {
+            const params = new URLSearchParams();
+            if (status) params.append('status', status);
+            if (search) params.append('search', search);
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+
+            const response = await axios.get(\`/api/admin/invoices?\${params.toString()}\`);
+            
+            if (response.data.success) {
+              renderInvoices(response.data.data);
+            }
+          } catch (error) {
+            console.error('Error loading invoices:', error);
+            document.getElementById('invoices-list').innerHTML = \`
+              <tr>
+                <td colspan="7" class="px-6 py-4 text-center text-red-600">
+                  Fehler beim Laden der Rechnungen
+                </td>
+              </tr>
+            \`;
+          }
+        }
+
+        function renderInvoices(invoices) {
+          const tbody = document.getElementById('invoices-list');
           
-          return html;
+          if (invoices.length === 0) {
+            tbody.innerHTML = \`
+              <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                  <i class="fas fa-inbox text-4xl mb-2"></i>
+                  <p>Keine Rechnungen gefunden</p>
+                </td>
+              </tr>
+            \`;
+            return;
+          }
+
+          tbody.innerHTML = invoices.map(invoice => {
+            const statusClass = \`status-\${invoice.status}\`;
+            const statusText = {
+              draft: 'Entwurf',
+              sent: 'Versendet',
+              paid: 'Bezahlt',
+              overdue: 'Überfällig',
+              cancelled: 'Storniert'
+            }[invoice.status] || invoice.status;
+
+            return \`
+              <tr class="border-b hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4">
+                  <span class="font-semibold" style="color: var(--navy-dark)">\${invoice.invoice_number}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="font-medium">\${invoice.customer_name}</div>
+                  <div class="text-sm text-gray-500">\${invoice.customer_email}</div>
+                </td>
+                <td class="px-6 py-4 text-sm">\${new Date(invoice.invoice_date).toLocaleDateString('de-DE')}</td>
+                <td class="px-6 py-4 text-sm">\${invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('de-DE') : '-'}</td>
+                <td class="px-6 py-4">
+                  <span class="font-semibold" style="color: var(--gold)">€\${(invoice.total_amount / 100).toFixed(2)}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="status-badge \${statusClass}">\${statusText}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex gap-2">
+                    <button onclick="viewInvoice(\${invoice.id})" class="text-blue-600 hover:text-blue-800" title="Ansehen">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button onclick="editInvoice(\${invoice.id})" class="text-yellow-600 hover:text-yellow-800" title="Bearbeiten">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="downloadInvoice(\${invoice.id})" class="text-green-600 hover:text-green-800" title="PDF">
+                      <i class="fas fa-download"></i>
+                    </button>
+                    <button onclick="deleteInvoice(\${invoice.id})" class="text-red-600 hover:text-red-800" title="Löschen">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            \`;
+          }).join('');
         }
-        
-        function saveInvoice() {
-          const data = collectInvoiceData();
-          alert('Invoice saved successfully!\\n\\nInvoice: ' + data.invoiceNumber + '\\nTotal: €' + data.total);
-          closeInvoiceEditor();
+
+        function showInvoiceEditor() {
+          // Reset form
+          document.getElementById('invoice-id').value = '';
+          document.getElementById('editor-title').textContent = 'Neue Rechnung';
+          document.getElementById('invoice-number').value = generateNextInvoiceNumber();
+          invoiceItems = [];
+          addInvoiceItem(); // Add one default item
+          
+          document.getElementById('invoice-editor-modal').classList.remove('hidden');
+          updatePreview();
         }
-        
+
         function closeInvoiceEditor() {
-          document.getElementById('invoice-editor-modal').style.display = 'none';
+          document.getElementById('invoice-editor-modal').classList.add('hidden');
         }
-        
-        function editInvoice(id) {
-          createNewInvoice();
-          alert('Editing invoice #' + id);
+
+        async function editInvoice(id) {
+          try {
+            const response = await axios.get(\`/api/admin/invoices/\${id}\`);
+            if (response.data.success) {
+              const invoice = response.data.data;
+              
+              // Fill form
+              document.getElementById('invoice-id').value = invoice.id;
+              document.getElementById('editor-title').textContent = \`Rechnung bearbeiten: \${invoice.invoice_number}\`;
+              document.getElementById('customer-name').value = invoice.customer_name;
+              document.getElementById('customer-email').value = invoice.customer_email;
+              document.getElementById('customer-company').value = invoice.customer_company || '';
+              document.getElementById('customer-tax-id').value = invoice.customer_tax_id || '';
+              document.getElementById('billing-address').value = invoice.billing_address;
+              document.getElementById('billing-city').value = invoice.billing_city;
+              document.getElementById('billing-postal-code').value = invoice.billing_postal_code;
+              document.getElementById('billing-country').value = invoice.billing_country;
+              document.getElementById('invoice-number').value = invoice.invoice_number;
+              document.getElementById('invoice-date').value = invoice.invoice_date;
+              document.getElementById('due-date').value = invoice.due_date || '';
+              document.getElementById('invoice-status').value = invoice.status;
+              document.getElementById('invoice-notes').value = invoice.notes || '';
+              document.getElementById('invoice-terms').value = invoice.terms || '';
+              
+              // Load items
+              invoiceItems = invoice.items || [];
+              renderInvoiceItems();
+              
+              document.getElementById('invoice-editor-modal').classList.remove('hidden');
+              updatePreview();
+            }
+          } catch (error) {
+            console.error('Error loading invoice:', error);
+            alert('Fehler beim Laden der Rechnung');
+          }
         }
-        
-        function viewInvoice(id) {
-          alert('View invoice #' + id);
+
+        function addInvoiceItem() {
+          invoiceItems.push({
+            description: '',
+            quantity: 1,
+            unit_price: 0,
+            tax_rate: 19
+          });
+          renderInvoiceItems();
+          updatePreview();
         }
-        
-        function downloadInvoice(id) {
-          alert('Download invoice #' + id + ' as PDF');
+
+        function removeInvoiceItem(index) {
+          invoiceItems.splice(index, 1);
+          renderInvoiceItems();
+          updatePreview();
         }
-        
-        // Template Editor Functions
-        window.openTemplateEditor = function() {
-          document.getElementById('template-html').value = currentInvoiceTemplate;
-          document.getElementById('template-editor-modal').style.display = 'block';
-          previewTemplate();
+
+        function renderInvoiceItems() {
+          const container = document.getElementById('invoice-items');
+          container.innerHTML = invoiceItems.map((item, index) => \`
+            <div class="border rounded-lg p-3 bg-white">
+              <div class="flex justify-between items-start mb-2">
+                <span class="font-medium text-sm">Position \${index + 1}</span>
+                <button onclick="removeInvoiceItem(\${index})" class="text-red-600 hover:text-red-800">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="col-span-2">
+                  <input type="text" value="\${item.description}" onchange="invoiceItems[\${index}].description = this.value; updatePreview()" class="w-full px-2 py-1 border rounded text-sm" placeholder="Beschreibung">
+                </div>
+                <div>
+                  <input type="number" value="\${item.quantity}" onchange="invoiceItems[\${index}].quantity = parseFloat(this.value); updatePreview()" class="w-full px-2 py-1 border rounded text-sm" placeholder="Menge" min="1" step="1">
+                </div>
+                <div>
+                  <input type="number" value="\${item.unit_price / 100}" onchange="invoiceItems[\${index}].unit_price = Math.round(parseFloat(this.value) * 100); updatePreview()" class="w-full px-2 py-1 border rounded text-sm" placeholder="Preis (€)" min="0" step="0.01">
+                </div>
+              </div>
+            </div>
+          \`).join('');
         }
-        
-        function closeTemplateEditor() {
-          document.getElementById('template-editor-modal').style.display = 'none';
+
+        function updatePreview() {
+          const customerName = document.getElementById('customer-name').value;
+          const customerEmail = document.getElementById('customer-email').value;
+          const customerCompany = document.getElementById('customer-company').value;
+          const billingAddress = document.getElementById('billing-address').value;
+          const billingCity = document.getElementById('billing-city').value;
+          const billingPostalCode = document.getElementById('billing-postal-code').value;
+          const invoiceNumber = document.getElementById('invoice-number').value;
+          const invoiceDate = document.getElementById('invoice-date').value;
+          const dueDate = document.getElementById('due-date').value;
+
+          let subtotal = 0;
+          const itemsHtml = invoiceItems.map(item => {
+            const lineTotal = item.quantity * item.unit_price;
+            subtotal += lineTotal;
+            return \`
+              <tr>
+                <td>\${item.description}</td>
+                <td class="text-center">\${item.quantity}</td>
+                <td class="text-right">€\${(item.unit_price / 100).toFixed(2)}</td>
+                <td class="text-right">€\${(lineTotal / 100).toFixed(2)}</td>
+              </tr>
+            \`;
+          }).join('');
+
+          const taxAmount = Math.round(subtotal * 0.19);
+          const total = subtotal + taxAmount;
+
+          const preview = document.getElementById('invoice-preview');
+          preview.innerHTML = \`
+            <div class="invoice-header">
+              <div>
+                <h1 class="text-3xl font-bold" style="color: var(--navy-dark)">SOFTWAREKING24</h1>
+                <p class="text-sm text-gray-600">Software & Lizenzen</p>
+              </div>
+              <div class="text-right">
+                <h2 class="text-2xl font-bold" style="color: var(--gold)">RECHNUNG</h2>
+                <p class="text-sm">\${invoiceNumber}</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 class="font-bold mb-2" style="color: var(--navy-dark)">Rechnungsempfänger:</h3>
+                <p class="font-semibold">\${customerName}</p>
+                \${customerCompany ? \`<p>\${customerCompany}</p>\` : ''}
+                <p>\${billingAddress}</p>
+                <p>\${billingPostalCode} \${billingCity}</p>
+                \${customerEmail ? \`<p class="text-sm text-gray-600 mt-2">\${customerEmail}</p>\` : ''}
+              </div>
+              <div class="text-right">
+                <p><strong>Rechnungsdatum:</strong> \${invoiceDate ? new Date(invoiceDate).toLocaleDateString('de-DE') : ''}</p>
+                \${dueDate ? \`<p><strong>Fällig am:</strong> \${new Date(dueDate).toLocaleDateString('de-DE')}</p>\` : ''}
+              </div>
+            </div>
+
+            <table class="invoice-table mb-8">
+              <thead>
+                <tr>
+                  <th>Beschreibung</th>
+                  <th class="text-center">Menge</th>
+                  <th class="text-right">Einzelpreis</th>
+                  <th class="text-right">Gesamt</th>
+                </tr>
+              </thead>
+              <tbody>
+                \${itemsHtml || '<tr><td colspan="4" class="text-center text-gray-400 py-4">Keine Positionen</td></tr>'}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-right">Zwischensumme:</td>
+                  <td class="text-right">€\${(subtotal / 100).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td colspan="3" class="text-right">MwSt. (19%):</td>
+                  <td class="text-right">€\${(taxAmount / 100).toFixed(2)}</td>
+                </tr>
+                <tr style="background: var(--navy-dark); color: white;">
+                  <td colspan="3" class="text-right font-bold">Gesamtbetrag:</td>
+                  <td class="text-right font-bold">€\${(total / 100).toFixed(2)}</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div class="text-sm text-gray-600 border-t pt-4">
+              <p><strong>Zahlungsbedingungen:</strong> \${document.getElementById('invoice-terms').value}</p>
+              <p class="mt-4 text-center" style="color: var(--gold); font-weight: 600;">Vielen Dank für Ihr Vertrauen!</p>
+            </div>
+          \`;
         }
-        
-        function previewTemplate() {
-          const templateHtml = document.getElementById('template-html').value;
-          const sampleData = {
-            invoiceNumber: 'INV-2024-001',
-            customerName: 'Max Mustermann',
-            customerEmail: 'max@example.com',
-            invoiceDate: new Date().toLocaleDateString('de-DE'),
-            dueDate: new Date(Date.now() + 14*24*60*60*1000).toLocaleDateString('de-DE'),
-            items: [
-              { description: 'Microsoft Office 2021 Professional', quantity: 1, price: 149.99, total: 149.99 },
-              { description: 'Windows 11 Pro', quantity: 1, price: 149.99, total: 149.99 }
-            ],
-            subtotal: '299.98',
-            vatRate: '19',
-            vat: '56.99',
-            total: '356.97',
-            notes: 'Zahlbar innerhalb von 14 Tagen.'
+
+        async function saveInvoice(status) {
+          const invoiceData = {
+            invoice_number: document.getElementById('invoice-number').value,
+            customer_name: document.getElementById('customer-name').value,
+            customer_email: document.getElementById('customer-email').value,
+            customer_company: document.getElementById('customer-company').value,
+            customer_tax_id: document.getElementById('customer-tax-id').value,
+            billing_address: document.getElementById('billing-address').value,
+            billing_city: document.getElementById('billing-city').value,
+            billing_postal_code: document.getElementById('billing-postal-code').value,
+            billing_country: document.getElementById('billing-country').value,
+            invoice_date: document.getElementById('invoice-date').value,
+            due_date: document.getElementById('due-date').value,
+            status: status || document.getElementById('invoice-status').value,
+            notes: document.getElementById('invoice-notes').value,
+            terms: document.getElementById('invoice-terms').value,
+            items: invoiceItems
           };
-          
-          const html = renderInvoiceTemplate(templateHtml, sampleData);
-          document.getElementById('template-preview').innerHTML = html;
-        }
-        
-        function saveTemplate() {
-          const templateHtml = document.getElementById('template-html').value;
-          currentInvoiceTemplate = templateHtml;
-          localStorage.setItem('invoiceTemplate', templateHtml);
-          alert('Template saved successfully!');
-          closeTemplateEditor();
-        }
-        
-        function resetToDefault() {
-          if (confirm('Reset to default template? This will discard your changes.')) {
-            document.getElementById('template-html').value = defaultInvoiceTemplate;
-            previewTemplate();
+
+          // Validation
+          if (!invoiceData.invoice_number || !invoiceData.customer_name || !invoiceData.customer_email) {
+            alert('Bitte füllen Sie alle Pflichtfelder aus');
+            return;
+          }
+
+          try {
+            const invoiceId = document.getElementById('invoice-id').value;
+            let response;
+
+            if (invoiceId) {
+              response = await axios.put(\`/api/admin/invoices/\${invoiceId}\`, invoiceData);
+            } else {
+              response = await axios.post('/api/admin/invoices', invoiceData);
+            }
+
+            if (response.data.success) {
+              alert('Rechnung erfolgreich gespeichert!');
+              closeInvoiceEditor();
+              loadInvoices();
+              loadStats();
+            }
+          } catch (error) {
+            console.error('Error saving invoice:', error);
+            alert('Fehler beim Speichern der Rechnung');
           }
         }
-        
-        // Initialize
-        loadInvoices();
-        
-        // Add template editor button to page
-        setTimeout(() => {
-          const header = document.querySelector('.admin-header');
-          if (header) {
-            const btn = document.createElement('button');
-            btn.className = 'btn-secondary';
-            btn.style.marginRight = '10px';
-            btn.innerHTML = '<i class="fas fa-code"></i> Edit Template';
-            btn.onclick = openTemplateEditor;
-            header.appendChild(btn);
+
+        async function viewInvoice(id) {
+          window.open(\`/admin/invoices/\${id}/preview\`, '_blank');
+        }
+
+        async function downloadInvoice(id) {
+          window.open(\`/api/admin/invoices/\${id}/pdf\`, '_blank');
+        }
+
+        async function deleteInvoice(id) {
+          if (!confirm('Möchten Sie diese Rechnung wirklich löschen?')) return;
+
+          try {
+            const response = await axios.delete(\`/api/admin/invoices/\${id}\`);
+            if (response.data.success) {
+              alert('Rechnung gelöscht');
+              loadInvoices();
+              loadStats();
+            }
+          } catch (error) {
+            console.error('Error deleting invoice:', error);
+            alert('Fehler beim Löschen der Rechnung');
           }
-        }, 100);
-      ` }} ></script>
+        }
+      </script>
+    </body>
+    </html>
+  `
+}
+
+// Helper function for admin sidebar
+const AdminSidebar = (currentPath: string) => {
+  const items = [
+    { path: '/admin', icon: 'fas fa-tachometer-alt', label: 'Dashboard' },
+    { path: '/admin/products', icon: 'fas fa-box', label: 'Produkte' },
+    { path: '/admin/orders', icon: 'fas fa-shopping-cart', label: 'Bestellungen' },
+    { path: '/admin/customers', icon: 'fas fa-users', label: 'Kunden' },
+    { path: '/admin/invoices', icon: 'fas fa-file-invoice', label: 'Rechnungen' },
+    { path: '/admin/licenses', icon: 'fas fa-key', label: 'Lizenzen' },
+    { path: '/admin/sliders', icon: 'fas fa-images', label: 'Slider' },
+    { path: '/admin/homepage-sections', icon: 'fas fa-home', label: 'Homepage' },
+    { path: '/admin/pages', icon: 'fas fa-file-alt', label: 'Seiten' },
+    { path: '/admin/footer', icon: 'fas fa-shoe-prints', label: 'Footer' },
+    { path: '/admin/email-templates', icon: 'fas fa-envelope', label: 'E-Mail-Vorlagen' },
+    { path: '/admin/cookies', icon: 'fas fa-cookie-bite', label: 'Cookies' },
+    { path: '/admin/contact-messages', icon: 'fas fa-comments', label: 'Kontakt' },
+    { path: '/admin/settings', icon: 'fas fa-cog', label: 'Einstellungen' }
+  ]
+
+  return `
+    <div class="admin-sidebar">
+      <div class="p-6 border-b border-gray-700">
+        <h2 class="text-xl font-bold" style="color: var(--gold)">SOFTWAREKING24</h2>
+        <p class="text-sm text-gray-400">Admin Panel</p>
+      </div>
+      <nav class="p-4" id="sidebar-nav">
+        ${items.map(item => `
+          <a href="${item.path}" class="admin-nav-item ${currentPath === item.path ? 'active' : ''}">
+            <i class="${item.icon} w-5"></i>
+            <span>${item.label}</span>
+          </a>
+        `).join('')}
+      </nav>
     </div>
-  )
+  `
+}
+
+const AdminSidebarScript = () => {
+  return `
+    // Reinject sidebar to ensure it's always present
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebarNav = document.getElementById('sidebar-nav');
+      if (sidebarNav) {
+        sidebarNav.innerHTML = \`
+          <a href="/admin" class="admin-nav-item"><i class="fas fa-tachometer-alt w-5"></i><span>Dashboard</span></a>
+          <a href="/admin/products" class="admin-nav-item"><i class="fas fa-box w-5"></i><span>Produkte</span></a>
+          <a href="/admin/orders" class="admin-nav-item"><i class="fas fa-shopping-cart w-5"></i><span>Bestellungen</span></a>
+          <a href="/admin/customers" class="admin-nav-item"><i class="fas fa-users w-5"></i><span>Kunden</span></a>
+          <a href="/admin/invoices" class="admin-nav-item active"><i class="fas fa-file-invoice w-5"></i><span>Rechnungen</span></a>
+          <a href="/admin/licenses" class="admin-nav-item"><i class="fas fa-key w-5"></i><span>Lizenzen</span></a>
+          <a href="/admin/sliders" class="admin-nav-item"><i class="fas fa-images w-5"></i><span>Slider</span></a>
+          <a href="/admin/homepage-sections" class="admin-nav-item"><i class="fas fa-home w-5"></i><span>Homepage</span></a>
+          <a href="/admin/pages" class="admin-nav-item"><i class="fas fa-file-alt w-5"></i><span>Seiten</span></a>
+          <a href="/admin/footer" class="admin-nav-item"><i class="fas fa-shoe-prints w-5"></i><span>Footer</span></a>
+          <a href="/admin/email-templates" class="admin-nav-item"><i class="fas fa-envelope w-5"></i><span>E-Mail-Vorlagen</span></a>
+          <a href="/admin/cookies" class="admin-nav-item"><i class="fas fa-cookie-bite w-5"></i><span>Cookies</span></a>
+          <a href="/admin/contact-messages" class="admin-nav-item"><i class="fas fa-comments w-5"></i><span>Kontakt</span></a>
+          <a href="/admin/settings" class="admin-nav-item"><i class="fas fa-cog w-5"></i><span>Einstellungen</span></a>
+        \`;
+      }
+    });
+  `
 }
