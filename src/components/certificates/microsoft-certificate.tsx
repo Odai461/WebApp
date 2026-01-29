@@ -1,4 +1,4 @@
-export const CertificateTemplate = (certificate: any) => {
+export const MicrosoftCertificate = (certificate: any) => {
   const formatDate = (date: string) => {
     if (!date) return '';
     return new Date(date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -139,7 +139,7 @@ export const CertificateTemplate = (certificate: any) => {
       padding: 25px;
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       border-radius: 12px;
-      border: 2px solid #1a2b5e;
+      border: 2px solid #00a4ef;
     }
     
     .product-header {
@@ -154,17 +154,18 @@ export const CertificateTemplate = (certificate: any) => {
     .product-icon {
       width: 60px;
       height: 60px;
-      background: #1a2b5e;
+      background: white;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      padding: 8px;
     }
     
     .product-info h3 {
       font-size: 14pt;
-      color: #1a2b5e;
+      color: #00a4ef;
       margin-bottom: 5px;
       font-weight: bold;
     }
@@ -338,65 +339,65 @@ export const CertificateTemplate = (certificate: any) => {
 
       <!-- Customer Info -->
       <div class="customer-section">
-        <h2>Kunde</h2>
-        <p><strong>${certificate.customer_name}</strong></p>
+        <h2>Lizenzinhaber</h2>
+        <p><strong>${certificate.customer_name || 'Kunde'}</strong></p>
         ${certificate.customer_company ? `<p>${certificate.customer_company}</p>` : ''}
-        <p>${certificate.customer_address || 'Jakob-Borchers-Str. 3'}</p>
-        <p>${certificate.customer_postal || '1-OG'}, ${certificate.customer_city || '20140 Zetel'}</p>
-        <p>${certificate.customer_email}</p>
-        <p>Tel: ${certificate.customer_phone || '01-7144889642'}</p>
+        <p>${certificate.customer_address || ''}</p>
+        <p>${certificate.customer_postal || ''} ${certificate.customer_city || ''}</p>
+        <p>E-Mail: ${certificate.customer_email || ''}</p>
+        ${certificate.customer_phone ? `<p>Tel: ${certificate.customer_phone}</p>` : ''}
       </div>
 
       <!-- License Details -->
       <div class="license-details">
         <div class="product-header">
           <div class="product-icon">
-            <svg width="40" height="40" viewBox="0 0 40 40">
-              <rect x="5" y="5" width="13" height="13" fill="#f25022"/>
-              <rect x="22" y="5" width="13" height="13" fill="#7fba00"/>
-              <rect x="5" y="22" width="13" height="13" fill="#00a4ef"/>
-              <rect x="22" y="22" width="13" height="13" fill="#ffb900"/>
+            <svg width="44" height="44" viewBox="0 0 44 44">
+              <rect x="2" y="2" width="18" height="18" fill="#f25022"/>
+              <rect x="24" y="2" width="18" height="18" fill="#7fba00"/>
+              <rect x="2" y="24" width="18" height="18" fill="#00a4ef"/>
+              <rect x="24" y="24" width="18" height="18" fill="#ffb900"/>
             </svg>
           </div>
           <div class="product-info">
-            <h3>${certificate.product_name || 'Microsoft Office 2024 Professional Plus'}</h3>
-            <p>MPN ID ${certificate.mpn_id || '7027901'} | Lizenzgeber: <strong>Microsoft</strong></p>
+            <h3>${certificate.product_name || 'Microsoft Product'}</h3>
+            <p>MPN ID 7027901 | Lizenzgeber: <strong>Microsoft Corporation</strong></p>
           </div>
         </div>
 
         <div class="license-grid">
           <div class="license-field">
             <label>Produkt</label>
-            <div class="value">${certificate.product_name || 'Microsoft Office 2024 Professional Plus'}</div>
+            <div class="value">${certificate.product_name || 'Microsoft Product'}</div>
           </div>
 
           <div class="license-field">
-            <label>Vertrag</label>
-            <div class="value">MPN ID ${certificate.mpn_id || '7027901'}</div>
+            <label>Zertifikat-Nr.</label>
+            <div class="value">${certificate.certificate_number || 'CERT-2026-0001'}</div>
           </div>
 
           <div class="license-field">
             <label>Rechnungsnummer</label>
-            <div class="value">${certificate.invoice_number || '793178978149'}</div>
+            <div class="value">${certificate.invoice_number || ''}</div>
           </div>
 
           <div class="license-field">
-            <label>Rechnungsdatum</label>
-            <div class="value">${formatDate(certificate.invoice_date || new Date().toISOString())}</div>
+            <label>Ausstellungsdatum</label>
+            <div class="value">${formatDate(certificate.generated_at || new Date().toISOString())}</div>
           </div>
 
           <div class="license-field">
             <label>Bestellnummer</label>
-            <div class="value">${certificate.order_number || '793178978149'}</div>
+            <div class="value">${certificate.order_number || ''}</div>
           </div>
 
           <div class="license-field">
-            <label>Bestelldatum</label>
-            <div class="value">${formatDate(certificate.order_date || new Date().toISOString())}</div>
+            <label>Lizenztyp</label>
+            <div class="value">${certificate.license_type || 'Vollversion'}</div>
           </div>
 
           <div class="license-key-box">
-            <label>⭐ LIZENZSCHLÜSSEL / PRODUCT KEY ⭐</label>
+            <label>🔑 PRODUKT-LIZENZSCHLÜSSEL</label>
             <div class="value">${certificate.license_key || 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX'}</div>
           </div>
         </div>
@@ -404,19 +405,23 @@ export const CertificateTemplate = (certificate: any) => {
 
       <!-- Support Section -->
       <div class="support-section">
-        <h3>SUPPORT & LIZENZAKTIVIERUNG</h3>
+        <h3>📞 Microsoft Produkt-Support & Aktivierung</h3>
         <div class="support-grid">
           <div class="support-item">
-            <p><strong>Bei Fragen zur Lizenzaktivierung oder technischen Problemen kontaktieren Sie bitte:</strong></p>
-            <p>📧 support@softwareking24.de</p>
-            <p>🌐 softwareking24.de</p>
-            <p>📞 PartnerGlobal</p>
-            <p>🆔 Partner-ID: 7027901 | PartnerLocation</p>
+            <p><strong>Aktivierungshotline (Deutschland):</strong></p>
+            <p>📞 0800 3677033 (kostenlos)</p>
           </div>
           <div class="support-item">
-            <p><strong>Verwendungszweck:</strong> ${certificate.invoice_number || '793178978149'}</p>
-            <p><strong>Gültigkeit:</strong> Diese Lizenz ist dauerhaft gültig.</p>
-            <p><strong>Hinweis:</strong> Bewahren Sie dieses Dokument sicher auf. Es dient als Nachweis Ihrer legitimen Softwarelizenz.</p>
+            <p><strong>Microsoft Support:</strong></p>
+            <p>🌐 support.microsoft.com</p>
+          </div>
+          <div class="support-item">
+            <p><strong>Produkt herunterladen:</strong></p>
+            <p>🌐 account.microsoft.com</p>
+          </div>
+          <div class="support-item">
+            <p><strong>SoftwareKing24 Support:</strong></p>
+            <p>📧 support@softwareking24.de</p>
           </div>
         </div>
       </div>
@@ -425,29 +430,26 @@ export const CertificateTemplate = (certificate: any) => {
       <div class="footer">
         <div class="footer-grid">
           <div class="footer-section">
-            <h4>Unternehmensangaben</h4>
+            <h4>HÄNDLER</h4>
             <p><strong>SoftwareKing24.de</strong></p>
             <p>Baumschulenweg 17</p>
             <p>D-04838 Roppitzau</p>
+            <p>Deutschland</p>
+          </div>
+          <div class="footer-section">
+            <h4>KONTAKT</h4>
+            <p>E-Mail: support@softwareking24.de</p>
+            <p>Web: softwareking24.de</p>
+            <p>Tel: 01-7144889642</p>
+          </div>
+          <div class="footer-section">
+            <h4>STEUERINFORMATIONEN</h4>
             <p>Umsatzsteuer-ID: DE4530454724</p>
             <p>Steuernummer: 11G239038328</p>
-          </div>
-          <div class="footer-section">
-            <h4>Kontakt</h4>
-            <p>support@softwareking24.de</p>
-            <p>softwareking24.de</p>
-            <p>PartnerGlobal</p>
-            <p>Partner-ID: 7027901 | PartnerLocation</p>
-          </div>
-          <div class="footer-section">
-            <h4>Support & Lizenzaktivierung</h4>
-            <p>Bei Fragen zur Lizenzaktivierung oder</p>
-            <p>technischen Problemen kontaktieren Sie</p>
-            <p>unsere Hotline oder den Support.</p>
-            <p><strong>Verwendungszweck: ${certificate.invoice_number || '793178978149'}</strong></p>
+            <p>Handelsregister: Amtsgericht Leipzig</p>
           </div>
         </div>
-        <p class="footer-note">Dieses Lizenzdokument wurde elektronisch erstellt und ist ohne Unterschrift gültig.</p>
+        <p class="footer-note">Dieses Zertifikat wurde elektronisch erstellt und ist ohne Unterschrift gültig. © ${new Date().getFullYear()} SoftwareKing24. Alle Rechte vorbehalten.</p>
       </div>
     </div>
   </div>

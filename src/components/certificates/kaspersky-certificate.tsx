@@ -1,4 +1,4 @@
-export const CertificateTemplate = (certificate: any) => {
+export const KasperskyCertificate = (certificate: any) => {
   const formatDate = (date: string) => {
     if (!date) return '';
     return new Date(date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -10,7 +10,7 @@ export const CertificateTemplate = (certificate: any) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Microsoft Partner Lizenz - ${certificate.product_name}</title>
+  <title>Kaspersky Partner Lizenz - ${certificate.product_name}</title>
   <style>
     @page {
       size: A4;
@@ -24,7 +24,7 @@ export const CertificateTemplate = (certificate: any) => {
     }
     
     body {
-      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       background: white;
     }
     
@@ -44,7 +44,7 @@ export const CertificateTemplate = (certificate: any) => {
       left: 50%;
       transform: translate(-50%, -50%) rotate(-45deg);
       font-size: 120pt;
-      color: rgba(0, 0, 0, 0.03);
+      color: rgba(0, 166, 81, 0.03);
       font-weight: bold;
       z-index: 0;
       pointer-events: none;
@@ -61,24 +61,19 @@ export const CertificateTemplate = (certificate: any) => {
       align-items: flex-start;
       margin-bottom: 30px;
       padding-bottom: 20px;
-      border-bottom: 3px solid #f7b500;
+      border-bottom: 3px solid #00a651;
     }
     
     .logo-section {
       flex: 1;
     }
     
-    .microsoft-partner {
+    .kaspersky-partner {
       text-align: right;
       padding: 15px;
-      background: #f8f9fa;
+      background: #f0faf5;
       border-radius: 8px;
-      border: 2px solid #00a4ef;
-    }
-    
-    .microsoft-logo {
-      width: 120px;
-      margin-bottom: 8px;
+      border: 2px solid #00a651;
     }
     
     .partner-info {
@@ -90,7 +85,7 @@ export const CertificateTemplate = (certificate: any) => {
     .partner-info strong {
       display: block;
       font-size: 9pt;
-      color: #00a4ef;
+      color: #00a651;
       margin-bottom: 3px;
     }
     
@@ -114,11 +109,11 @@ export const CertificateTemplate = (certificate: any) => {
     }
     
     .customer-section {
-      background: #f8f9fa;
+      background: #f0faf5;
       padding: 20px;
       border-radius: 8px;
       margin: 30px 0;
-      border-left: 4px solid #f7b500;
+      border-left: 4px solid #00a651;
     }
     
     .customer-section h2 {
@@ -137,9 +132,9 @@ export const CertificateTemplate = (certificate: any) => {
     .license-details {
       margin: 30px 0;
       padding: 25px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      background: linear-gradient(135deg, #f0faf5 0%, #e6f7ed 100%);
       border-radius: 12px;
-      border: 2px solid #1a2b5e;
+      border: 2px solid #00a651;
     }
     
     .product-header {
@@ -154,17 +149,20 @@ export const CertificateTemplate = (certificate: any) => {
     .product-icon {
       width: 60px;
       height: 60px;
-      background: #1a2b5e;
+      background: #00a651;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      color: white;
+      font-size: 32pt;
+      font-weight: bold;
     }
     
     .product-info h3 {
       font-size: 14pt;
-      color: #1a2b5e;
+      color: #00a651;
       margin-bottom: 5px;
       font-weight: bold;
     }
@@ -207,7 +205,7 @@ export const CertificateTemplate = (certificate: any) => {
     .license-key-box {
       grid-column: 1 / -1;
       background: #fff3cd;
-      border: 2px dashed #f7b500;
+      border: 2px dashed #00a651;
       padding: 20px;
       border-radius: 8px;
       text-align: center;
@@ -229,17 +227,40 @@ export const CertificateTemplate = (certificate: any) => {
       letter-spacing: 2px;
     }
     
+    .activation-code {
+      grid-column: 1 / -1;
+      background: #e6f7ed;
+      border: 2px solid #00a651;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    
+    .activation-code label {
+      display: block;
+      font-size: 9pt;
+      color: #00a651;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    .activation-code .value {
+      font-size: 13pt;
+      color: #00a651;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+    }
+    
     .support-section {
       margin: 30px 0;
       padding: 20px;
-      background: #e7f3ff;
+      background: #f0faf5;
       border-radius: 8px;
-      border-left: 4px solid #00a4ef;
+      border-left: 4px solid #00a651;
     }
     
     .support-section h3 {
       font-size: 11pt;
-      color: #00a4ef;
+      color: #00a651;
       margin-bottom: 10px;
       font-weight: bold;
     }
@@ -259,7 +280,7 @@ export const CertificateTemplate = (certificate: any) => {
     .footer {
       margin-top: 40px;
       padding-top: 20px;
-      border-top: 2px solid #f7b500;
+      border-top: 2px solid #00a651;
       text-align: center;
     }
     
@@ -305,7 +326,7 @@ export const CertificateTemplate = (certificate: any) => {
 </head>
 <body>
   <div class="page">
-    <div class="watermark">ORIGINAL</div>
+    <div class="watermark">KASPERSKY</div>
     
     <div class="content">
       <!-- Header -->
@@ -313,18 +334,13 @@ export const CertificateTemplate = (certificate: any) => {
         <div class="logo-section">
           <img src="/static/logo.png" alt="SoftwareKing24" style="max-width: 180px; height: auto;">
         </div>
-        <div class="microsoft-partner">
-          <svg width="120" height="28" viewBox="0 0 120 28">
-            <rect x="0" y="0" width="13" height="13" fill="#f25022"/>
-            <rect x="14" y="0" width="13" height="13" fill="#7fba00"/>
-            <rect x="0" y="14" width="13" height="13" fill="#00a4ef"/>
-            <rect x="14" y="14" width="13" height="13" fill="#ffb900"/>
-            <text x="32" y="20" font-family="Segoe UI" font-size="14" font-weight="600" fill="#5e5e5e">Microsoft</text>
+        <div class="kaspersky-partner">
+          <svg width="120" height="30" viewBox="0 0 120 30">
+            <text x="0" y="21" font-family="Arial" font-size="18" font-weight="700" fill="#00a651">Kaspersky</text>
           </svg>
           <div class="partner-info">
-            <strong>MICROSOFT PARTNER LIZENZ</strong>
-            <p>Partner-ID: 7027901 | PartnerGlobal</p>
-            <p>Partner-ID: 7027901 | PartnerLocation</p>
+            <strong>KASPERSKY AUTHORIZED PARTNER</strong>
+            <p>Partner-ID: ${certificate.kaspersky_partner_id || 'TBD'}</p>
             <p>USt-IdNr: DE4530454724 | Steuernummer: 11G239038328</p>
           </div>
         </div>
@@ -333,70 +349,70 @@ export const CertificateTemplate = (certificate: any) => {
       <!-- Certificate Title -->
       <div class="certificate-title">
         <h1>Lizenz-Zertifikat</h1>
-        <p>Offizielles Microsoft Partner Lizenzdokument</p>
+        <p>Offizielles Kaspersky Partner Lizenzdokument</p>
       </div>
 
       <!-- Customer Info -->
       <div class="customer-section">
-        <h2>Kunde</h2>
-        <p><strong>${certificate.customer_name}</strong></p>
+        <h2>Lizenzinhaber</h2>
+        <p><strong>${certificate.customer_name || 'Kunde'}</strong></p>
         ${certificate.customer_company ? `<p>${certificate.customer_company}</p>` : ''}
-        <p>${certificate.customer_address || 'Jakob-Borchers-Str. 3'}</p>
-        <p>${certificate.customer_postal || '1-OG'}, ${certificate.customer_city || '20140 Zetel'}</p>
-        <p>${certificate.customer_email}</p>
-        <p>Tel: ${certificate.customer_phone || '01-7144889642'}</p>
+        <p>${certificate.customer_address || ''}</p>
+        <p>${certificate.customer_postal || ''} ${certificate.customer_city || ''}</p>
+        <p>E-Mail: ${certificate.customer_email || ''}</p>
+        ${certificate.customer_phone ? `<p>Tel: ${certificate.customer_phone}</p>` : ''}
       </div>
 
       <!-- License Details -->
       <div class="license-details">
         <div class="product-header">
           <div class="product-icon">
-            <svg width="40" height="40" viewBox="0 0 40 40">
-              <rect x="5" y="5" width="13" height="13" fill="#f25022"/>
-              <rect x="22" y="5" width="13" height="13" fill="#7fba00"/>
-              <rect x="5" y="22" width="13" height="13" fill="#00a4ef"/>
-              <rect x="22" y="22" width="13" height="13" fill="#ffb900"/>
-            </svg>
+            🛡️
           </div>
           <div class="product-info">
-            <h3>${certificate.product_name || 'Microsoft Office 2024 Professional Plus'}</h3>
-            <p>MPN ID ${certificate.mpn_id || '7027901'} | Lizenzgeber: <strong>Microsoft</strong></p>
+            <h3>${certificate.product_name || 'Kaspersky Product'}</h3>
+            <p>Partner ID: ${certificate.kaspersky_partner_id || 'TBD'} | Lizenzgeber: <strong>Kaspersky Lab</strong></p>
           </div>
         </div>
 
         <div class="license-grid">
           <div class="license-field">
             <label>Produkt</label>
-            <div class="value">${certificate.product_name || 'Microsoft Office 2024 Professional Plus'}</div>
+            <div class="value">${certificate.product_name || 'Kaspersky Product'}</div>
           </div>
 
           <div class="license-field">
-            <label>Vertrag</label>
-            <div class="value">MPN ID ${certificate.mpn_id || '7027901'}</div>
+            <label>Zertifikat-Nr.</label>
+            <div class="value">${certificate.certificate_number || 'CERT-2026-0001'}</div>
           </div>
 
           <div class="license-field">
             <label>Rechnungsnummer</label>
-            <div class="value">${certificate.invoice_number || '793178978149'}</div>
+            <div class="value">${certificate.invoice_number || ''}</div>
           </div>
 
           <div class="license-field">
-            <label>Rechnungsdatum</label>
-            <div class="value">${formatDate(certificate.invoice_date || new Date().toISOString())}</div>
+            <label>Ausstellungsdatum</label>
+            <div class="value">${formatDate(certificate.generated_at || new Date().toISOString())}</div>
           </div>
 
           <div class="license-field">
             <label>Bestellnummer</label>
-            <div class="value">${certificate.order_number || '793178978149'}</div>
+            <div class="value">${certificate.order_number || ''}</div>
           </div>
 
           <div class="license-field">
-            <label>Bestelldatum</label>
-            <div class="value">${formatDate(certificate.order_date || new Date().toISOString())}</div>
+            <label>Lizenztyp</label>
+            <div class="value">${certificate.license_type || 'Vollversion'}</div>
+          </div>
+
+          <div class="activation-code">
+            <label>🔐 AKTIVIERUNGSCODE</label>
+            <div class="value">${certificate.license_key || 'XXXXX-XXXXX-XXXXX-XXXXX'}</div>
           </div>
 
           <div class="license-key-box">
-            <label>⭐ LIZENZSCHLÜSSEL / PRODUCT KEY ⭐</label>
+            <label>🔑 LIZENZSCHLÜSSEL</label>
             <div class="value">${certificate.license_key || 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX'}</div>
           </div>
         </div>
@@ -404,19 +420,23 @@ export const CertificateTemplate = (certificate: any) => {
 
       <!-- Support Section -->
       <div class="support-section">
-        <h3>SUPPORT & LIZENZAKTIVIERUNG</h3>
+        <h3>📞 Kaspersky Support & Aktivierung</h3>
         <div class="support-grid">
           <div class="support-item">
-            <p><strong>Bei Fragen zur Lizenzaktivierung oder technischen Problemen kontaktieren Sie bitte:</strong></p>
-            <p>📧 support@softwareking24.de</p>
-            <p>🌐 softwareking24.de</p>
-            <p>📞 PartnerGlobal</p>
-            <p>🆔 Partner-ID: 7027901 | PartnerLocation</p>
+            <p><strong>Kaspersky Deutschland Support:</strong></p>
+            <p>📞 +49 (0) 800 5887732 (kostenlos)</p>
           </div>
           <div class="support-item">
-            <p><strong>Verwendungszweck:</strong> ${certificate.invoice_number || '793178978149'}</p>
-            <p><strong>Gültigkeit:</strong> Diese Lizenz ist dauerhaft gültig.</p>
-            <p><strong>Hinweis:</strong> Bewahren Sie dieses Dokument sicher auf. Es dient als Nachweis Ihrer legitimen Softwarelizenz.</p>
+            <p><strong>Kaspersky Support Portal:</strong></p>
+            <p>🌐 support.kaspersky.com</p>
+          </div>
+          <div class="support-item">
+            <p><strong>Produkt herunterladen:</strong></p>
+            <p>🌐 my.kaspersky.com</p>
+          </div>
+          <div class="support-item">
+            <p><strong>SoftwareKing24 Support:</strong></p>
+            <p>📧 support@softwareking24.de</p>
           </div>
         </div>
       </div>
@@ -425,29 +445,26 @@ export const CertificateTemplate = (certificate: any) => {
       <div class="footer">
         <div class="footer-grid">
           <div class="footer-section">
-            <h4>Unternehmensangaben</h4>
+            <h4>HÄNDLER</h4>
             <p><strong>SoftwareKing24.de</strong></p>
             <p>Baumschulenweg 17</p>
             <p>D-04838 Roppitzau</p>
+            <p>Deutschland</p>
+          </div>
+          <div class="footer-section">
+            <h4>KONTAKT</h4>
+            <p>E-Mail: support@softwareking24.de</p>
+            <p>Web: softwareking24.de</p>
+            <p>Tel: 01-7144889642</p>
+          </div>
+          <div class="footer-section">
+            <h4>STEUERINFORMATIONEN</h4>
             <p>Umsatzsteuer-ID: DE4530454724</p>
             <p>Steuernummer: 11G239038328</p>
-          </div>
-          <div class="footer-section">
-            <h4>Kontakt</h4>
-            <p>support@softwareking24.de</p>
-            <p>softwareking24.de</p>
-            <p>PartnerGlobal</p>
-            <p>Partner-ID: 7027901 | PartnerLocation</p>
-          </div>
-          <div class="footer-section">
-            <h4>Support & Lizenzaktivierung</h4>
-            <p>Bei Fragen zur Lizenzaktivierung oder</p>
-            <p>technischen Problemen kontaktieren Sie</p>
-            <p>unsere Hotline oder den Support.</p>
-            <p><strong>Verwendungszweck: ${certificate.invoice_number || '793178978149'}</strong></p>
+            <p>Handelsregister: Amtsgericht Leipzig</p>
           </div>
         </div>
-        <p class="footer-note">Dieses Lizenzdokument wurde elektronisch erstellt und ist ohne Unterschrift gültig.</p>
+        <p class="footer-note">Dieses Zertifikat wurde elektronisch erstellt und ist ohne Unterschrift gültig. © ${new Date().getFullYear()} SoftwareKing24. Alle Rechte vorbehalten.</p>
       </div>
     </div>
   </div>

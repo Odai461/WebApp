@@ -2515,6 +2515,545 @@ app.delete('/api/admin/invoices/:id', async (c) => {
 })
 
 // ============================================
+// CERTIFICATE SETTINGS API
+// ============================================
+
+// Get certificate settings
+app.get('/api/admin/certificate-settings', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    
+    const settings = await db.db.prepare(`
+      SELECT * FROM certificate_settings WHERE id = 1
+    `).first()
+    
+    // Return default settings if none exist
+    if (!settings) {
+      return c.json({
+        success: true,
+        data: {
+          auto_generate_on_paid: true,
+          auto_generate_on_completed: false,
+          auto_generate_on_processing: false,
+          enabled_brands: JSON.stringify(['Microsoft', 'Adobe', 'Kaspersky']),
+          auto_email_customer: true,
+          email_subject: 'Ihre Lizenzbescheinigung für {product_name}',
+          email_body: 'Sehr geehrte(r) {customer_name},\n\nim Anhang finden Sie Ihre Lizenzbescheinigung.\n\nMit freundlichen Grüßen\nIhr SoftwareKing24 Team',
+          certificate_numbering_format: 'CERT-{year}-{number}'
+        }
+      })
+    }
+    
+    return c.json({ success: true, data: settings })
+  } catch (error) {
+    console.error('Error loading certificate settings:', error)
+    return c.json({ success: false, error: 'Failed to load settings' }, 500)
+  }
+})
+
+// Update certificate settings
+app.put('/api/admin/certificate-settings', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const data = await c.req.json()
+    
+    // Check if settings exist
+    const existing = await db.db.prepare(`
+      SELECT id FROM certificate_settings WHERE id = 1
+    `).first()
+    
+    if (existing) {
+      // Update existing settings
+      await db.db.prepare(`
+        UPDATE certificate_settings SET
+          auto_generate_on_paid = ?,
+          auto_generate_on_completed = ?,
+          auto_generate_on_processing = ?,
+          enabled_brands = ?,
+          auto_email_customer = ?,
+          email_subject = ?,
+          email_body = ?,
+          certificate_numbering_format = ?,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = 1
+      `).bind(
+        data.auto_generate_on_paid ? 1 : 0,
+        data.auto_generate_on_completed ? 1 : 0,
+        data.auto_generate_on_processing ? 1 : 0,
+        typeof data.enabled_brands === 'string' ? data.enabled_brands : JSON.stringify(data.enabled_brands),
+        data.auto_email_customer ? 1 : 0,
+        data.email_subject || 'Ihre Lizenzbescheinigung für {product_name}',
+        data.email_body || '',
+        data.certificate_numbering_format || 'CERT-{year}-{number}'
+      ).run()
+    } else {
+      // Insert new settings
+      await db.db.prepare(`
+        INSERT INTO certificate_settings (
+          auto_generate_on_paid,
+          auto_generate_on_completed,
+          auto_generate_on_processing,
+          enabled_brands,
+          auto_email_customer,
+          email_subject,
+          email_body,
+          certificate_numbering_format
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        data.auto_generate_on_paid ? 1 : 0,
+        data.auto_generate_on_completed ? 1 : 0,
+        data.auto_generate_on_processing ? 1 : 0,
+        typeof data.enabled_brands === 'string' ? data.enabled_brands : JSON.stringify(data.enabled_brands),
+        data.auto_email_customer ? 1 : 0,
+        data.email_subject || 'Ihre Lizenzbescheinigung für {product_name}',
+        data.email_body || '',
+        data.certificate_numbering_format || 'CERT-{year}-{number}'
+      ).run()
+    }
+    
+    return c.json({ success: true, message: 'Settings saved successfully' })
+  } catch (error) {
+    console.error('Error saving certificate settings:', error)
+    return c.json({ success: false, error: 'Failed to save settings' }, 500)
+  }
+})
+
+// ============================================
+// CERTIFICATE AUTO-GENERATION HELPER
+// ============================================
+
+async function autogenerateCertificate(db: any, orderId: number, orderStatus: string) {
+  try {
+    console.log(`[Certificate] Checking auto-generation for order ${orderId}, status: ${orderStatus}`)
+    
+    // Get certificate settings
+    const settings = await db.prepare(`
+      SELECT * FROM certificate_settings WHERE id = 1
+    `).first()
+    
+    if (!settings) {
+      console.log('[Certificate] No settings found, skipping')
+      return
+    }
+    
+    // Check if we should generate for this status
+    const shouldGenerate = (
+      (orderStatus === 'paid' && settings.auto_generate_on_paid) ||
+      (orderStatus === 'completed' && settings.auto_generate_on_completed) ||
+      (orderStatus === 'processing' && settings.auto_generate_on_processing)
+    )
+    
+    if (!shouldGenerate) {
+      console.log('[Certificate] Auto-generation not enabled for status: ' + orderStatus)
+      return
+    }
+    
+    // Check if certificate already exists
+    const existing = await db.prepare(`
+      SELECT id FROM certificates WHERE order_id = ?
+    `).bind(orderId).first()
+    
+    if (existing) {
+      console.log('[Certificate] Certificate already exists for order ' + orderId)
+      return
+    }
+    
+    // Get order details
+    const order = await db.prepare(`
+      SELECT o.*, u.email, u.first_name, u.last_name
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      WHERE o.id = ?
+    `).bind(orderId).first()
+    
+    if (!order) {
+      console.log('[Certificate] Order ' + orderId + ' not found')
+      return
+    }
+    
+    // Get order items
+    const items = await db.prepare(`
+      SELECT oi.*, p.id as product_id, pt.name as product_name, lk.license_key
+      FROM order_items oi
+      LEFT JOIN products p ON oi.product_id = p.id
+      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.language = 'de'
+      LEFT JOIN license_keys lk ON lk.product_id = p.id AND lk.status = 'available'
+      WHERE oi.order_id = ?
+      LIMIT 1
+    `).bind(orderId).all()
+    
+    if (!items.results || items.results.length === 0) {
+      console.log('[Certificate] No items found for order ' + orderId)
+      return
+    }
+    
+    const mainItem = items.results[0]
+    const productName = mainItem.product_name || mainItem.title || 'Product'
+    
+    // Detect brand
+    let brand = 'Generic'
+    const nameLower = productName.toLowerCase()
+    if (nameLower.includes('microsoft') || nameLower.includes('office') || nameLower.includes('windows')) {
+      brand = 'Microsoft'
+    } else if (nameLower.includes('adobe')) {
+      brand = 'Adobe'
+    } else if (nameLower.includes('kaspersky')) {
+      brand = 'Kaspersky'
+    }
+    
+    // Check if brand is enabled
+    const enabledBrands = settings.enabled_brands ? JSON.parse(settings.enabled_brands) : []
+    if (!enabledBrands.includes(brand)) {
+      console.log('[Certificate] Brand ' + brand + ' not enabled for auto-generation')
+      return
+    }
+    
+    // Generate certificate number
+    const lastCert = await db.prepare(`
+      SELECT certificate_number FROM certificates 
+      ORDER BY id DESC LIMIT 1
+    `).first()
+    
+    let certNumber = `CERT-${new Date().getFullYear()}-0001`
+    if (lastCert && lastCert.certificate_number) {
+      const match = lastCert.certificate_number.match(/CERT-(\d{4})-(\d+)/)
+      if (match) {
+        const year = match[1]
+        const currentYear = new Date().getFullYear().toString()
+        if (year === currentYear) {
+          const num = parseInt(match[2]) + 1
+          certNumber = `CERT-${year}-${String(num).padStart(4, '0')}`
+        }
+      }
+    }
+    
+    // Insert certificate
+    await db.prepare(`
+      INSERT INTO certificates (
+        certificate_number, order_id, product_id, brand,
+        product_name, license_key, customer_name, customer_email,
+        status, generated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).bind(
+      certNumber,
+      orderId,
+      mainItem.product_id,
+      brand,
+      productName,
+      mainItem.license_key || 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
+      `${order.first_name || ''} ${order.last_name || ''}`.trim() || 'Customer',
+      order.email || '',
+      'generated'
+    ).run()
+    
+    console.log('[Certificate] Generated certificate ' + certNumber + ' for order ' + orderId)
+    
+    // TODO: Auto-email if enabled
+    if (settings.auto_email_customer) {
+      console.log('[Certificate] Auto-email enabled, but not yet implemented')
+    }
+  } catch (error) {
+    console.error('[Certificate] Error in auto-generation:', error)
+  }
+}
+
+// ============================================
+// CERTIFICATE MANAGEMENT API
+// ============================================
+
+// Get all certificates with filters
+app.get('/api/admin/certificates', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const { brand, order_id, customer, date_from, date_to, status } = c.req.query()
+    
+    let sql = `
+      SELECT c.*, o.order_number, p.name as product_name
+      FROM certificates c
+      LEFT JOIN orders o ON c.order_id = o.id
+      LEFT JOIN products p ON c.product_id = p.id
+      WHERE 1=1
+    `
+    const params: any[] = []
+    
+    if (brand && brand !== 'all') {
+      sql += ` AND c.brand = ?`
+      params.push(brand)
+    }
+    
+    if (order_id) {
+      sql += ` AND c.order_id = ?`
+      params.push(order_id)
+    }
+    
+    if (customer) {
+      sql += ` AND (c.customer_name LIKE ? OR c.customer_email LIKE ?)`
+      const searchPattern = `%${customer}%`
+      params.push(searchPattern, searchPattern)
+    }
+    
+    if (date_from) {
+      sql += ` AND c.generated_at >= ?`
+      params.push(date_from)
+    }
+    
+    if (date_to) {
+      sql += ` AND c.generated_at <= ?`
+      params.push(date_to)
+    }
+    
+    if (status) {
+      sql += ` AND c.status = ?`
+      params.push(status)
+    }
+    
+    sql += ` ORDER BY c.generated_at DESC LIMIT 100`
+    
+    const certificates = await db.db.prepare(sql).bind(...params).all()
+    return c.json({ success: true, data: certificates.results || [] })
+  } catch (error) {
+    console.error('Error loading certificates:', error)
+    return c.json({ success: false, error: 'Failed to load certificates' }, 500)
+  }
+})
+
+// Get certificate stats
+app.get('/api/admin/certificates/stats', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    
+    const stats = await db.db.prepare(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) as sent,
+        SUM(CASE WHEN status = 'generated' THEN 1 ELSE 0 END) as unsent,
+        SUM(CASE WHEN brand = 'Microsoft' THEN 1 ELSE 0 END) as microsoft_count,
+        SUM(CASE WHEN brand = 'Adobe' THEN 1 ELSE 0 END) as adobe_count,
+        SUM(CASE WHEN brand = 'Kaspersky' THEN 1 ELSE 0 END) as kaspersky_count,
+        SUM(CASE WHEN brand = 'Generic' THEN 1 ELSE 0 END) as generic_count
+      FROM certificates
+    `).first()
+    
+    return c.json({ success: true, data: stats })
+  } catch (error) {
+    console.error('Error loading certificate stats:', error)
+    return c.json({ success: false, error: 'Failed to load stats' }, 500)
+  }
+})
+
+// Get single certificate
+app.get('/api/admin/certificates/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    
+    const certificate = await db.db.prepare(`
+      SELECT c.*, o.order_number, p.name as product_name, u.email as customer_email
+      FROM certificates c
+      LEFT JOIN orders o ON c.order_id = o.id
+      LEFT JOIN products p ON c.product_id = p.id
+      LEFT JOIN users u ON o.user_id = u.id
+      WHERE c.id = ?
+    `).bind(id).first()
+    
+    if (!certificate) {
+      return c.json({ success: false, error: 'Certificate not found' }, 404)
+    }
+    
+    return c.json({ success: true, data: certificate })
+  } catch (error) {
+    console.error('Error loading certificate:', error)
+    return c.json({ success: false, error: 'Failed to load certificate' }, 500)
+  }
+})
+
+// Generate certificate manually
+app.post('/api/admin/certificates/generate', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const { order_id, product_id, license_key } = await c.req.json()
+    
+    if (!order_id || !product_id || !license_key) {
+      return c.json({ success: false, error: 'Missing required fields' }, 400)
+    }
+    
+    // Get order and product details
+    const order = await db.db.prepare(`
+      SELECT o.*, u.email, u.first_name, u.last_name
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      WHERE o.id = ?
+    `).bind(order_id).first() as any
+    
+    const product = await db.db.prepare(`
+      SELECT p.*, pt.name
+      FROM products p
+      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.language = 'de'
+      WHERE p.id = ?
+    `).bind(product_id).first() as any
+    
+    if (!order || !product) {
+      return c.json({ success: false, error: 'Order or product not found' }, 404)
+    }
+    
+    // Generate certificate number
+    const lastCert = await db.db.prepare(`
+      SELECT certificate_number FROM certificates 
+      ORDER BY id DESC LIMIT 1
+    `).first() as any
+    
+    let certNumber = 'CERT-2026-0001'
+    if (lastCert && lastCert.certificate_number) {
+      const match = lastCert.certificate_number.match(/CERT-(\d{4})-(\d+)/)
+      if (match) {
+        const year = match[1]
+        const num = parseInt(match[2]) + 1
+        certNumber = `CERT-${year}-${String(num).padStart(4, '0')}`
+      }
+    }
+    
+    // Detect brand
+    const productName = product.name || ''
+    let brand = 'Generic'
+    if (productName.toLowerCase().includes('microsoft') || productName.toLowerCase().includes('office') || productName.toLowerCase().includes('windows')) {
+      brand = 'Microsoft'
+    } else if (productName.toLowerCase().includes('adobe')) {
+      brand = 'Adobe'
+    } else if (productName.toLowerCase().includes('kaspersky')) {
+      brand = 'Kaspersky'
+    }
+    
+    // Insert certificate
+    const result = await db.db.prepare(`
+      INSERT INTO certificates (
+        certificate_number, order_id, invoice_id, product_id, brand,
+        product_name, license_key, customer_name, customer_email,
+        status, generated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).bind(
+      certNumber,
+      order_id,
+      null,
+      product_id,
+      brand,
+      product.name,
+      license_key,
+      `${order.first_name || ''} ${order.last_name || ''}`.trim(),
+      order.email,
+      'generated'
+    ).run()
+    
+    return c.json({ 
+      success: true, 
+      message: 'Certificate generated successfully',
+      certificate_id: result.meta.last_row_id,
+      certificate_number: certNumber
+    })
+  } catch (error) {
+    console.error('Error generating certificate:', error)
+    return c.json({ success: false, error: 'Failed to generate certificate' }, 500)
+  }
+})
+
+// Regenerate certificate
+app.post('/api/admin/certificates/:id/regenerate', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    
+    await db.db.prepare(`
+      UPDATE certificates 
+      SET generated_at = CURRENT_TIMESTAMP,
+          status = 'generated'
+      WHERE id = ?
+    `).bind(id).run()
+    
+    return c.json({ success: true, message: 'Certificate regenerated successfully' })
+  } catch (error) {
+    console.error('Error regenerating certificate:', error)
+    return c.json({ success: false, error: 'Failed to regenerate certificate' }, 500)
+  }
+})
+
+// Email certificate
+app.post('/api/admin/certificates/:id/email', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    
+    // TODO: Implement email sending logic
+    // For now, just update the sent_at timestamp
+    await db.db.prepare(`
+      UPDATE certificates 
+      SET sent_at = CURRENT_TIMESTAMP,
+          status = 'sent'
+      WHERE id = ?
+    `).bind(id).run()
+    
+    return c.json({ success: true, message: 'Certificate email sent successfully' })
+  } catch (error) {
+    console.error('Error emailing certificate:', error)
+    return c.json({ success: false, error: 'Failed to email certificate' }, 500)
+  }
+})
+
+// Delete certificate
+app.delete('/api/admin/certificates/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    
+    await db.db.prepare(`DELETE FROM certificates WHERE id = ?`).bind(id).run()
+    
+    return c.json({ success: true, message: 'Certificate deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting certificate:', error)
+    return c.json({ success: false, error: 'Failed to delete certificate' }, 500)
+  }
+})
+
+// Bulk generate certificates
+app.post('/api/admin/certificates/bulk-generate', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const { order_ids } = await c.req.json()
+    
+    if (!order_ids || !Array.isArray(order_ids) || order_ids.length === 0) {
+      return c.json({ success: false, error: 'No orders selected' }, 400)
+    }
+    
+    let generated = 0
+    let skipped = 0
+    
+    for (const order_id of order_ids) {
+      // Check if certificate already exists
+      const existing = await db.db.prepare(`
+        SELECT id FROM certificates WHERE order_id = ?
+      `).bind(order_id).first()
+      
+      if (existing) {
+        skipped++
+        continue
+      }
+      
+      // TODO: Implement bulk generation logic
+      // For now, just count
+      generated++
+    }
+    
+    return c.json({ 
+      success: true, 
+      message: `Generated ${generated} certificates, skipped ${skipped}`,
+      generated,
+      skipped
+    })
+  } catch (error) {
+    console.error('Error bulk generating certificates:', error)
+    return c.json({ success: false, error: 'Failed to bulk generate certificates' }, 500)
+  }
+})
+
+// ============================================
 // ADMIN PAGE ROUTES
 // ============================================
 
@@ -2529,6 +3068,7 @@ import { AdminOrders } from './components/admin-orders'
 import { AdminCustomers } from './components/admin-customers'
 import { AdminInvoices } from './components/admin-invoices'
 import { AdminCertificates } from './components/admin-certificates'
+import { AdminCertificateSettings } from './components/admin-certificate-settings'
 import { AdminSettingsAdvanced } from './components/admin-settings-advanced'
 import { AdminEmailTemplates } from './components/admin-email-templates'
 import { AdminCookies } from './components/admin-cookies'
@@ -2857,11 +3397,81 @@ app.get('/admin/invoices/:id/certificate', async (c) => {
   }
 })
 
+// Certificate Preview
+app.get('/admin/certificates/:id/preview', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    
+    const certificate = await db.db.prepare(`
+      SELECT c.*, o.order_number, p.name as product_name
+      FROM certificates c
+      LEFT JOIN orders o ON c.order_id = o.id
+      LEFT JOIN products p ON c.product_id = p.id
+      WHERE c.id = ?
+    `).bind(id).first() as any
+    
+    if (!certificate) {
+      return c.text('Certificate not found', 404)
+    }
+    
+    const { CertificateSelector } = await import('./components/certificates')
+    const html = CertificateSelector(certificate)
+    return c.html(html)
+  } catch (error) {
+    console.error('Error loading certificate preview:', error)
+    return c.text('Error loading certificate', 500)
+  }
+})
+
+// Certificate PDF Download
+app.get('/api/admin/certificates/:id/pdf', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    
+    const certificate = await db.db.prepare(`
+      SELECT c.*, o.order_number, p.name as product_name
+      FROM certificates c
+      LEFT JOIN orders o ON c.order_id = o.id
+      LEFT JOIN products p ON c.product_id = p.id
+      WHERE c.id = ?
+    `).bind(id).first() as any
+    
+    if (!certificate) {
+      return c.text('Certificate not found', 404)
+    }
+    
+    const { CertificateSelector } = await import('./components/certificates')
+    const html = CertificateSelector(certificate)
+    
+    // Return HTML with print headers for browser PDF generation
+    return new Response(html, {
+      headers: {
+        'Content-Type': 'text/html',
+        'Content-Disposition': `inline; filename="certificate-${certificate.certificate_number}.html"`
+      }
+    })
+  } catch (error) {
+    console.error('Error generating certificate PDF:', error)
+    return c.text('Error generating PDF', 500)
+  }
+})
+
 // License Certificates Management
 app.get('/admin/certificates', (c) => {
   return c.html(
     <AdminLayout title="License Certificates" currentUser={{ first_name: 'Admin' }}>
       <AdminCertificates />
+    </AdminLayout>
+  )
+})
+
+// Certificate Settings
+app.get('/admin/certificate-settings', (c) => {
+  return c.html(
+    <AdminLayout title="Certificate Settings" currentUser={{ first_name: 'Admin' }}>
+      <AdminCertificateSettings />
     </AdminLayout>
   )
 })

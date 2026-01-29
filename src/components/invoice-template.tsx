@@ -267,12 +267,7 @@ export const InvoiceTemplate = (invoice: any) => {
     <!-- Header -->
     <div class="header">
       <div>
-        <svg width="180" height="60" viewBox="0 0 180 60">
-          <text x="10" y="25" font-family="Arial" font-size="20" font-weight="bold" fill="#1a2b5e">SOFTWARE</text>
-          <text x="10" y="45" font-family="Arial" font-size="9" fill="#666">Das Original. Direkt. Günstig. Gut.</text>
-          <text x="130" y="30" font-family="Arial" font-size="24" font-weight="bold" fill="#f7b500">KING24</text>
-          <path d="M 125 15 L 135 5 L 145 15 L 135 25 Z" fill="#f7b500"/>
-        </svg>
+        <img src="/static/logo.png" alt="SoftwareKing24" class="logo" style="max-width: 180px; height: auto;">
       </div>
       <div class="invoice-info">
         <h2>Rechnungs-Nr:</h2>
