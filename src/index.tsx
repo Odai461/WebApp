@@ -1886,6 +1886,130 @@ app.post('/api/admin/licenses/import', adminAuth, async (c) => {
   }
 })
 
+// Admin API: Add single license
+app.post('/api/admin/licenses', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { product_id, license_key, key_type, activation_limit, expires_at } = body
+    
+    if (!product_id || !license_key) {
+      return c.json({ success: false, error: 'Product ID and license key are required' }, 400)
+    }
+    
+    await c.env.DB.prepare(`
+      INSERT INTO license_keys (product_id, license_key, key_type, activation_limit, expires_at, status)
+      VALUES (?, ?, ?, ?, ?, 'available')
+    `).bind(
+      product_id,
+      license_key,
+      key_type || 'single',
+      activation_limit || 1,
+      expires_at || null
+    ).run()
+    
+    return c.json({ success: true, message: 'License added successfully' })
+  } catch (error: any) {
+    console.error('Error adding license:', error)
+    if (error.message?.includes('UNIQUE')) {
+      return c.json({ success: false, error: 'License key already exists' }, 400)
+    }
+    return c.json({ success: false, error: 'Failed to add license' }, 500)
+  }
+})
+
+// Admin API: Bulk add licenses
+app.post('/api/admin/licenses/bulk', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { product_id, license_keys, key_type, activation_limit } = body
+    
+    if (!product_id || !license_keys || !Array.isArray(license_keys) || license_keys.length === 0) {
+      return c.json({ success: false, error: 'Invalid request data' }, 400)
+    }
+    
+    let added = 0
+    let skipped = 0
+    
+    for (const key of license_keys) {
+      try {
+        await c.env.DB.prepare(`
+          INSERT INTO license_keys (product_id, license_key, key_type, activation_limit, status)
+          VALUES (?, ?, ?, ?, 'available')
+        `).bind(product_id, key, key_type || 'single', activation_limit || 1).run()
+        added++
+      } catch (error) {
+        skipped++
+      }
+    }
+    
+    return c.json({ 
+      success: true, 
+      data: { added, skipped },
+      message: `${added} licenses added, ${skipped} skipped` 
+    })
+  } catch (error) {
+    console.error('Bulk add error:', error)
+    return c.json({ success: false, error: 'Failed to add licenses' }, 500)
+  }
+})
+
+// Admin API: Delete license
+app.delete('/api/admin/licenses/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    
+    await c.env.DB.prepare(`
+      DELETE FROM license_keys WHERE id = ?
+    `).bind(id).run()
+    
+    return c.json({ success: true, message: 'License deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting license:', error)
+    return c.json({ success: false, error: 'Failed to delete license' }, 500)
+  }
+})
+
+// Admin API: Get license stats
+app.get('/api/admin/licenses/stats', async (c) => {
+  try {
+    const stats = await c.env.DB.prepare(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available,
+        SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold,
+        SUM(CASE WHEN status = 'expired' THEN 1 ELSE 0 END) as expired
+      FROM license_keys
+    `).first()
+    
+    return c.json({ success: true, data: stats })
+  } catch (error) {
+    console.error('Error loading stats:', error)
+    return c.json({ success: false, error: 'Failed to load stats' }, 500)
+  }
+})
+
+// Admin API: Bulk delete licenses
+app.post('/api/admin/licenses/bulk-delete', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { license_ids } = body
+    
+    if (!license_ids || !Array.isArray(license_ids) || license_ids.length === 0) {
+      return c.json({ success: false, error: 'No licenses selected' }, 400)
+    }
+    
+    const placeholders = license_ids.map(() => '?').join(',')
+    await c.env.DB.prepare(`
+      DELETE FROM license_keys WHERE id IN (${placeholders})
+    `).bind(...license_ids).run()
+    
+    return c.json({ success: true, message: `${license_ids.length} licenses deleted` })
+  } catch (error) {
+    console.error('Bulk delete error:', error)
+    return c.json({ success: false, error: 'Failed to delete licenses' }, 500)
+  }
+})
+
 // ============================================
 // ADMIN PAGE ROUTES
 // ============================================
