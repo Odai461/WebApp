@@ -211,18 +211,20 @@ export function AdminSidebarAdvanced(currentPath: string = '/admin') {
       icon: 'shield-alt',
       children: [
         { path: '/admin/security', label: 'Übersicht', icon: 'chart-line' },
-        { path: '/admin/firewall', label: 'Firewall', icon: 'fire' },
-        { path: '/admin/blocked-ips', label: 'Blockierte IPs', icon: 'ban' },
-        { path: '/admin/login-protection', label: 'Login-Schutz', icon: 'lock' },
-        { path: '/admin/users', label: 'Benutzer & Rollen', icon: 'users-cog' },
-        { path: '/admin/2fa', label: 'Zwei-Faktor-Authentifizierung (2FA)', icon: 'mobile-alt' },
-        { path: '/admin/file-protection', label: 'Datei- & Systemschutz', icon: 'folder-open' },
-        { path: '/admin/api-webhooks', label: 'API & Webhooks', icon: 'exchange-alt' },
-        { path: '/admin/email-security', label: 'E-Mail-Sicherheit', icon: 'envelope-open-text' },
-        { path: '/admin/activity-log', label: 'Aktivitätsprotokoll', icon: 'history' },
-        { path: '/admin/security-scans', label: 'Sicherheits-Scans', icon: 'shield-virus' },
-        { path: '/admin/backups', label: 'Backups & Wiederherstellung', icon: 'database' },
-        { path: '/admin/security/advanced', label: 'Erweiterte Sicherheit', icon: 'user-secret' }
+        { path: '/admin/security/firewall', label: 'Firewall', icon: 'fire' },
+        { path: '/admin/security/blocked-ips', label: 'Blockierte IPs', icon: 'ban' },
+        { path: '/admin/security/login-protection', label: 'Login-Schutz', icon: 'lock' },
+        { path: '/admin/security/users-roles', label: 'Benutzer & Rollen', icon: 'users-cog' },
+        { path: '/admin/security/2fa', label: 'Zwei-Faktor-Authentifizierung (2FA)', icon: 'mobile-alt' },
+        { path: '/admin/security/file-protection', label: 'Datei- & Systemschutz', icon: 'folder-open' },
+        { path: '/admin/security/api-webhooks', label: 'API & Webhooks', icon: 'exchange-alt' },
+        { path: '/admin/security/email-security', label: 'E-Mail-Sicherheit', icon: 'envelope-open-text' },
+        { path: '/admin/security/audit-log', label: 'Aktivitätsprotokoll', icon: 'history' },
+        { path: '/admin/security/scans', label: 'Sicherheits-Scans', icon: 'shield-virus' },
+        { path: '/admin/security/login-history', label: 'Login-Verlauf', icon: 'sign-in-alt' },
+        { path: '/admin/security/sessions', label: 'Aktive Sessions', icon: 'users' },
+        { path: '/admin/security/settings', label: 'Sicherheitseinstellungen', icon: 'cog' },
+        { path: '/admin/backups', label: 'Backups & Wiederherstellung', icon: 'database' }
       ]
     },
     {
