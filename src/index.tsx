@@ -1419,6 +1419,408 @@ app.get('/api/admin/dashboard/revenue-chart', async (c) => {
 // END DASHBOARD METRICS API
 // ============================================
 
+// ============================================
+// LICENSES CRUD API ENDPOINTS
+// ============================================
+
+// Helper: Generate license key
+function generateLicenseKey(): string {
+  const segments = 5
+  const segmentLength = 5
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  
+  const key = Array.from({ length: segments }, () => {
+    return Array.from({ length: segmentLength }, () => 
+      chars[Math.floor(Math.random() * chars.length)]
+    ).join('')
+  }).join('-')
+  
+  return key
+}
+
+// CREATE: Generate license keys
+app.post('/api/admin/licenses', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const body = await c.req.json()
+
+    if (!body.product_id) {
+      return c.json({ success: false, error: 'Missing product_id' }, 400)
+    }
+
+    const quantity = body.quantity || 1
+    const keys: any[] = []
+
+    for (let i = 0; i < quantity; i++) {
+      const licenseKey = generateLicenseKey()
+      
+      const result = await db.db.prepare(`
+        INSERT INTO license_keys (
+          product_id, license_key, key_type, activation_limit, status
+        ) VALUES (?, ?, ?, ?, ?)
+      `).bind(
+        body.product_id,
+        licenseKey,
+        body.key_type || 'single',
+        body.activation_limit || 1,
+        'available'
+      ).run()
+
+      keys.push({ id: result.meta.last_row_id, license_key: licenseKey })
+    }
+
+    return c.json({ 
+      success: true, 
+      data: keys,
+      message: `${quantity} license key(s) generated successfully`
+    })
+  } catch (error: any) {
+    console.error('Error generating licenses:', error)
+    return c.json({ success: false, error: error.message || 'Failed to generate licenses' }, 500)
+  }
+})
+
+// READ: Get single license
+app.get('/api/admin/licenses/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const licenseId = c.req.param('id')
+
+    const license = await db.db.prepare(`
+      SELECT lk.*, p.sku as product_sku, o.order_number
+      FROM license_keys lk
+      LEFT JOIN products p ON lk.product_id = p.id
+      LEFT JOIN orders o ON lk.assigned_to_order_id = o.id
+      WHERE lk.id = ?
+    `).bind(licenseId).first()
+
+    if (!license) {
+      return c.json({ success: false, error: 'License not found' }, 404)
+    }
+
+    // Get activation history
+    const activations = await db.db.prepare(`
+      SELECT * FROM license_activations WHERE license_key_id = ? ORDER BY activated_at DESC
+    `).bind(licenseId).all()
+
+    return c.json({ success: true, data: { ...license, activations: activations.results } })
+  } catch (error: any) {
+    console.error('Error fetching license:', error)
+    return c.json({ success: false, error: error.message || 'Failed to fetch license' }, 500)
+  }
+})
+
+// UPDATE: Update license
+app.put('/api/admin/licenses/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const licenseId = c.req.param('id')
+    const body = await c.req.json()
+
+    const existing = await db.db.prepare('SELECT id FROM license_keys WHERE id = ?').bind(licenseId).first()
+    if (!existing) {
+      return c.json({ success: false, error: 'License not found' }, 404)
+    }
+
+    const updates: string[] = []
+    const values: any[] = []
+
+    const allowedFields = ['status', 'activation_limit', 'expires_at', 'key_type']
+    
+    allowedFields.forEach(field => {
+      if (body[field] !== undefined) {
+        updates.push(`${field} = ?`)
+        values.push(body[field])
+      }
+    })
+
+    if (updates.length > 0) {
+      updates.push('updated_at = CURRENT_TIMESTAMP')
+      values.push(licenseId)
+
+      await db.db.prepare(`UPDATE license_keys SET ${updates.join(', ')} WHERE id = ?`).bind(...values).run()
+    }
+
+    return c.json({ success: true, message: 'License updated successfully' })
+  } catch (error: any) {
+    console.error('Error updating license:', error)
+    return c.json({ success: false, error: error.message || 'Failed to update license' }, 500)
+  }
+})
+
+// DELETE: Revoke license
+app.delete('/api/admin/licenses/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const licenseId = c.req.param('id')
+
+    const existing = await db.db.prepare('SELECT id FROM license_keys WHERE id = ?').bind(licenseId).first()
+    if (!existing) {
+      return c.json({ success: false, error: 'License not found' }, 404)
+    }
+
+    await db.db.prepare(`UPDATE license_keys SET status = 'revoked', updated_at = CURRENT_TIMESTAMP WHERE id = ?`).bind(licenseId).run()
+
+    return c.json({ success: true, message: 'License revoked successfully' })
+  } catch (error: any) {
+    console.error('Error revoking license:', error)
+    return c.json({ success: false, error: error.message || 'Failed to revoke license' }, 500)
+  }
+})
+
+// BULK: Generate bulk licenses
+app.post('/api/admin/licenses/bulk-generate', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const { product_id, quantity, key_type, activation_limit } = await c.req.json()
+
+    if (!product_id || !quantity) {
+      return c.json({ success: false, error: 'Missing product_id or quantity' }, 400)
+    }
+
+    const keys: string[] = []
+    for (let i = 0; i < quantity; i++) {
+      const licenseKey = generateLicenseKey()
+      await db.db.prepare(`
+        INSERT INTO license_keys (product_id, license_key, key_type, activation_limit, status)
+        VALUES (?, ?, ?, ?, 'available')
+      `).bind(product_id, licenseKey, key_type || 'single', activation_limit || 1).run()
+      
+      keys.push(licenseKey)
+    }
+
+    return c.json({ 
+      success: true, 
+      data: keys,
+      message: `${quantity} license keys generated successfully`
+    })
+  } catch (error: any) {
+    console.error('Error bulk generating licenses:', error)
+    return c.json({ success: false, error: error.message || 'Failed to generate licenses' }, 500)
+  }
+})
+
+// Activate license
+app.post('/api/admin/licenses/:id/activate', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const licenseId = c.req.param('id')
+    const body = await c.req.json()
+
+    const license = await db.db.prepare('SELECT * FROM license_keys WHERE id = ?').bind(licenseId).first()
+    if (!license) {
+      return c.json({ success: false, error: 'License not found' }, 404)
+    }
+
+    if (license.activation_count >= license.activation_limit) {
+      return c.json({ success: false, error: 'Activation limit reached' }, 400)
+    }
+
+    // Record activation
+    await db.db.prepare(`
+      INSERT INTO license_activations (license_key_id, device_id, ip_address, user_agent)
+      VALUES (?, ?, ?, ?)
+    `).bind(licenseId, body.device_id || null, body.ip_address || null, body.user_agent || null).run()
+
+    // Update activation count
+    await db.db.prepare(`
+      UPDATE license_keys SET activation_count = activation_count + 1, status = 'used', updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(licenseId).run()
+
+    return c.json({ success: true, message: 'License activated successfully' })
+  } catch (error: any) {
+    console.error('Error activating license:', error)
+    return c.json({ success: false, error: error.message || 'Failed to activate license' }, 500)
+  }
+})
+
+// ============================================
+// END LICENSES CRUD API
+// ============================================
+
+// ============================================
+// CATEGORIES & BRANDS CRUD API
+// ============================================
+
+// Categories CRUD
+app.post('/api/admin/categories', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const body = await c.req.json()
+
+    if (!body.slug) {
+      return c.json({ success: false, error: 'Missing slug' }, 400)
+    }
+
+    const result = await db.db.prepare(`
+      INSERT INTO categories (slug, parent_id, icon, sort_order, is_active)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(body.slug, body.parent_id || null, body.icon || null, body.sort_order || 0, body.is_active !== undefined ? body.is_active : 1).run()
+
+    const categoryId = result.meta.last_row_id
+
+    // Add translations
+    if (body.name) {
+      const language = body.language || 'de'
+      await db.db.prepare(`
+        INSERT INTO category_translations (category_id, language, name, description)
+        VALUES (?, ?, ?, ?)
+      `).bind(categoryId, language, body.name, body.description || '').run()
+    }
+
+    return c.json({ success: true, data: { id: categoryId }, message: 'Category created successfully' })
+  } catch (error: any) {
+    console.error('Error creating category:', error)
+    return c.json({ success: false, error: error.message || 'Failed to create category' }, 500)
+  }
+})
+
+app.put('/api/admin/categories/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const categoryId = c.req.param('id')
+    const body = await c.req.json()
+
+    const existing = await db.db.prepare('SELECT id FROM categories WHERE id = ?').bind(categoryId).first()
+    if (!existing) {
+      return c.json({ success: false, error: 'Category not found' }, 404)
+    }
+
+    const updates: string[] = []
+    const values: any[] = []
+
+    const allowedFields = ['slug', 'parent_id', 'icon', 'sort_order', 'is_active']
+    allowedFields.forEach(field => {
+      if (body[field] !== undefined) {
+        updates.push(`${field} = ?`)
+        values.push(body[field])
+      }
+    })
+
+    if (updates.length > 0) {
+      updates.push('updated_at = CURRENT_TIMESTAMP')
+      values.push(categoryId)
+      await db.db.prepare(`UPDATE categories SET ${updates.join(', ')} WHERE id = ?`).bind(...values).run()
+    }
+
+    // Update translation if name provided
+    if (body.name) {
+      const language = body.language || 'de'
+      const translation = await db.db.prepare('SELECT id FROM category_translations WHERE category_id = ? AND language = ?').bind(categoryId, language).first()
+      
+      if (translation) {
+        await db.db.prepare(`UPDATE category_translations SET name = ?, description = ? WHERE category_id = ? AND language = ?`)
+          .bind(body.name, body.description || '', categoryId, language).run()
+      } else {
+        await db.db.prepare(`INSERT INTO category_translations (category_id, language, name, description) VALUES (?, ?, ?, ?)`)
+          .bind(categoryId, language, body.name, body.description || '').run()
+      }
+    }
+
+    return c.json({ success: true, message: 'Category updated successfully' })
+  } catch (error: any) {
+    console.error('Error updating category:', error)
+    return c.json({ success: false, error: error.message || 'Failed to update category' }, 500)
+  }
+})
+
+app.delete('/api/admin/categories/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const categoryId = c.req.param('id')
+
+    const existing = await db.db.prepare('SELECT id FROM categories WHERE id = ?').bind(categoryId).first()
+    if (!existing) {
+      return c.json({ success: false, error: 'Category not found' }, 404)
+    }
+
+    await db.db.prepare(`UPDATE categories SET is_active = 0 WHERE id = ?`).bind(categoryId).run()
+    return c.json({ success: true, message: 'Category deleted successfully' })
+  } catch (error: any) {
+    console.error('Error deleting category:', error)
+    return c.json({ success: false, error: error.message || 'Failed to delete category' }, 500)
+  }
+})
+
+// Brands CRUD
+app.post('/api/admin/brands', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const body = await c.req.json()
+
+    if (!body.name || !body.slug) {
+      return c.json({ success: false, error: 'Missing name or slug' }, 400)
+    }
+
+    const result = await db.db.prepare(`
+      INSERT INTO brands (name, slug, logo_url, website_url, is_featured, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(body.name, body.slug, body.logo_url || null, body.website_url || null, body.is_featured || 0, body.sort_order || 0).run()
+
+    return c.json({ success: true, data: { id: result.meta.last_row_id }, message: 'Brand created successfully' })
+  } catch (error: any) {
+    console.error('Error creating brand:', error)
+    return c.json({ success: false, error: error.message || 'Failed to create brand' }, 500)
+  }
+})
+
+app.put('/api/admin/brands/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const brandId = c.req.param('id')
+    const body = await c.req.json()
+
+    const existing = await db.db.prepare('SELECT id FROM brands WHERE id = ?').bind(brandId).first()
+    if (!existing) {
+      return c.json({ success: false, error: 'Brand not found' }, 404)
+    }
+
+    const updates: string[] = []
+    const values: any[] = []
+
+    const allowedFields = ['name', 'slug', 'logo_url', 'website_url', 'is_featured', 'sort_order']
+    allowedFields.forEach(field => {
+      if (body[field] !== undefined) {
+        updates.push(`${field} = ?`)
+        values.push(body[field])
+      }
+    })
+
+    if (updates.length > 0) {
+      values.push(brandId)
+      await db.db.prepare(`UPDATE brands SET ${updates.join(', ')} WHERE id = ?`).bind(...values).run()
+    }
+
+    return c.json({ success: true, message: 'Brand updated successfully' })
+  } catch (error: any) {
+    console.error('Error updating brand:', error)
+    return c.json({ success: false, error: error.message || 'Failed to update brand' }, 500)
+  }
+})
+
+app.delete('/api/admin/brands/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const brandId = c.req.param('id')
+
+    const existing = await db.db.prepare('SELECT id FROM brands WHERE id = ?').bind(brandId).first()
+    if (!existing) {
+      return c.json({ success: false, error: 'Brand not found' }, 404)
+    }
+
+    await db.db.prepare(`DELETE FROM brands WHERE id = ?`).bind(brandId).run()
+    return c.json({ success: true, message: 'Brand deleted successfully' })
+  } catch (error: any) {
+    console.error('Error deleting brand:', error)
+    return c.json({ success: false, error: error.message || 'Failed to delete brand' }, 500)
+  }
+})
+
+// ============================================
+// END CATEGORIES & BRANDS CRUD API
+// ============================================
+
 app.get('/api/products/featured', async (c) => {
   try {
     const db = c.get('db') as DatabaseHelper
