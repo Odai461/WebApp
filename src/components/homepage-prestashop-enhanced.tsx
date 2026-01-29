@@ -1955,7 +1955,7 @@ export const HomepagePrestaShopEnhanced = () => {
             <div class="w-full px-6">
                 <div class="grid grid-cols-4 gap-8 mb-8">
                     <div>
-                        <img src="/static/logo.png" alt="SOFTWAREKING24" class="h-16 mb-4" />
+                        <img src="/static/logo-footer.png" alt="KING24" class="h-16 mb-4" />
                         <p class="text-gray-300 text-sm mb-4">
                             Ihr vertrauenswürdiger Partner für Original-Software zu unschlagbaren Preisen. 
                             Seit über 10 Jahren am Markt.

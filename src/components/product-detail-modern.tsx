@@ -732,11 +732,8 @@ export const ProductDetailPageModern = () => {
           <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div>
-                <div class="flex items-center space-x-3 mb-4">
-                  <div class="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl" style="background-color: var(--gold); color: var(--navy-dark);">
-                    SK
-                  </div>
-                  <span class="text-xl font-bold">SOFTWAREKING24</span>
+                <div class="mb-4">
+                  <img src="/static/logo-footer.png" alt="KING24" class="h-12" />
                 </div>
                 <p class="text-gray-400 text-sm mb-4">
                   Ihre vertrauenswürdige Quelle für Original-Software zu fairen Preisen.

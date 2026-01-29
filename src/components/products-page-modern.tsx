@@ -380,11 +380,8 @@ export const ProductsPageModern = () => {
           <div className="container mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div>
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 h-12 bg-gold rounded-lg flex items-center justify-center text-navy-dark font-bold text-xl">
-                    SK
-                  </div>
-                  <span className="text-xl font-bold">SOFTWAREKING24</span>
+                <div className="mb-4">
+                  <img src="/static/logo-footer.png" alt="KING24" className="h-12" />
                 </div>
                 <p className="text-gray-400 text-sm mb-4">
                   Ihre vertrauenswürdige Quelle für Original-Software zu fairen Preisen.
