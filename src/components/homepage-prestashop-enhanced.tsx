@@ -2221,7 +2221,7 @@ export const HomepagePrestaShopEnhanced = () => {
                                         onclick="addToCart(\${product.id}, '\${product.name.replace(/'/g, "\\'")}', \${displayPrice})"
                                         class="flex-1 bg-gold hover:bg-gold-light text-navy-dark px-4 py-2 rounded-lg font-bold transition-all hover-lift"
                                     >
-                                        <i class="fas fa-cart-plus mr-2"></i>In den Warenkorb
+                                        <i class="fas fa-shopping-cart mr-2"></i>Jetzt kaufen
                                     </button>
                                     <a 
                                         href="/produkt/\${product.slug}"
@@ -2283,7 +2283,7 @@ export const HomepagePrestaShopEnhanced = () => {
                                         onclick="addToCart(\${product.id}, '\${product.name.replace(/'/g, "\\'")}', \${displayPrice})"
                                         class="flex-1 bg-gold hover:bg-gold-light text-navy-dark px-4 py-2 rounded-lg font-bold transition-all hover-lift"
                                     >
-                                        <i class="fas fa-cart-plus mr-2"></i>In den Warenkorb
+                                        <i class="fas fa-shopping-cart mr-2"></i>Jetzt kaufen
                                     </button>
                                     <a 
                                         href="/produkt/\${product.slug}"
@@ -2338,7 +2338,7 @@ export const HomepagePrestaShopEnhanced = () => {
                                         onclick="addToCart(\${product.id}, '\${product.name.replace(/'/g, "\\'")}', \${displayPrice})"
                                         class="flex-1 bg-gold hover:bg-gold-light text-navy-dark px-4 py-2 rounded-lg font-bold transition-all hover-lift"
                                     >
-                                        <i class="fas fa-cart-plus mr-2"></i>In den Warenkorb
+                                        <i class="fas fa-shopping-cart mr-2"></i>Jetzt kaufen
                                     </button>
                                     <a 
                                         href="/produkt/\${product.slug}"
@@ -2503,6 +2503,7 @@ export const HomepagePrestaShopEnhanced = () => {
             });
         </script>
         <script src="/static/cookie-consent.js"></script>
+        <script src="/static/promo-popup.js"></script>
         <script src="/static/auth.js"></script>
     </body>
     </html>
