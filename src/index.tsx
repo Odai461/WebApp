@@ -11885,6 +11885,584 @@ app.get('/admin/payment-methods', async (c) => {
   }
 })
 
+// ============================================
+// INVENTORY MANAGEMENT PAGE
+// ============================================
+app.get('/admin/inventory', async (c) => {
+  try {
+    const { env } = c;
+    const db = env.DB;
+
+    // Get inventory statistics
+    const [inventoryStats, lowStockProducts, recentStockChanges] = await Promise.all([
+      // Inventory statistics
+      db.prepare(`
+        SELECT 
+          COUNT(*) as total_products,
+          SUM(CASE WHEN stock_quantity <= low_stock_threshold THEN 1 ELSE 0 END) as low_stock_count,
+          SUM(CASE WHEN stock_quantity = 0 THEN 1 ELSE 0 END) as out_of_stock_count,
+          SUM(stock_quantity) as total_stock
+        FROM products
+        WHERE is_digital = 0
+      `).first(),
+      
+      // Low stock products
+      db.prepare(`
+        SELECT 
+          id,
+          name,
+          sku,
+          stock_quantity,
+          low_stock_threshold,
+          price
+        FROM products
+        WHERE is_digital = 0 
+          AND stock_quantity <= low_stock_threshold
+          AND stock_quantity > 0
+        ORDER BY stock_quantity ASC
+        LIMIT 20
+      `).all(),
+      
+      // Recent stock changes (mock data for now)
+      db.prepare(`
+        SELECT 
+          p.name as product_name,
+          p.sku,
+          p.stock_quantity
+        FROM products p
+        WHERE is_digital = 0
+        ORDER BY p.updated_at DESC
+        LIMIT 10
+      `).all()
+    ]);
+
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Lagerverwaltung - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        ${AdminSidebarAdvanced('/admin/inventory')}
+        
+        <div class="ml-64 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-boxes mr-3"></i>Lagerverwaltung
+                </h1>
+                <p class="text-gray-600 mt-2">Bestandsverwaltung, Niedrigbestand-Warnungen und Nachbestellungen</p>
+            </div>
+
+            <!-- Inventory Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Gesamt Produkte</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">${inventoryStats?.total_products || 0}</p>
+                        </div>
+                        <div class="bg-blue-100 rounded-full p-3">
+                            <i class="fas fa-box text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-gray-500">Physische Produkte</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Gesamtbestand</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">${inventoryStats?.total_stock || 0}</p>
+                        </div>
+                        <div class="bg-green-100 rounded-full p-3">
+                            <i class="fas fa-cubes text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-gray-500">Einheiten auf Lager</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Niedrig Bestand</p>
+                            <p class="text-2xl font-bold text-orange-600 mt-1">${inventoryStats?.low_stock_count || 0}</p>
+                        </div>
+                        <div class="bg-orange-100 rounded-full p-3">
+                            <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-orange-600">Nachbestellung erforderlich</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Nicht vorrätig</p>
+                            <p class="text-2xl font-bold text-red-600 mt-1">${inventoryStats?.out_of_stock_count || 0}</p>
+                        </div>
+                        <div class="bg-red-100 rounded-full p-3">
+                            <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-red-600">Sofort nachbestellen</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Alert -->
+            ${(inventoryStats?.low_stock_count || 0) > 0 ? `
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-8">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-orange-600 text-2xl mr-4"></i>
+                        <div>
+                            <h3 class="font-bold text-orange-900">Warnung: Niedrige Lagerbestände</h3>
+                            <p class="text-orange-800 text-sm mt-1">
+                                ${inventoryStats.low_stock_count} Produkte haben einen niedrigen Lagerbestand und müssen nachbestellt werden.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- Low Stock Products -->
+            <div class="bg-white rounded-lg shadow mb-8">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-900">
+                        <i class="fas fa-exclamation-circle mr-2 text-orange-600"></i>
+                        Produkte mit niedrigem Bestand
+                    </h2>
+                </div>
+                <div class="p-6">
+                    ${lowStockProducts.results.length > 0 ? `
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produkt</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bestand</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Schwellenwert</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Preis</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${lowStockProducts.results.map(product => {
+                                        const stockPercentage = (product.stock_quantity / product.low_stock_threshold) * 100;
+                                        let statusColor = 'orange';
+                                        if (stockPercentage <= 25) statusColor = 'red';
+                                        else if (stockPercentage <= 50) statusColor = 'orange';
+                                        else statusColor = 'yellow';
+                                        
+                                        return `
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4">
+                                                <div class="text-sm font-medium text-gray-900">${product.name}</div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-700 font-mono">${product.sku || '-'}</span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-lg font-bold text-${statusColor}-600">${product.stock_quantity}</span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-700">${product.low_stock_threshold}</span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm font-medium text-gray-900">${(product.price / 100).toFixed(2)} €</span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-${statusColor}-100 text-${statusColor}-800">
+                                                    Niedrig
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <button class="text-blue-600 hover:text-blue-800 mr-2" title="Bestand aktualisieren">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-green-600 hover:text-green-800" title="Nachbestellen">
+                                                    <i class="fas fa-plus-circle"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : `
+                        <div class="text-center py-12">
+                            <i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i>
+                            <p class="text-gray-500 text-lg">Alle Produkte haben ausreichenden Bestand</p>
+                            <p class="text-gray-400 text-sm mt-2">Es gibt keine Produkte mit niedrigem Lagerbestand</p>
+                        </div>
+                    `}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <a href="/admin/products" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center">
+                        <div class="bg-blue-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-plus text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Bestand aktualisieren</h3>
+                            <p class="text-gray-600 text-sm">Lagerbestand anpassen</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="/admin/products" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center">
+                        <div class="bg-green-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-truck text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Nachbestellungen</h3>
+                            <p class="text-gray-600 text-sm">Lieferanten kontaktieren</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="/admin/reports" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center">
+                        <div class="bg-purple-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-chart-bar text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Berichte</h3>
+                            <p class="text-gray-600 text-sm">Lagerberichte anzeigen</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </body>
+    </html>
+    `)
+  } catch (error) {
+    console.error('Inventory management error:', error);
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <title>Fehler - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-50 flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Fehler beim Laden</h1>
+            <p class="text-gray-600">Lagerverwaltung konnte nicht geladen werden</p>
+        </div>
+    </body>
+    </html>
+    `, 500)
+  }
+})
+
+// ============================================
+// GDPR REQUESTS MANAGEMENT PAGE
+// ============================================
+app.get('/admin/gdpr-requests', async (c) => {
+  try {
+    const { env } = c;
+    const db = env.DB;
+
+    // Get GDPR request statistics (mock for now, will be implemented with real table later)
+    const gdprStats = {
+      total_requests: 0,
+      pending_requests: 0,
+      completed_requests: 0,
+      data_exports: 0,
+      deletions: 0
+    };
+
+    // Mock recent requests
+    const recentRequests = [];
+
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DSGVO-Anfragen - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        ${AdminSidebarAdvanced('/admin/gdpr-requests')}
+        
+        <div class="ml-64 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-user-shield mr-3"></i>DSGVO-Anfragen
+                </h1>
+                <p class="text-gray-600 mt-2">Datenschutzanfragen, Datenexporte und Kontolöschungen verwalten</p>
+            </div>
+
+            <!-- GDPR Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Gesamt Anfragen</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">${gdprStats.total_requests}</p>
+                        </div>
+                        <div class="bg-blue-100 rounded-full p-3">
+                            <i class="fas fa-file-alt text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Ausstehend</p>
+                            <p class="text-2xl font-bold text-orange-600 mt-1">${gdprStats.pending_requests}</p>
+                        </div>
+                        <div class="bg-orange-100 rounded-full p-3">
+                            <i class="fas fa-clock text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-orange-600">Bearbeitung erforderlich</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Abgeschlossen</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">${gdprStats.completed_requests}</p>
+                        </div>
+                        <div class="bg-green-100 rounded-full p-3">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Datenexporte</p>
+                            <p class="text-2xl font-bold text-blue-600 mt-1">${gdprStats.data_exports}</p>
+                        </div>
+                        <div class="bg-blue-100 rounded-full p-3">
+                            <i class="fas fa-download text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Löschungen</p>
+                            <p class="text-2xl font-bold text-red-600 mt-1">${gdprStats.deletions}</p>
+                        </div>
+                        <div class="bg-red-100 rounded-full p-3">
+                            <i class="fas fa-trash text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GDPR Information Banner -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-blue-600 text-2xl mr-4 mt-1"></i>
+                    <div>
+                        <h3 class="font-bold text-blue-900 mb-2">DSGVO-Compliance-Informationen</h3>
+                        <p class="text-blue-800 text-sm mb-4">
+                            Die Datenschutz-Grundverordnung (DSGVO) gewährt Benutzern das Recht auf Zugang zu ihren Daten, 
+                            Berichtigung, Löschung und Datenübertragbarkeit. Alle Anfragen müssen innerhalb von 30 Tagen bearbeitet werden.
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white rounded p-3">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-eye text-blue-600 mr-2"></i>
+                                    <span class="font-medium text-sm">Auskunftsrecht</span>
+                                </div>
+                                <p class="text-xs text-gray-600">Benutzer können ihre gespeicherten Daten anfordern</p>
+                            </div>
+                            <div class="bg-white rounded p-3">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-download text-green-600 mr-2"></i>
+                                    <span class="font-medium text-sm">Datenportabilität</span>
+                                </div>
+                                <p class="text-xs text-gray-600">Export aller Benutzerdaten im JSON/CSV-Format</p>
+                            </div>
+                            <div class="bg-white rounded p-3">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-trash text-red-600 mr-2"></i>
+                                    <span class="font-medium text-sm">Recht auf Löschung</span>
+                                </div>
+                                <p class="text-xs text-gray-600">Vollständige Löschung aller personenbezogenen Daten</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Request Types -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-file-export text-blue-600 text-xl"></i>
+                            </div>
+                            <h3 class="font-bold text-gray-900">Datenexport</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 text-sm mb-4">
+                            Exportieren Sie alle Kundendaten in einem maschinenlesbaren Format (JSON/CSV).
+                        </p>
+                        <button class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-download mr-2"></i>Datenexport erstellen
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center">
+                            <div class="bg-yellow-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-user-edit text-yellow-600 text-xl"></i>
+                            </div>
+                            <h3 class="font-bold text-gray-900">Datenkorrektur</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 text-sm mb-4">
+                            Kunden können die Korrektur ihrer personenbezogenen Daten anfordern.
+                        </p>
+                        <button class="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
+                            <i class="fas fa-edit mr-2"></i>Korrekturanfrage
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center">
+                            <div class="bg-red-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-user-times text-red-600 text-xl"></i>
+                            </div>
+                            <h3 class="font-bold text-gray-900">Kontolöschung</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 text-sm mb-4">
+                            Permanente Löschung des Kontos und aller zugehörigen Daten.
+                        </p>
+                        <button class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                            <i class="fas fa-trash mr-2"></i>Löschung durchführen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Requests -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-900">
+                        <i class="fas fa-list mr-2"></i>Aktuelle Anfragen
+                    </h2>
+                    <select class="px-4 py-2 border border-gray-300 rounded-lg text-sm">
+                        <option>Alle Anfragen</option>
+                        <option>Ausstehend</option>
+                        <option>Abgeschlossen</option>
+                        <option>Datenexport</option>
+                        <option>Löschung</option>
+                    </select>
+                </div>
+                <div class="p-6">
+                    ${recentRequests.length > 0 ? `
+                        <div class="space-y-4">
+                            <!-- Request items would go here -->
+                        </div>
+                    ` : `
+                        <div class="text-center py-12">
+                            <i class="fas fa-inbox text-gray-300 text-5xl mb-4"></i>
+                            <p class="text-gray-500 text-lg">Keine DSGVO-Anfragen</p>
+                            <p class="text-gray-400 text-sm mt-2">Datenschutzanfragen von Kunden werden hier angezeigt</p>
+                        </div>
+                    `}
+                </div>
+            </div>
+
+            <!-- Processing Guidelines -->
+            <div class="mt-8 bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">
+                    <i class="fas fa-clipboard-check mr-2"></i>Bearbeitungsrichtlinien
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-2">Datenexport-Prozess</h4>
+                        <ol class="text-sm text-gray-700 space-y-2">
+                            <li>1. Identität des Antragstellers verifizieren</li>
+                            <li>2. Alle relevanten Daten aus der Datenbank sammeln</li>
+                            <li>3. Daten in JSON oder CSV exportieren</li>
+                            <li>4. Sicheren Download-Link bereitstellen</li>
+                            <li>5. Anfrage als abgeschlossen markieren</li>
+                        </ol>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-2">Löschungsprozess</h4>
+                        <ol class="text-sm text-gray-700 space-y-2">
+                            <li>1. Identität des Antragstellers verifizieren</li>
+                            <li>2. Rechtliche Aufbewahrungspflichten prüfen</li>
+                            <li>3. Wartezeit von 30 Tagen einhalten</li>
+                            <li>4. Alle personenbezogenen Daten löschen</li>
+                            <li>5. Löschbestätigung senden</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    `)
+  } catch (error) {
+    console.error('GDPR requests error:', error);
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <title>Fehler - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-50 flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Fehler beim Laden</h1>
+            <p class="text-gray-600">DSGVO-Anfragen konnten nicht geladen werden</p>
+        </div>
+    </body>
+    </html>
+    `, 500)
+  }
+})
+
 // My-* routes (alternative user panel paths)
 app.get('/my-*', (c) => {
   const path = c.req.path;
