@@ -3339,11 +3339,37 @@ app.get('/admin/invoices/:id/preview', async (c) => {
     }
 
     const items = await db.db.prepare(`
-      SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order
+      SELECT ii.*, p.name as product_name, p.sku as product_sku
+      FROM invoice_items ii
+      LEFT JOIN products p ON ii.product_id = p.id
+      WHERE ii.invoice_id = ? 
+      ORDER BY ii.sort_order
     `).bind(id).all()
 
+    // Get certificates for this invoice
+    const certificates = await db.db.prepare(`
+      SELECT * FROM certificates WHERE invoice_id = ?
+    `).bind(id).all()
+
+    // Map certificates to items by product_id
+    const certificatesMap: any = {}
+    if (certificates.results) {
+      certificates.results.forEach((cert: any) => {
+        if (!certificatesMap[cert.product_id]) {
+          certificatesMap[cert.product_id] = []
+        }
+        certificatesMap[cert.product_id].push(cert)
+      })
+    }
+
+    // Add certificate info to items
+    const itemsWithCertificates = (items.results || []).map((item: any) => ({
+      ...item,
+      certificate: certificatesMap[item.product_id]?.[0] || null
+    }))
+
     const { InvoiceTemplate } = await import('./components/invoice-template')
-    const html = InvoiceTemplate({ ...invoice, items: items.results || [] })
+    const html = InvoiceTemplate({ ...invoice, items: itemsWithCertificates })
     return c.html(html)
   } catch (error) {
     console.error('Error loading invoice preview:', error)

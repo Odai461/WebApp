@@ -327,6 +327,12 @@ export const InvoiceTemplate = (invoice: any) => {
             <td>
               <strong>${item.description}</strong>
               <span class="product-sku">SKU: ${item.product_sku || 'SK24-' + String(index + 1).padStart(6, '0')}</span>
+              ${item.certificate ? `
+                <br/>
+                <span style="display: inline-block; margin-top: 4px; padding: 2px 8px; background: #10b981; color: white; border-radius: 4px; font-size: 11px;">
+                  <strong>✓ Zertifikat:</strong> ${item.certificate.certificate_number}
+                </span>
+              ` : ''}
             </td>
             <td class="right">${formatCurrency(item.unit_price)}</td>
             <td class="right">${item.tax_rate}%</td>
