@@ -14,6 +14,35 @@ export const AdminFooterSettings = () => {
           --navy-dark: #1a2a4e;
           --gold: #d4af37;
         }
+        .admin-sidebar {
+          width: 260px;
+          background: #1a2a4e;
+          color: white;
+          min-height: 100vh;
+          position: fixed;
+          left: 0;
+          top: 0;
+          z-index: 40;
+        }
+        .admin-nav-item {
+          padding: 12px 20px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          color: rgba(255, 255, 255, 0.8);
+          transition: all 0.2s;
+          cursor: pointer;
+          text-decoration: none;
+        }
+        .admin-nav-item:hover {
+          background: rgba(212, 175, 55, 0.1);
+          color: #d4af37;
+        }
+        .admin-nav-item.active {
+          background: rgba(212, 175, 55, 0.2);
+          color: #d4af37;
+          border-left: 4px solid #d4af37;
+        }
         .section-card {
           background: white;
           border-radius: 8px;
