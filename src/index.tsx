@@ -330,6 +330,7 @@ app.get('/api/products', async (c) => {
         p.id,
         p.woocommerce_id,
         p.sku,
+        p.slug,
         p.base_price,
         p.discount_price,
         p.discount_percentage,
