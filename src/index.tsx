@@ -20,6 +20,8 @@ import { OrderSuccessPage } from './components/order-success'
 import { UserDashboard } from './components/dashboard-overview'
 import { UserOrders } from './components/dashboard-orders'
 import { DashboardPage } from './components/dashboard'
+import { ContactPage } from './components/contact-page'
+import { AdminContactMessages } from './components/admin-contact-messages'
 import { 
   formatPrice, 
   generateOrderNumber, 
@@ -274,6 +276,18 @@ app.get('/success', (c) => {
 
 app.get('/bestellung-erfolg', (c) => {
   return c.html(OrderSuccessPage())
+})
+
+// ===========================
+// CONTACT PAGE
+// ===========================
+
+app.get('/kontakt', (c) => {
+  return c.html(ContactPage())
+})
+
+app.get('/contact', (c) => {
+  return c.html(ContactPage())
 })
 
 // ===========================
@@ -2043,6 +2057,15 @@ app.get('/admin/reports', (c) => {
   )
 })
 
+// Contact Messages Management
+app.get('/admin/contact-messages', (c) => {
+  return c.html(AdminContactMessages())
+})
+
+app.get('/admin/contact', (c) => {
+  return c.html(AdminContactMessages())
+})
+
 // Settings
 app.get('/admin/settings', (c) => {
   return c.html(
@@ -2924,6 +2947,245 @@ app.post('/api/admin/maintenance', enhancedAdminAuth, async (c) => {
     return c.json({ 
       success: false, 
       error: 'Maintenance tasks failed' 
+    }, 500)
+  }
+})
+
+// ============================================
+// API ROUTES: Contact Messages
+// ============================================
+
+// Submit contact form (Public)
+app.post('/api/contact', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const body = await c.req.json()
+
+    // Validate required fields
+    if (!body.first_name || !body.last_name || !body.email || !body.subject || !body.message) {
+      return c.json({ success: false, error: 'All required fields must be filled' }, 400)
+    }
+
+    // Insert contact message
+    const result = await db.db.prepare(`
+      INSERT INTO contact_messages (
+        first_name, last_name, email, phone, subject, message, 
+        status, priority, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, 'new', 'medium', datetime('now'))
+    `).bind(
+      body.first_name,
+      body.last_name,
+      body.email,
+      body.phone || null,
+      body.subject,
+      body.message
+    ).run()
+
+    return c.json({
+      success: true,
+      data: {
+        id: result.meta.last_row_id,
+        message: 'Your message has been sent successfully. We will contact you soon.'
+      }
+    })
+  } catch (error) {
+    console.error('Contact form submission error:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to submit contact form. Please try again later.' 
+    }, 500)
+  }
+})
+
+// Get all contact messages (Admin)
+app.get('/api/admin/contact-messages', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const page = parseInt(c.req.query('page') || '1')
+    const limit = parseInt(c.req.query('limit') || '20')
+    const offset = (page - 1) * limit
+    
+    const status = c.req.query('status') || ''
+    const subject = c.req.query('subject') || ''
+    const priority = c.req.query('priority') || ''
+    const search = c.req.query('search') || ''
+
+    // Build query
+    let query = 'SELECT * FROM contact_messages WHERE 1=1'
+    const params: any[] = []
+
+    if (status) {
+      query += ' AND status = ?'
+      params.push(status)
+    }
+
+    if (subject) {
+      query += ' AND subject = ?'
+      params.push(subject)
+    }
+
+    if (priority) {
+      query += ' AND priority = ?'
+      params.push(priority)
+    }
+
+    if (search) {
+      query += ' AND (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR message LIKE ?)'
+      const searchParam = `%${search}%`
+      params.push(searchParam, searchParam, searchParam, searchParam)
+    }
+
+    // Get total count
+    const countQuery = query.replace('SELECT *', 'SELECT COUNT(*) as total')
+    const countResult = await db.db.prepare(countQuery).bind(...params).first()
+    const total = (countResult as any)?.total || 0
+
+    // Get paginated results
+    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?'
+    params.push(limit, offset)
+
+    const { results } = await db.db.prepare(query).bind(...params).all()
+
+    // Get stats
+    const statsQuery = await db.db.prepare(`
+      SELECT 
+        status,
+        COUNT(*) as count
+      FROM contact_messages
+      GROUP BY status
+    `).all()
+
+    const stats = {
+      total: total,
+      new: 0,
+      in_progress: 0,
+      resolved: 0,
+      closed: 0
+    }
+
+    statsQuery.results.forEach((row: any) => {
+      stats[row.status as keyof typeof stats] = row.count
+    })
+
+    return c.json({
+      success: true,
+      data: results,
+      stats: stats,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        from: offset + 1,
+        to: Math.min(offset + limit, total)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching contact messages:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to fetch contact messages' 
+    }, 500)
+  }
+})
+
+// Get single contact message (Admin)
+app.get('/api/admin/contact-messages/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+
+    const message = await db.db.prepare(`
+      SELECT * FROM contact_messages WHERE id = ?
+    `).bind(id).first()
+
+    if (!message) {
+      return c.json({ success: false, error: 'Message not found' }, 404)
+    }
+
+    return c.json({
+      success: true,
+      data: message
+    })
+  } catch (error) {
+    console.error('Error fetching contact message:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to fetch contact message' 
+    }, 500)
+  }
+})
+
+// Update contact message (Admin)
+app.patch('/api/admin/contact-messages/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    const body = await c.req.json()
+
+    const updates: string[] = []
+    const params: any[] = []
+
+    if (body.status) {
+      updates.push('status = ?')
+      params.push(body.status)
+    }
+
+    if (body.priority) {
+      updates.push('priority = ?')
+      params.push(body.priority)
+    }
+
+    if (body.admin_notes !== undefined) {
+      updates.push('admin_notes = ?')
+      params.push(body.admin_notes)
+    }
+
+    if (updates.length === 0) {
+      return c.json({ success: false, error: 'No fields to update' }, 400)
+    }
+
+    updates.push('updated_at = datetime("now")')
+    params.push(id)
+
+    await db.db.prepare(`
+      UPDATE contact_messages 
+      SET ${updates.join(', ')}
+      WHERE id = ?
+    `).bind(...params).run()
+
+    return c.json({
+      success: true,
+      message: 'Contact message updated successfully'
+    })
+  } catch (error) {
+    console.error('Error updating contact message:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to update contact message' 
+    }, 500)
+  }
+})
+
+// Delete contact message (Admin)
+app.delete('/api/admin/contact-messages/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+
+    await db.db.prepare(`
+      DELETE FROM contact_messages WHERE id = ?
+    `).bind(id).run()
+
+    return c.json({
+      success: true,
+      message: 'Contact message deleted successfully'
+    })
+  } catch (error) {
+    console.error('Error deleting contact message:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to delete contact message' 
     }, 500)
   }
 })
