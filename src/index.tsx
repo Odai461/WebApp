@@ -2040,6 +2040,7 @@ import { AdminCustomers } from './components/admin-customers'
 import { AdminInvoices } from './components/admin-invoices'
 import { AdminCertificates } from './components/admin-certificates'
 import { AdminSettingsAdvanced } from './components/admin-settings-advanced'
+import { AdminEmailTemplates } from './components/admin-email-templates'
 import { AdminReports } from './components/admin-reports'
 import { AdminAnalytics } from './components/admin-analytics-enhanced'
 import { AdminDelivery } from './components/admin-delivery'
@@ -2343,6 +2344,12 @@ app.get('/admin/footer', (c) => {
 // Pages Management
 app.get('/admin/pages', (c) => {
   return c.html(AdminPagesManagement())
+})
+
+// Email Templates
+app.get('/admin/email-templates', (c) => {
+  const html = AdminEmailTemplates();
+  return c.html(html);
 })
 
 // Settings
@@ -4119,6 +4126,92 @@ app.post('/api/admin/settings/test-smtp', async (c) => {
   } catch (error) {
     console.error('SMTP test error:', error)
     return c.json({ success: false, error: 'Failed to send test email' }, 500)
+  }
+})
+
+// ============================================
+// EMAIL TEMPLATES API
+// ============================================
+
+// Get all email templates
+app.get('/api/admin/email-templates', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    
+    const templates = await db.db.prepare(`
+      SELECT * FROM email_templates 
+      ORDER BY template_name
+    `).all()
+    
+    return c.json({ success: true, data: templates.results })
+  } catch (error) {
+    console.error('Error fetching email templates:', error)
+    return c.json({ success: false, error: 'Failed to fetch templates' }, 500)
+  }
+})
+
+// Get single template
+app.get('/api/admin/email-templates/:key', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const templateKey = c.req.param('key')
+    
+    const template = await db.db.prepare(`
+      SELECT * FROM email_templates WHERE template_key = ?
+    `).bind(templateKey).first()
+    
+    if (!template) {
+      return c.json({ success: false, error: 'Template not found' }, 404)
+    }
+    
+    return c.json({ success: true, data: template })
+  } catch (error) {
+    console.error('Error fetching template:', error)
+    return c.json({ success: false, error: 'Failed to fetch template' }, 500)
+  }
+})
+
+// Update template
+app.put('/api/admin/email-templates/:key', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const templateKey = c.req.param('key')
+    const body = await c.req.json()
+    const { subject, html_content } = body
+    
+    if (!subject || !html_content) {
+      return c.json({ success: false, error: 'Subject and HTML content are required' }, 400)
+    }
+    
+    await db.db.prepare(`
+      UPDATE email_templates 
+      SET subject = ?, html_content = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE template_key = ?
+    `).bind(subject, html_content, templateKey).run()
+    
+    return c.json({ success: true, message: 'Template updated successfully' })
+  } catch (error) {
+    console.error('Error updating template:', error)
+    return c.json({ success: false, error: 'Failed to update template' }, 500)
+  }
+})
+
+// Toggle template active status
+app.patch('/api/admin/email-templates/:key/toggle', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const templateKey = c.req.param('key')
+    
+    await db.db.prepare(`
+      UPDATE email_templates 
+      SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP
+      WHERE template_key = ?
+    `).bind(templateKey).run()
+    
+    return c.json({ success: true, message: 'Template status toggled' })
+  } catch (error) {
+    console.error('Error toggling template:', error)
+    return c.json({ success: false, error: 'Failed to toggle template' }, 500)
   }
 })
 
