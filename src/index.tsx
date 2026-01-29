@@ -6269,11 +6269,6 @@ app.get('/admin/cookies', (c) => {
 })
 
 // Settings
-app.get('/admin/settings', (c) => {
-  const html = AdminSettingsAdvanced();
-  return c.html(html);
-})
-
 // Enhanced Analytics & Reporting
 app.get('/admin/analytics', (c) => {
   return c.html(
@@ -7963,16 +7958,16 @@ app.get('/api/admin/settings', async (c) => {
     const db = c.get('db') as DatabaseHelper
     const { category } = c.req.query()
     
-    // Use the 'settings' table which has the structure we need
-    let query = 'SELECT * FROM settings WHERE 1=1'
+    // Use system_settings table
+    let query = 'SELECT * FROM system_settings WHERE 1=1'
     const params: any[] = []
     
     if (category) {
-      query += ' AND setting_key LIKE ?'
-      params.push(`${category}_%`)
+      query += ' AND category = ?'
+      params.push(category)
     }
     
-    query += ' ORDER BY setting_key'
+    query += ' ORDER BY category, setting_key'
     
     const settings = await db.db.prepare(query).bind(...params).all()
     
@@ -7997,7 +7992,7 @@ app.post('/api/admin/settings', async (c) => {
     // Update or insert each setting
     for (const setting of settings) {
       await db.db.prepare(`
-        INSERT INTO settings (setting_key, setting_value, setting_type, updated_at)
+        INSERT INTO system_settings (setting_key, setting_value, setting_type, updated_at)
         VALUES (?, ?, ?, CURRENT_TIMESTAMP)
         ON CONFLICT(setting_key) DO UPDATE SET
           setting_value = excluded.setting_value,
