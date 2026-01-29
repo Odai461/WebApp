@@ -4,7 +4,7 @@ export const ProductsPageModern = () => {
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Produkte - KING24 | Original Software günstig kaufen</title>
+        <title>Produkte - SOFTWAREKING24 | Original Software günstig kaufen</title>
         <meta name="description" content="Durchsuchen Sie unser komplettes Sortiment an Original-Software. Windows, Office, Antivirus und mehr zu unschlagbaren Preisen." />
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
@@ -159,11 +159,11 @@ export const ProductsPageModern = () => {
             <div className="flex items-center justify-between py-4">
               {/* Logo */}
               <a href="/" className="flex items-center space-x-3">
-                <img src="/static/logo.png" alt="KING24" className="h-12" onError={(e) => {
+                <img src="/static/logo.png" alt="SOFTWAREKING24" className="h-16" onError={(e) => {
                   e.currentTarget.outerHTML = '<div class="w-12 h-12 bg-gradient-to-br from-navy-dark to-navy-light rounded-lg flex items-center justify-center text-white font-bold text-xl">SK</div>';
                 }} />
                 <div>
-                  <div className="text-2xl font-bold text-navy-dark">KING24</div>
+                  <div className="text-2xl font-bold text-navy-dark">SOFTWAREKING24</div>
                   <div className="text-xs text-gray-500">Original Software Lizenzen</div>
                 </div>
               </a>
@@ -384,7 +384,7 @@ export const ProductsPageModern = () => {
                   <div className="w-12 h-12 bg-gold rounded-lg flex items-center justify-center text-navy-dark font-bold text-xl">
                     SK
                   </div>
-                  <span className="text-xl font-bold">KING24</span>
+                  <span className="text-xl font-bold">SOFTWAREKING24</span>
                 </div>
                 <p className="text-gray-400 text-sm mb-4">
                   Ihre vertrauenswürdige Quelle für Original-Software zu fairen Preisen.
@@ -433,7 +433,7 @@ export const ProductsPageModern = () => {
             </div>
 
             <div className="border-t border-gray-700 mt-8 pt-8 flex justify-between items-center">
-              <p className="text-sm text-gray-400">© 2026 KING24.de - Alle Rechte vorbehalten</p>
+              <p className="text-sm text-gray-400">© 2026 SOFTWAREKING24.de - Alle Rechte vorbehalten</p>
               <div className="flex space-x-4">
                 <img src="https://placehold.co/60x40/1a2a4e/FFF?text=PayPal" alt="PayPal" className="h-8 opacity-70 hover:opacity-100 transition" />
                 <img src="https://placehold.co/60x40/1a2a4e/FFF?text=Visa" alt="Visa" className="h-8 opacity-70 hover:opacity-100 transition" />

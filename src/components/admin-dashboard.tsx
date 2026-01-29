@@ -5,7 +5,7 @@ export const AdminDashboard = () => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Admin Dashboard - KING24</title>
+        <title>Admin Dashboard - SOFTWAREKING24</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
@@ -17,7 +17,7 @@ export const AdminDashboard = () => {
         <div class="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-3">
             <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                    <img src="/static/logo.png" alt="KING24" class="h-8 brightness-0 invert" />
+                    <img src="/static/logo.png" alt="SOFTWAREKING24" class="h-10 brightness-0 invert" />
                     <span class="text-sm font-semibold">Admin Panel</span>
                 </div>
                 <div class="flex items-center space-x-4">

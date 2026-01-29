@@ -5,7 +5,7 @@ export const CheckoutPage = () => {
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Kasse - KING24</title>
+        <title>Kasse - SOFTWAREKING24</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
@@ -88,7 +88,7 @@ export const CheckoutPage = () => {
                 <div class="w-12 h-12 bg-gradient-to-br from-blue-900 to-blue-700 rounded-lg flex items-center justify-center">
                   <i class="fas fa-shopping-bag text-white text-xl"></i>
                 </div>
-                <span class="text-2xl font-bold" style="color: var(--navy-dark);">KING24</span>
+                <span class="text-2xl font-bold" style="color: var(--navy-dark);">SOFTWAREKING24</span>
               </a>
               <div class="flex items-center space-x-4">
                 <a href="/warenkorb" class="text-gray-600 hover:text-blue-600">

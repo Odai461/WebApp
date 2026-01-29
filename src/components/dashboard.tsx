@@ -11,8 +11,8 @@ export function DashboardPage() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mein Konto - KING24</title>
-  <meta name="description" content="Verwalten Sie Ihr Konto, Bestellungen und Lizenzen bei KING24">
+  <title>Mein Konto - SOFTWAREKING24</title>
+  <meta name="description" content="Verwalten Sie Ihr Konto, Bestellungen und Lizenzen bei SOFTWAREKING24">
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -146,7 +146,7 @@ export function DashboardPage() {
       <div class="flex items-center justify-between h-16">
         <a href="/" class="text-2xl font-bold flex items-center">
           <i class="fas fa-shopping-cart mr-2 text-gold"></i>
-          <span class="text-navy">KING24</span>
+          <span class="text-navy">SOFTWAREKING24</span>
         </a>
         
         <div class="flex items-center space-x-6">

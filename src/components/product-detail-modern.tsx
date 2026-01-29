@@ -5,13 +5,13 @@ export const ProductDetailPageModern = () => {
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title id="page-title">Produktdetails - KING24</title>
-        <meta name="description" id="page-description" content="Kaufen Sie originale Software Lizenzen bei KING24. Sofort verfügbar, 100% legal, günstige Preise." />
+        <title id="page-title">Produktdetails - SOFTWAREKING24</title>
+        <meta name="description" id="page-description" content="Kaufen Sie originale Software Lizenzen bei SOFTWAREKING24. Sofort verfügbar, 100% legal, günstige Preise." />
         <meta name="keywords" id="page-keywords" content="Software kaufen, Windows Lizenz, Office Lizenz, Antivirus" />
         
         <!-- Open Graph -->
         <meta property="og:type" content="product" />
-        <meta property="og:title" id="og-title" content="Produktdetails - KING24" />
+        <meta property="og:title" id="og-title" content="Produktdetails - SOFTWAREKING24" />
         <meta property="og:description" id="og-description" content="Original Software Lizenzen zu fairen Preisen" />
         <meta property="og:image" id="og-image" content="/static/logo.png" />
         
@@ -379,9 +379,9 @@ export const ProductDetailPageModern = () => {
             <div class="flex items-center justify-between py-4">
               <!-- Logo -->
               <a href="/" class="flex items-center space-x-3">
-                <img src="/static/logo.png" alt="KING24" class="h-12" onerror="this.outerHTML='<div class=\\'w-12 h-12 bg-gradient-to-br from-navy-dark to-navy-light rounded-lg flex items-center justify-center text-white font-bold text-xl\\' style=\\'background: linear-gradient(135deg, var(--navy-dark), var(--navy-light))\\'>K24</div>';" />
+                <img src="/static/logo.png" alt="SOFTWAREKING24" class="h-16" onerror="this.outerHTML='<div class=\\'w-12 h-12 bg-gradient-to-br from-navy-dark to-navy-light rounded-lg flex items-center justify-center text-white font-bold text-xl\\' style=\\'background: linear-gradient(135deg, var(--navy-dark), var(--navy-light))\\'>SK24</div>';" />
                 <div>
-                  <div class="text-2xl font-bold" style="color: var(--navy-dark);">KING24</div>
+                  <div class="text-2xl font-bold" style="color: var(--navy-dark);">SOFTWAREKING24</div>
                   <div class="text-xs text-gray-500">Original Software Lizenzen</div>
                 </div>
               </a>
@@ -736,7 +736,7 @@ export const ProductDetailPageModern = () => {
                   <div class="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl" style="background-color: var(--gold); color: var(--navy-dark);">
                     SK
                   </div>
-                  <span class="text-xl font-bold">KING24</span>
+                  <span class="text-xl font-bold">SOFTWAREKING24</span>
                 </div>
                 <p class="text-gray-400 text-sm mb-4">
                   Ihre vertrauenswürdige Quelle für Original-Software zu fairen Preisen.
@@ -774,7 +774,7 @@ export const ProductDetailPageModern = () => {
             </div>
 
             <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
-              <p>© 2026 KING24.de - Alle Rechte vorbehalten</p>
+              <p>© 2026 SOFTWAREKING24.de - Alle Rechte vorbehalten</p>
             </div>
           </div>
         </footer>
@@ -816,7 +816,7 @@ export const ProductDetailPageModern = () => {
           // Render product
           function renderProduct(product) {
             // Update SEO
-            document.getElementById('page-title').textContent = product.name + ' - KING24';
+            document.getElementById('page-title').textContent = product.name + ' - SOFTWAREKING24';
             document.getElementById('page-description').content = product.short_description || product.long_description;
             document.getElementById('og-title').content = product.name;
             document.getElementById('og-description').content = product.short_description || product.long_description;
