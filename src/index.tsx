@@ -30,6 +30,7 @@ import { AdminLicensesAdvanced } from './components/admin-licenses-advanced'
 import { AdminProductsAdvanced } from './components/admin-products-advanced'
 import { AdminOrdersAdvanced } from './components/admin-orders-advanced'
 import { AdminCustomersAdvanced } from './components/admin-customers-advanced'
+import { AdminNotificationsAdvanced } from './components/admin-notifications-advanced'
 import { AdminSidebar } from './components/admin-sidebar'
 import { 
   formatPrice, 
@@ -2190,9 +2191,10 @@ app.get('/admin/contact', (c) => {
   return c.html(AdminContactMessages())
 })
 
-// Notifications - Redirect to dashboard (notifications shown there)
+// Notifications - Full notifications center
 app.get('/admin/notifications', (c) => {
-  return c.redirect('/admin')
+  const html = AdminNotificationsAdvanced()
+  return c.html(html)
 })
 
 // Footer Management
