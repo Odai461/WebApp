@@ -9863,6 +9863,45 @@ app.get('/admin/security-dashboard', async (c) => {
   }
 })
 
+// MARKETING OVERVIEW PAGE
+app.get('/admin/marketing-overview', async (c) => {
+  const db = c.get('db') as DatabaseHelper
+  
+  try {
+    const stats = {
+      coupons: await db.db.prepare('SELECT COUNT(*) as count FROM coupons WHERE is_active = 1').first(),
+      totalOrders: await db.db.prepare('SELECT COUNT(*) as count FROM orders').first(),
+      activeCustomers: await db.db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'customer'").first(),
+      certificates: await db.db.prepare('SELECT COUNT(*) as count FROM certificates').first()
+    }
+    
+    return c.html(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Marketing-Übersicht - SOFTWAREKING24 Admin</title><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet"></head><body class="bg-gray-50">${AdminSidebarAdvanced('/admin/marketing-overview')}<div class="ml-64 p-8"><div class="mb-8"><h1 class="text-3xl font-bold text-gray-900 mb-2"><i class="fas fa-bullhorn mr-2 text-orange-600"></i>Marketing-Übersicht</h1><p class="text-gray-600">Übersicht über Marketing-Aktivitäten und Kampagnen</p></div><div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6"><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Aktive Coupons</p><p class="text-2xl font-bold text-gray-900">${(stats.coupons as any)?.count || 0}</p></div><div class="p-3 bg-green-100 rounded-full"><i class="fas fa-ticket-alt text-green-600 text-xl"></i></div></div></div><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Bestellungen gesamt</p><p class="text-2xl font-bold text-gray-900">${(stats.totalOrders as any)?.count || 0}</p></div><div class="p-3 bg-blue-100 rounded-full"><i class="fas fa-shopping-cart text-blue-600 text-xl"></i></div></div></div><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Aktive Kunden</p><p class="text-2xl font-bold text-gray-900">${(stats.activeCustomers as any)?.count || 0}</p></div><div class="p-3 bg-purple-100 rounded-full"><i class="fas fa-users text-purple-600 text-xl"></i></div></div></div><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Zertifikate</p><p class="text-2xl font-bold text-gray-900">${(stats.certificates as any)?.count || 0}</p></div><div class="p-3 bg-yellow-100 rounded-full"><i class="fas fa-certificate text-yellow-600 text-xl"></i></div></div></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"><div class="bg-white rounded-lg shadow-md p-6"><h2 class="text-xl font-bold text-gray-900 mb-4"><i class="fas fa-chart-line text-blue-600 mr-2"></i>Marketing-Kanäle</h2><div class="space-y-3"><div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg"><div class="flex items-center"><i class="fas fa-envelope text-blue-600 mr-3"></i><span class="font-medium">E-Mail Marketing</span></div><a href="/admin/email-templates" class="text-blue-600 hover:text-blue-800"><i class="fas fa-arrow-right"></i></a></div><div class="flex items-center justify-between p-3 bg-green-50 rounded-lg"><div class="flex items-center"><i class="fas fa-tags text-green-600 mr-3"></i><span class="font-medium">Coupons & Rabatte</span></div><a href="/admin/coupons" class="text-green-600 hover:text-green-800"><i class="fas fa-arrow-right"></i></a></div><div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg"><div class="flex items-center"><i class="fas fa-certificate text-purple-600 mr-3"></i><span class="font-medium">Zertifikate</span></div><a href="/admin/certificates" class="text-purple-600 hover:text-purple-800"><i class="fas fa-arrow-right"></i></a></div></div></div><div class="bg-white rounded-lg shadow-md p-6"><h2 class="text-xl font-bold text-gray-900 mb-4"><i class="fas fa-lightbulb text-yellow-600 mr-2"></i>Schnellaktionen</h2><div class="space-y-3"><a href="/admin/coupons" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"><span><i class="fas fa-plus-circle text-green-600 mr-2"></i>Neuen Coupon erstellen</span><i class="fas fa-chevron-right text-gray-400"></i></a><a href="/admin/email-templates" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"><span><i class="fas fa-envelope text-blue-600 mr-2"></i>E-Mail-Vorlage bearbeiten</span><i class="fas fa-chevron-right text-gray-400"></i></a><a href="/admin/homepage-sections" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"><span><i class="fas fa-home text-purple-600 mr-2"></i>Homepage-Bereiche verwalten</span><i class="fas fa-chevron-right text-gray-400"></i></a></div></div></div><div class="bg-white rounded-lg shadow-md p-6"><h2 class="text-xl font-bold text-gray-900 mb-4"><i class="fas fa-info-circle text-blue-600 mr-2"></i>Marketing-Tipps</h2><div class="space-y-3"><div class="p-3 bg-blue-50 rounded-lg"><p class="text-sm text-gray-700"><i class="fas fa-check-circle text-blue-600 mr-2"></i>Nutzen Sie Coupons für Erstkäufer-Aktionen</p></div><div class="p-3 bg-green-50 rounded-lg"><p class="text-sm text-gray-700"><i class="fas fa-check-circle text-green-600 mr-2"></i>E-Mail-Marketing für wiederkehrende Kunden</p></div><div class="p-3 bg-purple-50 rounded-lg"><p class="text-sm text-gray-700"><i class="fas fa-check-circle text-purple-600 mr-2"></i>Zertifikate steigern das Vertrauen</p></div></div></div></div></body></html>`)
+  } catch (error) {
+    console.error('Error loading marketing overview:', error)
+    return c.html(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>Fehler</title><script src="https://cdn.tailwindcss.com"></script></head><body class="bg-gray-50">${AdminSidebarAdvanced('/admin/marketing-overview')}<div class="ml-64 p-8"><div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"><p>Fehler beim Laden der Marketing-Übersicht</p></div></div></body></html>`)
+  }
+})
+
+// SEO MANAGEMENT PAGE
+app.get('/admin/seo-management', async (c) => {
+  const db = c.get('db') as DatabaseHelper
+  
+  try {
+    const products = await db.db.prepare('SELECT COUNT(*) as count FROM products WHERE is_active = 1').first()
+    const categories = await db.db.prepare('SELECT COUNT(*) as count FROM categories').first()
+    
+    return c.html(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SEO-Verwaltung - SOFTWAREKING24 Admin</title><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet"></head><body class="bg-gray-50">${AdminSidebarAdvanced('/admin/seo-management')}<div class="ml-64 p-8"><div class="mb-8"><h1 class="text-3xl font-bold text-gray-900 mb-2"><i class="fas fa-search mr-2 text-green-600"></i>SEO-Verwaltung</h1><p class="text-gray-600">Suchmaschinenoptimierung für Ihren Shop</p></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Aktive Produkte</p><p class="text-2xl font-bold text-gray-900">${(products as any)?.count || 0}</p></div><div class="p-3 bg-blue-100 rounded-full"><i class="fas fa-box text-blue-600 text-xl"></i></div></div></div><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Kategorien</p><p class="text-2xl font-bold text-gray-900">${(categories as any)?.count || 0}</p></div><div class="p-3 bg-green-100 rounded-full"><i class="fas fa-folder text-green-600 text-xl"></i></div></div></div></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><h2 class="text-xl font-bold text-gray-900 mb-4"><i class="fas fa-cog text-blue-600 mr-2"></i>SEO-Einstellungen</h2><div class="space-y-4"><div class="p-4 border border-gray-200 rounded-lg"><div class="flex items-center justify-between mb-2"><h3 class="font-medium text-gray-900">Meta-Tags</h3><span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Aktiv</span></div><p class="text-sm text-gray-600">Meta-Beschreibungen und Titel für alle Seiten</p></div><div class="p-4 border border-gray-200 rounded-lg"><div class="flex items-center justify-between mb-2"><h3 class="font-medium text-gray-900">Sitemap</h3><span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Aktiv</span></div><p class="text-sm text-gray-600">Automatische Sitemap-Generierung</p></div><div class="p-4 border border-gray-200 rounded-lg"><div class="flex items-center justify-between mb-2"><h3 class="font-medium text-gray-900">Robots.txt</h3><span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Aktiv</span></div><p class="text-sm text-gray-600">Suchmaschinen-Crawler-Steuerung</p></div></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white rounded-lg shadow-md p-6"><h2 class="text-xl font-bold text-gray-900 mb-4"><i class="fas fa-link text-purple-600 mr-2"></i>Schnellzugriff</h2><div class="space-y-2"><a href="/admin/products" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"><i class="fas fa-box text-blue-600 mr-2"></i>Produkt-SEO bearbeiten</a><a href="/admin/categories" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"><i class="fas fa-folder text-green-600 mr-2"></i>Kategorie-SEO bearbeiten</a><a href="/admin/pages" class="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"><i class="fas fa-file text-purple-600 mr-2"></i>Seiten-SEO bearbeiten</a></div></div><div class="bg-white rounded-lg shadow-md p-6"><h2 class="text-xl font-bold text-gray-900 mb-4"><i class="fas fa-chart-bar text-orange-600 mr-2"></i>SEO-Tipps</h2><div class="space-y-3"><div class="p-3 bg-blue-50 rounded-lg"><p class="text-sm text-gray-700"><i class="fas fa-check-circle text-blue-600 mr-2"></i>Optimieren Sie Produkttitel</p></div><div class="p-3 bg-green-50 rounded-lg"><p class="text-sm text-gray-700"><i class="fas fa-check-circle text-green-600 mr-2"></i>Verwenden Sie aussagekräftige URLs</p></div><div class="p-3 bg-purple-50 rounded-lg"><p class="text-sm text-gray-700"><i class="fas fa-check-circle text-purple-600 mr-2"></i>Alt-Tags für alle Bilder</p></div></div></div></div></div></body></html>`)
+  } catch (error) {
+    console.error('Error loading SEO management:', error)
+    return c.html(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>Fehler</title><script src="https://cdn.tailwindcss.com"></script></head><body class="bg-gray-50">${AdminSidebarAdvanced('/admin/seo-management')}<div class="ml-64 p-8"><div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"><p>Fehler beim Laden der SEO-Verwaltung</p></div></div></body></html>`)
+  }
+})
+
+// REVIEWS MANAGEMENT PAGE
+app.get('/admin/reviews-management', async (c) => {
+  return c.html(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bewertungen - SOFTWAREKING24 Admin</title><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet"></head><body class="bg-gray-50">${AdminSidebarAdvanced('/admin/reviews-management')}<div class="ml-64 p-8"><div class="mb-8"><h1 class="text-3xl font-bold text-gray-900 mb-2"><i class="fas fa-star mr-2 text-yellow-600"></i>Bewertungen verwalten</h1><p class="text-gray-600">Kundenbewertungen und Reviews</p></div><div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6"><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Gesamt</p><p class="text-2xl font-bold text-gray-900">0</p></div><div class="p-3 bg-blue-100 rounded-full"><i class="fas fa-comment text-blue-600 text-xl"></i></div></div></div><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Ausstehend</p><p class="text-2xl font-bold text-gray-900">0</p></div><div class="p-3 bg-yellow-100 rounded-full"><i class="fas fa-clock text-yellow-600 text-xl"></i></div></div></div><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Genehmigt</p><p class="text-2xl font-bold text-gray-900">0</p></div><div class="p-3 bg-green-100 rounded-full"><i class="fas fa-check-circle text-green-600 text-xl"></i></div></div></div><div class="bg-white rounded-lg shadow p-6"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-600">Durchschnitt</p><p class="text-2xl font-bold text-gray-900">0.0</p><div class="flex mt-1">${[1,2,3,4,5].map(() => '<i class="fas fa-star text-yellow-400 text-xs"></i>').join('')}</div></div></div></div></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><h2 class="text-xl font-bold text-gray-900 mb-4"><i class="fas fa-filter text-blue-600 mr-2"></i>Filter</h2><div class="grid grid-cols-1 md:grid-cols-4 gap-4"><select class="px-3 py-2 border border-gray-300 rounded-lg"><option>Alle Status</option><option>Ausstehend</option><option>Genehmigt</option><option>Abgelehnt</option></select><select class="px-3 py-2 border border-gray-300 rounded-lg"><option>Alle Bewertungen</option><option>5 Sterne</option><option>4 Sterne</option><option>3 Sterne</option><option>2 Sterne</option><option>1 Stern</option></select><input type="text" placeholder="Produkt suchen..." class="px-3 py-2 border border-gray-300 rounded-lg"><button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="fas fa-search mr-2"></i>Filtern</button></div></div><div class="bg-white rounded-lg shadow-md p-8 text-center text-gray-500"><i class="fas fa-inbox text-4xl mb-4"></i><p class="text-lg font-medium mb-2">Keine Bewertungen vorhanden</p><p class="text-sm">Bewertungen erscheinen hier, sobald Kunden Produkte bewerten</p></div></div></body></html>`)
+})
+
 // ============================================
 // CATCH-ALL ROUTE HANDLER FOR MISSING ADMIN PAGES
 // ============================================
@@ -9894,6 +9933,843 @@ app.get('/account/*', (c) => {
     .join(' - ') || 'Mein Konto';
   return c.html(FrontendPlaceholder(path, pageTitle));
 });
+
+// ============================================
+// MARKETING OVERVIEW PAGE
+// ============================================
+app.get('/admin/marketing', async (c) => {
+  try {
+    const { env } = c;
+    const db = env.DB;
+
+    // Get marketing statistics
+    const [couponsStats, ordersStats, conversionData] = await Promise.all([
+      // Coupons statistics
+      db.prepare(`
+        SELECT 
+          COUNT(*) as total_coupons,
+          SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_coupons,
+          SUM(usage_count) as total_uses
+        FROM coupons
+      `).first(),
+      
+      // Orders with coupons
+      db.prepare(`
+        SELECT 
+          COUNT(DISTINCT o.id) as orders_with_coupons,
+          COALESCE(SUM(o.discount_amount), 0) as total_discount_given
+        FROM orders o
+        WHERE o.discount_amount > 0
+      `).first(),
+      
+      // Recent conversion data
+      db.prepare(`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as orders,
+          SUM(total) as revenue
+        FROM orders
+        WHERE created_at >= datetime('now', '-30 days')
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+        LIMIT 30
+      `).all()
+    ]);
+
+    // Get top performing coupons
+    const topCoupons = await db.prepare(`
+      SELECT 
+        code,
+        discount_type,
+        discount_value,
+        usage_count,
+        usage_limit,
+        is_active
+      FROM coupons
+      WHERE usage_count > 0
+      ORDER BY usage_count DESC
+      LIMIT 10
+    `).all();
+
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Marketing-Übersicht - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        ${AdminSidebarAdvanced('/admin/marketing')}
+        
+        <div class="ml-64 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-chart-line mr-3"></i>Marketing-Übersicht
+                </h1>
+                <p class="text-gray-600 mt-2">Kampagnen, Gutscheine und Conversion-Tracking</p>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Gesamt Gutscheine</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">${couponsStats?.total_coupons || 0}</p>
+                        </div>
+                        <div class="bg-blue-100 rounded-full p-3">
+                            <i class="fas fa-ticket-alt text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-green-600">${couponsStats?.active_coupons || 0} aktiv</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Gutschein-Nutzungen</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">${couponsStats?.total_uses || 0}</p>
+                        </div>
+                        <div class="bg-purple-100 rounded-full p-3">
+                            <i class="fas fa-shopping-cart text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-blue-600">${ordersStats?.orders_with_coupons || 0} Bestellungen</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Rabatt gesamt</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">${((ordersStats?.total_discount_given || 0) / 100).toFixed(2)} €</p>
+                        </div>
+                        <div class="bg-orange-100 rounded-full p-3">
+                            <i class="fas fa-percent text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-gray-500">Durchschn. Rabatt</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Conversion Rate</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">--</p>
+                        </div>
+                        <div class="bg-green-100 rounded-full p-3">
+                            <i class="fas fa-chart-bar text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="text-gray-500">Zu implementieren</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Performing Coupons -->
+            <div class="bg-white rounded-lg shadow mb-8">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-900">
+                        <i class="fas fa-trophy mr-2 text-yellow-500"></i>
+                        Top Gutscheine
+                    </h2>
+                </div>
+                <div class="p-6">
+                    ${topCoupons.results.length > 0 ? `
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Typ</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Wert</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nutzungen</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Limit</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${topCoupons.results.map(coupon => `
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="font-mono font-bold text-blue-600">${coupon.code}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-gray-700">${coupon.discount_type === 'percentage' ? 'Prozent' : 'Fest'}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-gray-900 font-medium">
+                                                    ${coupon.discount_type === 'percentage' ? coupon.discount_value + '%' : (coupon.discount_value / 100).toFixed(2) + ' €'}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-gray-900">${coupon.usage_count}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-gray-700">${coupon.usage_limit || 'Unbegrenzt'}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                ${coupon.is_active ? 
+                                                    '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Aktiv</span>' :
+                                                    '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Inaktiv</span>'
+                                                }
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : `
+                        <div class="text-center py-12">
+                            <i class="fas fa-ticket-alt text-gray-300 text-5xl mb-4"></i>
+                            <p class="text-gray-500 text-lg">Keine Gutschein-Nutzungen gefunden</p>
+                            <p class="text-gray-400 text-sm mt-2">Erstellen Sie Gutscheine, um Marketing-Kampagnen zu starten</p>
+                        </div>
+                    `}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <a href="/admin/coupons" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center">
+                        <div class="bg-blue-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-plus text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Neuer Gutschein</h3>
+                            <p class="text-gray-600 text-sm">Gutschein erstellen</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="/admin/analytics" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center">
+                        <div class="bg-green-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Analytics</h3>
+                            <p class="text-gray-600 text-sm">Detaillierte Berichte</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="/admin/customers" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex items-center">
+                        <div class="bg-purple-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-users text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Kunden</h3>
+                            <p class="text-gray-600 text-sm">Kundendaten</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </body>
+    </html>
+    `)
+  } catch (error) {
+    console.error('Marketing overview error:', error);
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <title>Fehler - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-50 flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Fehler beim Laden</h1>
+            <p class="text-gray-600">Marketing-Übersicht konnte nicht geladen werden</p>
+        </div>
+    </body>
+    </html>
+    `, 500)
+  }
+})
+
+// ============================================
+// SEO MANAGEMENT PAGE
+// ============================================
+app.get('/admin/seo', async (c) => {
+  try {
+    const { env } = c;
+    const db = env.DB;
+
+    // Get SEO settings
+    const seoSettings = await db.prepare(`
+      SELECT setting_key, setting_value, category
+      FROM system_settings
+      WHERE category = 'seo' OR setting_key LIKE 'seo_%'
+    `).all();
+
+    // Get pages for SEO configuration
+    const pages = await db.prepare(`
+      SELECT id, title, slug, meta_title, meta_description, is_published
+      FROM pages
+      ORDER BY title ASC
+      LIMIT 50
+    `).all();
+
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SEO-Verwaltung - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        ${AdminSidebarAdvanced('/admin/seo')}
+        
+        <div class="ml-64 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-search mr-3"></i>SEO-Verwaltung
+                </h1>
+                <p class="text-gray-600 mt-2">Meta-Tags, Sitemaps und Suchmaschinenoptimierung</p>
+            </div>
+
+            <!-- SEO Status Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Seiten indexiert</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">${pages.results.filter(p => p.is_published).length}</p>
+                        </div>
+                        <div class="bg-green-100 rounded-full p-3">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Meta-Tags</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">${pages.results.filter(p => p.meta_title).length}</p>
+                        </div>
+                        <div class="bg-blue-100 rounded-full p-3">
+                            <i class="fas fa-tags text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Sitemap</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1"><i class="fas fa-check"></i></p>
+                        </div>
+                        <div class="bg-purple-100 rounded-full p-3">
+                            <i class="fas fa-sitemap text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="/sitemap.xml" target="_blank" class="text-sm text-blue-600 hover:underline">
+                            <i class="fas fa-external-link-alt mr-1"></i>Anzeigen
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Robots.txt</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1"><i class="fas fa-check"></i></p>
+                        </div>
+                        <div class="bg-orange-100 rounded-full p-3">
+                            <i class="fas fa-robot text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="/robots.txt" target="_blank" class="text-sm text-blue-600 hover:underline">
+                            <i class="fas fa-external-link-alt mr-1"></i>Anzeigen
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEO Configuration Tabs -->
+            <div class="bg-white rounded-lg shadow mb-8">
+                <div class="border-b border-gray-200">
+                    <nav class="flex">
+                        <button class="seo-tab px-6 py-4 text-sm font-medium border-b-2 border-blue-500 text-blue-600" data-tab="general">
+                            <i class="fas fa-cog mr-2"></i>Allgemein
+                        </button>
+                        <button class="seo-tab px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="pages">
+                            <i class="fas fa-file-alt mr-2"></i>Seiten
+                        </button>
+                        <button class="seo-tab px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="sitemap">
+                            <i class="fas fa-sitemap mr-2"></i>Sitemap
+                        </button>
+                        <button class="seo-tab px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="robots">
+                            <i class="fas fa-robot mr-2"></i>Robots.txt
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="p-6">
+                    <!-- General Tab -->
+                    <div id="tab-general" class="seo-tab-content">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Allgemeine SEO-Einstellungen</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Standard Meta Title</label>
+                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="SOFTWAREKING24 - Original Software-Lizenzen">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Standard Meta Description</label>
+                                <textarea rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Original Software-Lizenzen zu fairen Preisen..."></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Meta Keywords</label>
+                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Software, Lizenzen, Windows, Office">
+                            </div>
+                            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-save mr-2"></i>Einstellungen speichern
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pages Tab -->
+                    <div id="tab-pages" class="seo-tab-content hidden">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Seiten-SEO</h3>
+                        ${pages.results.length > 0 ? `
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Seite</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Meta Title</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Meta Description</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        ${pages.results.map(page => `
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-6 py-4">
+                                                    <div class="text-sm font-medium text-gray-900">${page.title}</div>
+                                                    <div class="text-sm text-gray-500">${page.slug}</div>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div class="text-sm text-gray-900">${page.meta_title || '-'}</div>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div class="text-sm text-gray-700 max-w-xs truncate">${page.meta_description || '-'}</div>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    ${page.is_published ? 
+                                                        '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Veröffentlicht</span>' :
+                                                        '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Entwurf</span>'
+                                                    }
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <button class="text-blue-600 hover:text-blue-800 mr-3">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ` : `
+                            <div class="text-center py-12">
+                                <i class="fas fa-file-alt text-gray-300 text-5xl mb-4"></i>
+                                <p class="text-gray-500 text-lg">Keine Seiten gefunden</p>
+                            </div>
+                        `}
+                    </div>
+
+                    <!-- Sitemap Tab -->
+                    <div id="tab-sitemap" class="seo-tab-content hidden">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Sitemap-Verwaltung</h3>
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <p class="text-sm text-gray-700 mb-2">
+                                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                                    Sitemap ist unter <code class="bg-white px-2 py-1 rounded">/sitemap.xml</code> verfügbar
+                                </p>
+                                <a href="/sitemap.xml" target="_blank" class="text-blue-600 hover:underline text-sm">
+                                    <i class="fas fa-external-link-alt mr-1"></i>Sitemap anzeigen
+                                </a>
+                            </div>
+                            <button class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                <i class="fas fa-sync mr-2"></i>Sitemap neu generieren
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Robots.txt Tab -->
+                    <div id="tab-robots" class="seo-tab-content hidden">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Robots.txt bearbeiten</h3>
+                        <div class="space-y-4">
+                            <textarea rows="10" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm" placeholder="User-agent: *\nAllow: /\nSitemap: https://softwareking24.de/sitemap.xml">User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://softwareking24.de/sitemap.xml</textarea>
+                            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-save mr-2"></i>Speichern
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Tools -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="font-bold text-gray-900 mb-2">
+                        <i class="fas fa-chart-line text-blue-600 mr-2"></i>Google Search Console
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-4">Überwachung der Indexierung</p>
+                    <button class="text-blue-600 hover:underline text-sm">
+                        Verknüpfen <i class="fas fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="font-bold text-gray-900 mb-2">
+                        <i class="fas fa-code text-green-600 mr-2"></i>Schema Markup
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-4">Strukturierte Daten verwalten</p>
+                    <button class="text-blue-600 hover:underline text-sm">
+                        Konfigurieren <i class="fas fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="font-bold text-gray-900 mb-2">
+                        <i class="fas fa-link text-purple-600 mr-2"></i>Redirects
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-4">301/302 Weiterleitungen</p>
+                    <button class="text-blue-600 hover:underline text-sm">
+                        Verwalten <i class="fas fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Tab switching
+            document.querySelectorAll('.seo-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.getAttribute('data-tab');
+                    
+                    // Update tab styles
+                    document.querySelectorAll('.seo-tab').forEach(t => {
+                        t.classList.remove('border-blue-500', 'text-blue-600');
+                        t.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    tab.classList.remove('border-transparent', 'text-gray-500');
+                    tab.classList.add('border-blue-500', 'text-blue-600');
+                    
+                    // Update content
+                    document.querySelectorAll('.seo-tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.getElementById('tab-' + targetTab).classList.remove('hidden');
+                });
+            });
+        </script>
+    </body>
+    </html>
+    `)
+  } catch (error) {
+    console.error('SEO management error:', error);
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <title>Fehler - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-50 flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Fehler beim Laden</h1>
+            <p class="text-gray-600">SEO-Verwaltung konnte nicht geladen werden</p>
+        </div>
+    </body>
+    </html>
+    `, 500)
+  }
+})
+
+// ============================================
+// REVIEWS MANAGEMENT PAGE
+// ============================================
+app.get('/admin/reviews', async (c) => {
+  try {
+    const { env } = c;
+    const db = env.DB;
+
+    // Get reviews statistics
+    const reviewsStats = await db.prepare(`
+      SELECT 
+        COUNT(*) as total_reviews,
+        AVG(rating) as average_rating,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_reviews,
+        SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved_reviews
+      FROM product_reviews
+    `).first();
+
+    // Get recent reviews
+    const recentReviews = await db.prepare(`
+      SELECT 
+        pr.id,
+        pr.rating,
+        pr.comment,
+        pr.status,
+        pr.created_at,
+        p.name as product_name,
+        u.first_name || ' ' || u.last_name as customer_name,
+        u.email as customer_email
+      FROM product_reviews pr
+      LEFT JOIN products p ON pr.product_id = p.id
+      LEFT JOIN users u ON pr.user_id = u.id
+      ORDER BY pr.created_at DESC
+      LIMIT 50
+    `).all();
+
+    // Get rating distribution
+    const ratingDistribution = await db.prepare(`
+      SELECT 
+        rating,
+        COUNT(*) as count
+      FROM product_reviews
+      GROUP BY rating
+      ORDER BY rating DESC
+    `).all();
+
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Bewertungen - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        ${AdminSidebarAdvanced('/admin/reviews')}
+        
+        <div class="ml-64 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-star mr-3"></i>Bewertungen verwalten
+                </h1>
+                <p class="text-gray-600 mt-2">Kundenbewertungen moderieren und beantworten</p>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Gesamt Bewertungen</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">${reviewsStats?.total_reviews || 0}</p>
+                        </div>
+                        <div class="bg-blue-100 rounded-full p-3">
+                            <i class="fas fa-comment text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Durchschnittsbewertung</p>
+                            <p class="text-2xl font-bold text-gray-900 mt-1">
+                                ${reviewsStats?.average_rating ? reviewsStats.average_rating.toFixed(1) : '0.0'}
+                                <span class="text-yellow-500 text-xl ml-1">★</span>
+                            </p>
+                        </div>
+                        <div class="bg-yellow-100 rounded-full p-3">
+                            <i class="fas fa-star text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Ausstehend</p>
+                            <p class="text-2xl font-bold text-orange-600 mt-1">${reviewsStats?.pending_reviews || 0}</p>
+                        </div>
+                        <div class="bg-orange-100 rounded-full p-3">
+                            <i class="fas fa-clock text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-sm text-gray-500">Überprüfung erforderlich</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Genehmigt</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">${reviewsStats?.approved_reviews || 0}</p>
+                        </div>
+                        <div class="bg-green-100 rounded-full p-3">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Distribution -->
+            <div class="bg-white rounded-lg shadow mb-8 p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-chart-bar mr-2"></i>Bewertungsverteilung
+                </h2>
+                <div class="space-y-3">
+                    ${[5, 4, 3, 2, 1].map(rating => {
+                        const ratingData = ratingDistribution.results.find(r => r.rating === rating);
+                        const count = ratingData?.count || 0;
+                        const percentage = reviewsStats?.total_reviews > 0 ? (count / reviewsStats.total_reviews * 100) : 0;
+                        return `
+                            <div class="flex items-center">
+                                <span class="text-sm font-medium text-gray-700 w-12">${rating} <i class="fas fa-star text-yellow-500 text-xs"></i></span>
+                                <div class="flex-1 mx-4">
+                                    <div class="bg-gray-200 rounded-full h-4 overflow-hidden">
+                                        <div class="bg-yellow-500 h-4 rounded-full" style="width: ${percentage}%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700 w-16 text-right">${count} (${percentage.toFixed(0)}%)</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+
+            <!-- Reviews List -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-900">
+                        <i class="fas fa-list mr-2"></i>Aktuelle Bewertungen
+                    </h2>
+                    <div class="flex space-x-2">
+                        <select class="px-4 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option>Alle Status</option>
+                            <option>Ausstehend</option>
+                            <option>Genehmigt</option>
+                            <option>Abgelehnt</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="p-6">
+                    ${recentReviews.results.length > 0 ? `
+                        <div class="space-y-4">
+                            ${recentReviews.results.map(review => `
+                                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div class="flex-1">
+                                            <div class="flex items-center mb-2">
+                                                <span class="font-medium text-gray-900 mr-3">${review.customer_name || 'Unbekannt'}</span>
+                                                <span class="text-yellow-500">
+                                                    ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                                                </span>
+                                            </div>
+                                            <p class="text-sm text-gray-600 mb-2">${review.product_name || 'Produkt gelöscht'}</p>
+                                            <p class="text-gray-800">${review.comment || 'Keine Kommentare'}</p>
+                                        </div>
+                                        <div class="ml-4 text-right">
+                                            ${review.status === 'pending' ? 
+                                                '<span class="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">Ausstehend</span>' :
+                                                review.status === 'approved' ?
+                                                '<span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Genehmigt</span>' :
+                                                '<span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Abgelehnt</span>'
+                                            }
+                                            <p class="text-xs text-gray-500 mt-2">
+                                                ${new Date(review.created_at).toLocaleDateString('de-DE', { 
+                                                    day: '2-digit', 
+                                                    month: '2-digit', 
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-2 pt-3 border-t border-gray-100">
+                                        ${review.status === 'pending' ? `
+                                            <button class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+                                                <i class="fas fa-check mr-1"></i>Genehmigen
+                                            </button>
+                                            <button class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">
+                                                <i class="fas fa-times mr-1"></i>Ablehnen
+                                            </button>
+                                        ` : ''}
+                                        <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                                            <i class="fas fa-reply mr-1"></i>Antworten
+                                        </button>
+                                        <button class="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700">
+                                            <i class="fas fa-trash mr-1"></i>Löschen
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="text-center py-12">
+                            <i class="fas fa-star text-gray-300 text-5xl mb-4"></i>
+                            <p class="text-gray-500 text-lg">Keine Bewertungen gefunden</p>
+                            <p class="text-gray-400 text-sm mt-2">Kundenbewertungen werden hier angezeigt</p>
+                        </div>
+                    `}
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    `)
+  } catch (error) {
+    console.error('Reviews management error:', error);
+    return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <title>Fehler - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-50 flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Fehler beim Laden</h1>
+            <p class="text-gray-600">Bewertungen konnten nicht geladen werden</p>
+        </div>
+    </body>
+    </html>
+    `, 500)
+  }
+})
 
 // My-* routes (alternative user panel paths)
 app.get('/my-*', (c) => {
