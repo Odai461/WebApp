@@ -10400,6 +10400,45 @@ app.get('/admin/reviews-management', async (c) => {
 
 
 // ============================================================================
+// BATCH 9: PRODUCTS MANAGEMENT - 8 PAGES
+// ============================================================================
+
+// Placeholder routes for Batch 9 - Full implementation in progress
+// Database ready with 9 tables and 35+ indexes (migration 0027 applied)
+
+app.get('/admin/products/all', async (c) => {
+  return c.html('<h1>All Products - Coming Soon</h1><p>Database ready, UI implementation in progress</p>')
+})
+
+app.get('/admin/products/categories', async (c) => {
+  return c.html('<h1>Categories - Coming Soon</h1>')
+})
+
+app.get('/admin/products/attributes', async (c) => {
+  return c.html('<h1>Attributes - Coming Soon</h1>')
+})
+
+app.get('/admin/products/variants', async (c) => {
+  return c.html('<h1>Variants - Coming Soon</h1>')
+})
+
+app.get('/admin/products/inventory', async (c) => {
+  return c.html('<h1>Inventory - Coming Soon</h1>')
+})
+
+app.get('/admin/products/import-export', async (c) => {
+  return c.html('<h1>Import/Export - Coming Soon</h1>')
+})
+
+app.get('/admin/products/reviews', async (c) => {
+  return c.html('<h1>Reviews - Coming Soon</h1>')
+})
+
+app.get('/admin/products/pricing', async (c) => {
+  return c.html('<h1>Price Management - Coming Soon</h1>')
+})
+
+// ============================================================================
 // BATCH 11: MARKETING ADVANCED - 6 PAGES
 // ============================================================================
 
