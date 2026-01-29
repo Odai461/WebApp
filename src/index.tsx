@@ -3788,6 +3788,7 @@ app.post('/api/admin/certificates/bulk-generate', async (c) => {
 
 // Import admin components
 import { AdminLayout, AdminDashboard } from './components/admin'
+import { AdminSidebarAdvanced } from './components/admin-sidebar-advanced'
 import { AdminProducts, AdminProductForm } from './components/admin-products'
 import { AdminProductImport } from './components/admin-product-import'
 import { AdminSliders } from './components/admin-sliders'
@@ -3812,6 +3813,188 @@ import { AdminTracking } from './components/admin-tracking'
 app.get('/admin', (c) => {
   const html = AdminDashboardAdvanced()
   return c.html(html)
+})
+
+// Admin Advanced Sidebar Demo
+app.get('/admin/v2', (c) => {
+  return c.html(
+    <html lang="de">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin Panel V2 - SOFTWAREKING24</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+      </head>
+      <body>
+        <div dangerouslySetInnerHTML={{__html: AdminSidebarAdvanced('/admin/v2')}} />
+        <div style="margin-left: 280px; padding: 2rem; background: #f5f7fa; min-height: 100vh;">
+          <div class="max-w-6xl mx-auto">
+            <div class="mb-8">
+              <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-tachometer-alt mr-3" style="color: #d4af37;"></i>
+                Admin Panel V2 - Enterprise Edition
+              </h1>
+              <p class="text-gray-600">Professionelle hierarchische Navigationsstruktur</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <p class="text-gray-500 text-sm font-medium">Menüpunkte</p>
+                    <p class="text-3xl font-bold text-gray-800">150+</p>
+                  </div>
+                  <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-th-list text-blue-600 text-xl"></i>
+                  </div>
+                </div>
+                <p class="text-sm text-gray-600">Vollständige Admin-Struktur</p>
+              </div>
+
+              <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <p class="text-gray-500 text-sm font-medium">Hauptkategorien</p>
+                    <p class="text-3xl font-bold text-gray-800">13</p>
+                  </div>
+                  <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-folder-open text-green-600 text-xl"></i>
+                  </div>
+                </div>
+                <p class="text-sm text-gray-600">Dashboard bis Einstellungen</p>
+              </div>
+
+              <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <p class="text-gray-500 text-sm font-medium">Hierarchie-Ebenen</p>
+                    <p class="text-3xl font-bold text-gray-800">3</p>
+                  </div>
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: rgba(212, 175, 55, 0.1);">
+                    <i class="fas fa-sitemap text-xl" style="color: #d4af37;"></i>
+                  </div>
+                </div>
+                <p class="text-sm text-gray-600">Übersichtliche Struktur</p>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+              <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                <i class="fas fa-check-circle mr-2" style="color: #28a745;"></i>
+                Features
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start gap-3">
+                  <i class="fas fa-angle-down text-green-600 mt-1"></i>
+                  <div>
+                    <h3 class="font-semibold text-gray-800">Collapsible Sections</h3>
+                    <p class="text-sm text-gray-600">Klickbare Kategorien mit Auf-/Zuklappen</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i class="fas fa-mouse-pointer text-green-600 mt-1"></i>
+                  <div>
+                    <h3 class="font-semibold text-gray-800">Hover Effects</h3>
+                    <p class="text-sm text-gray-600">Visuelles Feedback bei Interaktion</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i class="fas fa-layer-group text-green-600 mt-1"></i>
+                  <div>
+                    <h3 class="font-semibold text-gray-800">3-Level Hierarchy</h3>
+                    <p class="text-sm text-gray-600">Hauptkategorien → Unterkategorien → Items</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i class="fas fa-compress-alt text-green-600 mt-1"></i>
+                  <div>
+                    <h3 class="font-semibold text-gray-800">Collapsible Sidebar</h3>
+                    <p class="text-sm text-gray-600">Icon-only Modus für mehr Platz</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i class="fas fa-mobile-alt text-green-600 mt-1"></i>
+                  <div>
+                    <h3 class="font-semibold text-gray-800">Responsive Design</h3>
+                    <p class="text-sm text-gray-600">Mobile-optimiert mit Overlay</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <i class="fas fa-star text-green-600 mt-1"></i>
+                  <div>
+                    <h3 class="font-semibold text-gray-800">Active State Tracking</h3>
+                    <p class="text-sm text-gray-600">Auto-Expand aktiver Sections</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+              <h2 class="text-2xl font-bold mb-4 text-gray-800">
+                <i class="fas fa-th-list mr-2" style="color: #d4af37;"></i>
+                Hauptkategorien
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-tachometer-alt text-blue-600"></i>
+                  <span class="font-medium">Dashboard</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-box-open text-green-600"></i>
+                  <span class="font-medium">Produkte</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-shopping-cart text-purple-600"></i>
+                  <span class="font-medium">Bestellungen</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-key text-yellow-600"></i>
+                  <span class="font-medium">Lizenzen</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-users text-indigo-600"></i>
+                  <span class="font-medium">Kunden</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-palette text-pink-600"></i>
+                  <span class="font-medium">Design</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-bullhorn text-red-600"></i>
+                  <span class="font-medium">Marketing</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-chart-bar text-teal-600"></i>
+                  <span class="font-medium">Analytics</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-credit-card text-blue-600"></i>
+                  <span class="font-medium">Zahlungen</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-cookie-bite text-orange-600"></i>
+                  <span class="font-medium">Cookies</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-shield-alt text-red-600"></i>
+                  <span class="font-medium">Sicherheit</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-headset text-purple-600"></i>
+                  <span class="font-medium">Support</span>
+                </div>
+                <div class="flex items-center gap-2 p-3 bg-gray-50 rounded">
+                  <i class="fas fa-cog text-gray-600"></i>
+                  <span class="font-medium">Einstellungen</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  )
 })
 
 // Products Management
