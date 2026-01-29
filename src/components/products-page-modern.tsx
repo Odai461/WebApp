@@ -10,6 +10,8 @@ export const ProductsPageModern = () => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="/static/cart-manager-enhanced.js"></script>
+        <link href="/static/search-autocomplete.css" rel="stylesheet" />
+        <script src="/static/search-autocomplete.js" defer></script>
         <style>
           {`
           :root {
@@ -166,21 +168,24 @@ export const ProductsPageModern = () => {
 
               {/* Search Bar */}
               <div className="flex-1 max-w-2xl mx-8">
-                <div className="relative">
+                <div className="relative search-container">
                   <input
                     type="text"
-                    id="global-search"
+                    id="search-input"
                     placeholder="Suchen Sie nach Windows, Office, Antivirus..."
                     className="w-full px-6 py-3 border-2 border-gray-200 rounded-full focus:outline-none focus:border-gold transition-all"
+                    autoComplete="off"
                   />
                   <button onClick={(e) => {
-                    const input = document.getElementById('global-search') as HTMLInputElement;
-                    if (input && input.value.trim()) {
+                    const input = document.getElementById('search-input') as HTMLInputElement;
+                    if (input && input.value.trim().length >= 2) {
                       window.location.href = `/produkte?search=${encodeURIComponent(input.value)}`;
                     }
                   }} className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gold text-white px-6 py-2 rounded-full hover:bg-gold-dark transition">
                     <i className="fas fa-search"></i>
                   </button>
+                  {/* Autocomplete Dropdown */}
+                  <div id="search-dropdown" className="autocomplete-dropdown"></div>
                 </div>
               </div>
 

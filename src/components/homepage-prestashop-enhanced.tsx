@@ -12,6 +12,8 @@ export const HomepagePrestaShopEnhanced = () => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="/static/cart-manager-enhanced.js"></script>
+        <link href="/static/search-autocomplete.css" rel="stylesheet" />
+        <script src="/static/search-autocomplete.js" defer></script>
         <style>
             :root {
                 --navy-dark: #1a2a4e;
@@ -579,22 +581,24 @@ export const HomepagePrestaShopEnhanced = () => {
                         <img src="/static/logo.png" alt="SoftwareKing24 - Original Software Lizenzen" class="h-16" />
                     </a>
 
-                    <!-- Search Bar -->
+                    <!-- Search Bar with Autocomplete -->
                     <div class="flex-1 max-w-2xl mx-8">
-                        <div class="relative">
+                        <div class="relative search-container">
                             <input 
                                 type="text" 
-                                id="global-search"
+                                id="search-input"
                                 placeholder="Suchen Sie nach Windows, Office, Server, Antivirus..." 
                                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-gold transition-colors"
-                                onkeyup="if(event.key==='Enter') performSearch()"
+                                autocomplete="off"
                             />
                             <button 
-                                onclick="performSearch()"
+                                onclick="if(document.getElementById('search-input').value.length >= 2) window.location.href='/produkte?search=' + encodeURIComponent(document.getElementById('search-input').value)"
                                 class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gold hover:bg-gold-light text-white px-6 py-2 rounded-lg transition-colors"
                             >
                                 <i class="fas fa-search"></i>
                             </button>
+                            <!-- Autocomplete Dropdown -->
+                            <div id="search-dropdown" class="autocomplete-dropdown"></div>
                         </div>
                     </div>
 
