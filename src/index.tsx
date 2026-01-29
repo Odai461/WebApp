@@ -29,6 +29,7 @@ import { AdminDashboardAdvanced } from './components/admin-dashboard-advanced'
 import { AdminLicensesAdvanced } from './components/admin-licenses-advanced'
 import { AdminProductsAdvanced } from './components/admin-products-advanced'
 import { AdminOrdersAdvanced } from './components/admin-orders-advanced'
+import { AdminCustomersAdvanced } from './components/admin-customers-advanced'
 import { 
   formatPrice, 
   generateOrderNumber, 
@@ -2004,11 +2005,8 @@ app.get('/admin/orders', (c) => {
 
 // Customers Management
 app.get('/admin/customers', (c) => {
-  return c.html(
-    <AdminLayout title="Customers" currentUser={{ first_name: 'Admin' }}>
-      <AdminCustomers />
-    </AdminLayout>
-  )
+  const html = AdminCustomersAdvanced()
+  return c.html(html)
 })
 
 // Invoices Management
