@@ -15,7 +15,7 @@ export const AdminInvoices = () => {
           --gold: #d4af37;
         }
         .admin-sidebar {
-          width: 260px;
+          width: 280px;
           background: #1a2a4e;
           color: white;
           min-height: 100vh;
@@ -25,7 +25,7 @@ export const AdminInvoices = () => {
           z-index: 40;
         }
         .admin-content {
-          margin-left: 260px;
+          margin-left: 280px;
           min-height: 100vh;
         }
         .invoice-preview {

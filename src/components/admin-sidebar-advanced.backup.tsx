@@ -457,73 +457,6 @@ export function AdminSidebarAdvanced(currentPath: string = '/admin') {
           background: rgba(255, 255, 255, 0.1);
         }
 
-        .sidebar-search {
-          padding: 0.75rem 1rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .search-box {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 0.75rem;
-          color: rgba(255, 255, 255, 0.5);
-          font-size: 0.875rem;
-          pointer-events: none;
-        }
-
-        .search-input {
-          width: 100%;
-          padding: 0.625rem 2.5rem 0.625rem 2.25rem;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 6px;
-          color: white;
-          font-size: 0.875rem;
-          outline: none;
-          transition: all 0.2s;
-        }
-
-        .search-input::placeholder {
-          color: rgba(255, 255, 255, 0.4);
-        }
-
-        .search-input:focus {
-          background: rgba(255, 255, 255, 0.12);
-          border-color: var(--gold);
-          box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.1);
-        }
-
-        .clear-search {
-          position: absolute;
-          right: 0.5rem;
-          background: none;
-          border: none;
-          color: rgba(255, 255, 255, 0.5);
-          cursor: pointer;
-          padding: 0.25rem 0.5rem;
-          border-radius: 4px;
-          transition: all 0.2s;
-        }
-
-        .clear-search:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-        }
-
-        .menu-item.search-hidden,
-        .menu-section.search-hidden {
-          display: none !important;
-        }
-
-        .menu-item.search-highlight {
-          background: rgba(212, 175, 55, 0.2);
-        }
-
         .sidebar-nav {
           flex: 1;
           overflow-y: auto;
@@ -700,75 +633,6 @@ export function AdminSidebarAdvanced(currentPath: string = '/admin') {
       </style>
 
       <script>
-        // ===== SEARCH FUNCTIONALITY =====
-        function filterMenu(searchTerm) {
-          const term = searchTerm.toLowerCase().trim();
-          const clearBtn = document.getElementById('clear-search-btn');
-          
-          // Show/hide clear button
-          clearBtn.style.display = term ? 'block' : 'none';
-
-          if (!term) {
-            // Show all items and collapse sections
-            document.querySelectorAll('.menu-item, .menu-section').forEach(el => {
-              el.classList.remove('search-hidden', 'search-highlight');
-            });
-            document.querySelectorAll('.menu-children').forEach(el => {
-              el.classList.remove('expanded');
-            });
-            document.querySelectorAll('.menu-header').forEach(el => {
-              el.classList.remove('active');
-            });
-            return;
-          }
-
-          // Filter menu items
-          const allItems = document.querySelectorAll('.menu-item');
-          const allSections = document.querySelectorAll('.menu-section');
-          
-          allItems.forEach(item => {
-            const label = item.querySelector('.menu-label')?.textContent.toLowerCase() || '';
-            if (label.includes(term)) {
-              item.classList.remove('search-hidden');
-              item.classList.add('search-highlight');
-              
-              // Expand parent sections
-              let parent = item.closest('.menu-children');
-              while (parent) {
-                parent.classList.add('expanded');
-                const header = parent.previousElementSibling;
-                if (header?.classList.contains('menu-header')) {
-                  header.classList.add('active');
-                }
-                const parentSection = parent.closest('.menu-section');
-                if (parentSection) {
-                  parentSection.classList.remove('search-hidden');
-                }
-                parent = parent.parentElement?.closest('.menu-children');
-              }
-            } else {
-              item.classList.add('search-hidden');
-              item.classList.remove('search-highlight');
-            }
-          });
-
-          // Hide empty sections
-          allSections.forEach(section => {
-            const visibleItems = section.querySelectorAll('.menu-item:not(.search-hidden)');
-            if (visibleItems.length === 0) {
-              section.classList.add('search-hidden');
-            }
-          });
-        }
-
-        function clearSearch() {
-          const input = document.getElementById('sidebar-search-input');
-          input.value = '';
-          filterMenu('');
-          input.focus();
-        }
-
-        // ===== SECTION TOGGLE =====
         function toggleSection(sectionId) {
           const section = document.querySelector(\`[data-section="\${sectionId}"]\`);
           const children = section.querySelector('.menu-children');
@@ -777,90 +641,19 @@ export function AdminSidebarAdvanced(currentPath: string = '/admin') {
           if (children.classList.contains('expanded')) {
             children.classList.remove('expanded');
             header.classList.remove('active');
-            saveSectionState(sectionId, false);
           } else {
             children.classList.add('expanded');
             header.classList.add('active');
-            saveSectionState(sectionId, true);
           }
         }
 
-        // ===== SIDEBAR TOGGLE WITH LOCALSTORAGE =====
         function toggleSidebar() {
-          const sidebar = document.querySelector('.admin-sidebar-advanced');
-          const isCollapsed = sidebar.classList.toggle('collapsed');
+          document.querySelector('.admin-sidebar-advanced').classList.toggle('collapsed');
           document.body.classList.toggle('sidebar-collapsed');
-          
-          // Save state to localStorage
-          localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
         }
 
-        // ===== LOCALSTORAGE PERSISTENCE =====
-        function saveSectionState(sectionId, isExpanded) {
-          const state = JSON.parse(localStorage.getItem('sidebar-sections') || '{}');
-          state[sectionId] = isExpanded;
-          localStorage.setItem('sidebar-sections', JSON.stringify(state));
-        }
-
-        function loadSectionStates() {
-          const state = JSON.parse(localStorage.getItem('sidebar-sections') || '{}');
-          Object.keys(state).forEach(sectionId => {
-            if (state[sectionId]) {
-              const section = document.querySelector(\`[data-section="\${sectionId}"]\`);
-              if (section) {
-                const children = section.querySelector('.menu-children');
-                const header = section.querySelector('.menu-header');
-                if (children && header) {
-                  children.classList.add('expanded');
-                  header.classList.add('active');
-                }
-              }
-            }
-          });
-        }
-
-        function loadSidebarState() {
-          const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
-          if (isCollapsed) {
-            document.querySelector('.admin-sidebar-advanced').classList.add('collapsed');
-            document.body.classList.add('sidebar-collapsed');
-          }
-        }
-
-        // ===== KEYBOARD SHORTCUTS =====
-        document.addEventListener('keydown', (e) => {
-          // Ctrl+K or Cmd+K for search
-          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-            e.preventDefault();
-            const searchInput = document.getElementById('sidebar-search-input');
-            searchInput.focus();
-            searchInput.select();
-          }
-
-          // ESC to clear search
-          if (e.key === 'Escape') {
-            const searchInput = document.getElementById('sidebar-search-input');
-            if (document.activeElement === searchInput && searchInput.value) {
-              clearSearch();
-            }
-          }
-
-          // Ctrl+B or Cmd+B to toggle sidebar
-          if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-            e.preventDefault();
-            toggleSidebar();
-          }
-        });
-
-        // ===== INITIALIZATION =====
+        // Auto-expand active sections on load
         document.addEventListener('DOMContentLoaded', () => {
-          // Load saved sidebar state
-          loadSidebarState();
-          
-          // Load saved section states
-          loadSectionStates();
-          
-          // Auto-expand active sections
           const activePath = window.location.pathname;
           const activeItem = document.querySelector(\`.menu-item[data-path="\${activePath}"]\`);
           

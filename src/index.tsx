@@ -3825,10 +3825,15 @@ app.get('/admin/v2', (c) => {
         <title>Admin Panel V2 - SOFTWAREKING24</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+        <style>{`
+          body.sidebar-collapsed .admin-main-content {
+            margin-left: 60px !important;
+          }
+        `}</style>
       </head>
       <body>
         <div dangerouslySetInnerHTML={{__html: AdminSidebarAdvanced('/admin/v2')}} />
-        <div style="margin-left: 280px; padding: 2rem; background: #f5f7fa; min-height: 100vh;">
+        <div style="margin-left: 280px; padding: 2rem; background: #f5f7fa; min-height: 100vh; transition: margin-left 0.3s ease;" class="admin-main-content">
           <div class="max-w-6xl mx-auto">
             <div class="mb-8">
               <h1 class="text-4xl font-bold text-gray-800 mb-2">
@@ -4057,7 +4062,7 @@ app.get('/admin/sliders', (c) => {
             z-index: 1000;
           }
           .admin-content {
-            margin-left: 260px;
+            margin-left: 280px;
             min-height: 100vh;
             background: #f5f7fa;
             padding: 2rem;

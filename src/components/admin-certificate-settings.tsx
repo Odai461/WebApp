@@ -3,7 +3,7 @@ export const AdminCertificateSettings = () => {
     <div class="certificate-settings-page">
       <style>{`
         .admin-sidebar {
-          width: 260px;
+          width: 280px;
           background: #1a2a4e;
           color: white;
           min-height: 100vh;
@@ -13,7 +13,7 @@ export const AdminCertificateSettings = () => {
           z-index: 40;
         }
         .admin-content {
-          margin-left: 260px;
+          margin-left: 280px;
           min-height: 100vh;
         }
         .settings-card {

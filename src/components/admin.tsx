@@ -1,12 +1,16 @@
 // Admin Panel Layout Component
 import type { FC, PropsWithChildren } from 'hono/jsx'
+import { AdminSidebarAdvanced } from './admin-sidebar-advanced'
 
 interface AdminLayoutProps extends PropsWithChildren {
   title: string
   currentUser?: any
+  currentPath?: string
 }
 
-export const AdminLayout: FC<AdminLayoutProps> = ({ title, currentUser, children }) => {
+export const AdminLayout: FC<AdminLayoutProps> = ({ title, currentUser, children, currentPath }) => {
+  const path = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/admin');
+  
   return (
     <html lang="en">
       <head>
@@ -20,42 +24,17 @@ export const AdminLayout: FC<AdminLayoutProps> = ({ title, currentUser, children
           rel="stylesheet" 
         />
         <style dangerouslySetInnerHTML={{__html: `
-          .admin-sidebar {
-            width: 260px;
-            background: #1a2a4e;
-            color: white;
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 40;
-          }
-          
+          /* Updated for new sidebar width */
           .admin-content {
-            margin-left: 260px;
+            margin-left: 280px;
             background: #f8f9fa;
             min-height: 100vh;
+            padding: 2rem;
           }
           
-          .admin-nav-item {
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: rgba(255, 255, 255, 0.8);
-            transition: all 0.2s;
-            cursor: pointer;
-          }
-          
-          .admin-nav-item:hover {
-            background: rgba(212, 175, 55, 0.1);
-            color: #d4af37;
-          }
-          
-          .admin-nav-item.active {
-            background: rgba(212, 175, 55, 0.2);
-            color: #d4af37;
-            border-left: 4px solid #d4af37;
+          /* Support for collapsed sidebar */
+          body.sidebar-collapsed .admin-content {
+            margin-left: 60px;
           }
           
           .admin-card {

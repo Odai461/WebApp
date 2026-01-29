@@ -20,7 +20,7 @@ export function AdminProductsAdvanced() {
             position: fixed;
             left: 0;
             top: 0;
-            width: 260px;
+            width: 280px;
             height: 100vh;
             background: var(--navy-dark);
             color: white;
@@ -29,7 +29,7 @@ export function AdminProductsAdvanced() {
         }
         
         .admin-content {
-            margin-left: 260px;
+            margin-left: 280px;
             min-height: 100vh;
             background: #f5f7fa;
         }

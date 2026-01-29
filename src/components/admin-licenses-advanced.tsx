@@ -15,7 +15,7 @@ export const AdminLicensesAdvanced = () => {
           --gold: #d4af37;
         }
         .admin-sidebar {
-          width: 260px;
+          width: 280px;
           background: #1a2a4e;
           color: white;
           min-height: 100vh;
