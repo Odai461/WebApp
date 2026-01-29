@@ -12,6 +12,8 @@ export const ProductsPageModern = () => {
         <script src="/static/cart-manager-enhanced.js"></script>
         <link href="/static/search-autocomplete.css" rel="stylesheet" />
         <script src="/static/search-autocomplete.js" defer></script>
+        <link href="/static/filters-enhanced.css" rel="stylesheet" />
+        <script src="/static/filters-enhanced.js" defer></script>
         <style>
           {`
           :root {
@@ -326,12 +328,14 @@ export const ProductsPageModern = () => {
 
                   <div className="flex items-center space-x-4">
                     {/* Sort */}
-                    <select id="sort-filter" className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-gold">
+                    <select id="sort-filter" className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-gold transition hover:border-gold">
+                      <option value="newest">Neueste</option>
+                      <option value="bestseller">Bestseller</option>
+                      <option value="rating">Beste Bewertung</option>
+                      <option value="popular">Beliebteste</option>
                       <option value="name">Name (A-Z)</option>
                       <option value="price-asc">Preis aufsteigend</option>
                       <option value="price-desc">Preis absteigend</option>
-                      <option value="newest">Neueste</option>
-                      <option value="popularity">Beliebteste</option>
                     </select>
 
                     {/* View Toggle */}
@@ -492,7 +496,7 @@ export const ProductsPageModern = () => {
           }
 
           // Load products
-          async function loadProducts() {
+          async function loadProducts(filterParams = {}) {
             try {
               const container = document.getElementById('products-container');
               
@@ -517,39 +521,26 @@ export const ProductsPageModern = () => {
 
               if (state.category && state.category !== 'all') params.append('category', state.category);
               if (state.search) params.append('search', state.search);
+              
+              // Add filter params from FilterManager
+              if (filterParams.brand) params.append('brand', filterParams.brand);
+              if (filterParams.minRating) params.append('minRating', filterParams.minRating);
+              if (filterParams.onSale) params.append('onSale', 'true');
+              if (filterParams.maxPrice) params.append('maxPrice', filterParams.maxPrice);
 
               const response = await axios.get('/api/products?' + params.toString());
               
               // Handle API response format
               let productsData = [];
+              let total = 0;
               if (response.data.success && response.data.data) {
                 productsData = response.data.data;
+                total = response.data.pagination?.total || productsData.length;
               }
 
-              // Filter by price and other criteria
-              let filtered = productsData.filter(p => {
-                const price = (p.discount_price || p.base_price);
-                return price <= state.priceMax;
-              });
-
-              if (state.brands.length > 0) {
-                filtered = filtered.filter(p => state.brands.includes(p.brand));
-              }
-
-              if (state.features.length > 0) {
-                filtered = filtered.filter(p => {
-                  return state.features.some(f => {
-                    if (f === 'featured') return p.is_featured;
-                    if (f === 'bestseller') return p.is_bestseller;
-                    if (f === 'new') return p.is_new;
-                    return false;
-                  });
-                });
-              }
-
-              renderProducts(filtered);
-              renderPagination({ total: filtered.length, page: state.page, limit: state.limit });
-              updateResultCount(filtered.length);
+              renderProducts(productsData);
+              renderPagination({ total: total, page: state.page, limit: 12 });
+              updateResultCount(productsData.length);
               updateActiveFilters();
               initScrollAnimations();
             } catch (error) {
@@ -949,6 +940,12 @@ export const ProductsPageModern = () => {
           if (window.CartManager) {
             CartManager.updateCartBadge();
           }
+
+          // Expose ProductsManager for FilterManager
+          window.ProductsManager = {
+            loadProducts: loadProducts,
+            state: state
+          };
 
           // Initial load
           loadProducts();
