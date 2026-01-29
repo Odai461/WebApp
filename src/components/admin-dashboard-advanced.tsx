@@ -158,6 +158,57 @@ export const AdminDashboardAdvanced = () => {
               </div>
             </div>
             
+            <!-- Quick Actions / Shortcuts -->
+            <div class="bg-white rounded-lg p-6 shadow mb-8">
+              <h3 class="text-lg font-bold mb-4" style="color: var(--navy-dark)">
+                <i class="fas fa-bolt mr-2"></i>
+                Schnellzugriff
+              </h3>
+              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <a href="/admin/orders" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-all">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center mb-2" style="background: rgba(212, 175, 55, 0.1);">
+                    <i class="fas fa-shopping-cart text-xl" style="color: var(--gold)"></i>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Bestellungen</span>
+                </a>
+                
+                <a href="/admin/invoices" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-all">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center mb-2" style="background: rgba(59, 130, 246, 0.1);">
+                    <i class="fas fa-file-invoice text-xl text-blue-600"></i>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Rechnungen</span>
+                </a>
+                
+                <a href="/admin/certificates" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-all">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center mb-2" style="background: rgba(16, 185, 129, 0.1);">
+                    <i class="fas fa-certificate text-xl text-green-600"></i>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Zertifikate</span>
+                </a>
+                
+                <a href="/admin/licenses" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-all">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center mb-2" style="background: rgba(139, 92, 246, 0.1);">
+                    <i class="fas fa-key text-xl text-purple-600"></i>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Lizenzen</span>
+                </a>
+                
+                <a href="/admin/products" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-all">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center mb-2" style="background: rgba(239, 68, 68, 0.1);">
+                    <i class="fas fa-box-open text-xl text-red-600"></i>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Produkte</span>
+                </a>
+                
+                <a href="/admin/customers" class="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-all">
+                  <div class="w-12 h-12 rounded-full flex items-center justify-center mb-2" style="background: rgba(236, 72, 153, 0.1);">
+                    <i class="fas fa-users text-xl text-pink-600"></i>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Kunden</span>
+                </a>
+              </div>
+            </div>
+            
             <!-- Charts Row -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <div class="bg-white rounded-lg p-6 shadow">

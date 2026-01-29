@@ -5,6 +5,8 @@ export function AdminSidebar(currentPath: string = '/admin') {
     { path: '/admin/orders', icon: 'shopping-cart', label: 'Bestellungen' },
     { path: '/admin/customers', icon: 'users', label: 'Kunden' },
     { path: '/admin/licenses', icon: 'key', label: 'Lizenzen' },
+    { path: '/admin/invoices', icon: 'file-invoice', label: 'Rechnungen' },
+    { path: '/admin/certificates', icon: 'certificate', label: 'Zertifikate' },
     { path: '/admin/sliders', icon: 'images', label: 'Slider' },
     { path: '/admin/homepage-sections', icon: 'th-large', label: 'Homepage' },
     { path: '/admin/pages', icon: 'file-alt', label: 'Seiten' },
