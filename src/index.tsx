@@ -8953,6 +8953,282 @@ app.get('/admin/brands', async (c) => {
   `)
 })
 
+// CUSTOMER PROFILES PAGE
+app.get('/admin/customer-profiles', async (c) => {
+  const db = c.get('db') as DatabaseHelper
+  const page = parseInt(c.req.query('page') || '1')
+  const limit = 20
+  const offset = (page - 1) * limit
+  
+  const customers = await db.db.prepare(`
+    SELECT u.*,
+           COUNT(DISTINCT o.id) as order_count,
+           COUNT(DISTINCT lk.id) as license_count,
+           SUM(CASE WHEN o.status = 'completed' THEN o.total ELSE 0 END) as total_spent
+    FROM users u
+    LEFT JOIN orders o ON u.id = o.user_id
+    LEFT JOIN license_keys lk ON o.id = lk.assigned_to_order_id
+    WHERE u.role = 'customer'
+    GROUP BY u.id
+    ORDER BY u.created_at DESC
+    LIMIT ? OFFSET ?
+  `).bind(limit, offset).all()
+  
+  const totalCount = await db.db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'customer'").first()
+  const totalPages = Math.ceil(((totalCount as any)?.count || 0) / limit)
+  
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Kundenprofile - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    </head>
+    <body class="bg-gray-50">
+        ${AdminSidebarAdvanced('/admin/customer-profiles')}
+        <div class="ml-64 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-user-circle mr-2 text-blue-600"></i>
+                    Kundenprofile
+                </h1>
+                <p class="text-gray-600">Detaillierte Kundenansicht mit Bestellungen und Lizenzen</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Gesamt Kunden</p>
+                            <p class="text-2xl font-bold text-gray-900">${(totalCount as any)?.count || 0}</p>
+                        </div>
+                        <div class="p-3 bg-blue-100 rounded-full">
+                            <i class="fas fa-users text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <input type="text" id="searchInput" placeholder="Kunde suchen..." 
+                           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-96">
+                    <div class="flex gap-2">
+                        <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="">Alle Status</option>
+                            <option value="active">Aktiv</option>
+                            <option value="inactive">Inaktiv</option>
+                            <option value="suspended">Gesperrt</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kunde</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">E-Mail</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bestellungen</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lizenzen</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Umsatz</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${customers.results.map((customer: any) => `
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                                <span class="text-blue-600 font-semibold">${(customer.first_name?.[0] || 'U').toUpperCase()}</span>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium text-gray-900">${customer.first_name || ''} ${customer.last_name || ''}</div>
+                                                <div class="text-sm text-gray-500">${customer.company || '-'}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">${customer.email}</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">${customer.order_count}</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full">${customer.license_count}</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">€${(customer.total_spent || 0).toFixed(2)}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2 py-1 text-xs rounded-full ${
+                                          customer.status === 'active' ? 'bg-green-100 text-green-800' : 
+                                          customer.status === 'suspended' ? 'bg-red-100 text-red-800' : 
+                                          'bg-gray-100 text-gray-800'
+                                        }">
+                                            ${customer.status || 'active'}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <a href="/admin/customers/${customer.id}" class="text-blue-600 hover:text-blue-800 mr-3">
+                                            <i class="fas fa-eye"></i> Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        Seite ${page} von ${totalPages}
+                    </div>
+                    <div class="flex gap-2">
+                        ${page > 1 ? `<a href="/admin/customer-profiles?page=${page-1}" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Zurück</a>` : ''}
+                        ${page < totalPages ? `<a href="/admin/customer-profiles?page=${page+1}" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Weiter</a>` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+  `)
+})
+
+// REFUNDS MANAGEMENT PAGE
+app.get('/admin/refunds', async (c) => {
+  const db = c.get('db') as DatabaseHelper
+  
+  const refunds = await db.db.prepare(`
+    SELECT o.id, o.order_number, o.email, o.first_name, o.last_name,
+           o.total, o.status, o.payment_status, o.created_at, o.updated_at
+    FROM orders o
+    WHERE o.status = 'refunded' OR o.payment_status = 'refunded'
+    ORDER BY o.updated_at DESC
+    LIMIT 50
+  `).all()
+  
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rückerstattungen - SOFTWAREKING24 Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    </head>
+    <body class="bg-gray-50">
+        ${AdminSidebarAdvanced('/admin/refunds')}
+        <div class="ml-64 p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-undo mr-2 text-orange-600"></i>
+                    Rückerstattungen
+                </h1>
+                <p class="text-gray-600">Verwaltung von Rückerstattungen und stornierten Bestellungen</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Gesamt Rückerstattungen</p>
+                            <p class="text-2xl font-bold text-gray-900">${refunds.results.length}</p>
+                        </div>
+                        <div class="p-3 bg-orange-100 rounded-full">
+                            <i class="fas fa-undo text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Rückerstattungsbetrag</p>
+                            <p class="text-2xl font-bold text-gray-900">
+                                €${refunds.results.reduce((sum, r) => sum + (r.total || 0), 0).toFixed(2)}
+                            </p>
+                        </div>
+                        <div class="p-3 bg-red-100 rounded-full">
+                            <i class="fas fa-euro-sign text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Ausstehende Anfragen</p>
+                            <p class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                        <div class="p-3 bg-yellow-100 rounded-full">
+                            <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Rückerstattungsliste</h2>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bestellnr.</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kunde</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Betrag</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Datum</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${refunds.results.length > 0 ? refunds.results.map((refund: any) => `
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">${refund.order_number}</td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-medium text-gray-900">${refund.first_name} ${refund.last_name}</div>
+                                        <div class="text-sm text-gray-500">${refund.email}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm font-medium text-red-600">-€${(refund.total || 0).toFixed(2)}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+                                            Rückerstattet
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">${new Date(refund.updated_at).toLocaleDateString('de-DE')}</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <a href="/admin/orders/${refund.id}" class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-eye"></i> Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            `).join('') : `
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                        <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
+                                        <p class="text-lg">Keine Rückerstattungen vorhanden</p>
+                                    </td>
+                                </tr>
+                            `}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+  `)
+})
+
 // ============================================
 // CATCH-ALL ROUTE HANDLER FOR MISSING ADMIN PAGES
 // ============================================
