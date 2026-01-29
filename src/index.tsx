@@ -1047,6 +1047,111 @@ app.post('/api/admin/orders', async (c) => {
   }
 })
 
+// READ: Get all orders (list with pagination, search, filters)
+app.get('/api/admin/orders', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const page = parseInt(c.req.query('page') || '1')
+    const limit = parseInt(c.req.query('limit') || '20')
+    const offset = (page - 1) * limit
+    const search = c.req.query('search') || ''
+    const status = c.req.query('status') || ''
+    const payment_status = c.req.query('payment_status') || ''
+    const date_from = c.req.query('date_from') || ''
+    const date_to = c.req.query('date_to') || ''
+    const sort_by = c.req.query('sort_by') || 'created_at'
+    const sort_order = c.req.query('sort_order') || 'DESC'
+
+    // Build WHERE clause
+    let whereConditions = []
+    let params: any[] = []
+
+    if (search) {
+      whereConditions.push(`(order_number LIKE ? OR email LIKE ? OR first_name LIKE ? OR last_name LIKE ?)`)
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
+    }
+
+    if (status) {
+      whereConditions.push(`status = ?`)
+      params.push(status)
+    }
+
+    if (payment_status) {
+      whereConditions.push(`payment_status = ?`)
+      params.push(payment_status)
+    }
+
+    if (date_from) {
+      whereConditions.push(`DATE(created_at) >= ?`)
+      params.push(date_from)
+    }
+
+    if (date_to) {
+      whereConditions.push(`DATE(created_at) <= ?`)
+      params.push(date_to)
+    }
+
+    const whereClause = whereConditions.length > 0 
+      ? `WHERE ${whereConditions.join(' AND ')}`
+      : ''
+
+    // Get total count
+    const countResult = await db.db.prepare(`
+      SELECT COUNT(*) as total FROM orders ${whereClause}
+    `).bind(...params).first()
+
+    const total = countResult?.total || 0
+    const totalPages = Math.ceil(total / limit)
+
+    // Get orders with pagination
+    const validSortColumns = ['created_at', 'order_number', 'total', 'status', 'email']
+    const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'created_at'
+    const sortDirection = sort_order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'
+
+    const orders = await db.db.prepare(`
+      SELECT 
+        id, order_number, email, first_name, last_name, company,
+        country, status, payment_status, payment_method,
+        subtotal, tax_amount, discount_amount, total, currency,
+        created_at, updated_at, completed_at
+      FROM orders 
+      ${whereClause}
+      ORDER BY ${sortColumn} ${sortDirection}
+      LIMIT ? OFFSET ?
+    `).bind(...params, limit, offset).all()
+
+    // Get summary statistics
+    const stats = await db.db.prepare(`
+      SELECT 
+        COUNT(*) as total_orders,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_orders,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_orders,
+        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
+        COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN total ELSE 0 END), 0) as total_revenue,
+        COALESCE(AVG(total), 0) as avg_order_value
+      FROM orders
+      ${whereClause}
+    `).bind(...params).first()
+
+    return c.json({
+      success: true,
+      data: {
+        orders: orders.results || [],
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages
+        },
+        stats: stats || {}
+      }
+    })
+  } catch (error: any) {
+    console.error('Error fetching orders:', error)
+    return c.json({ success: false, error: error.message || 'Failed to fetch orders' }, 500)
+  }
+})
+
 // READ: Get single order
 app.get('/api/admin/orders/:id', async (c) => {
   try {
