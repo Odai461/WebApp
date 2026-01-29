@@ -5,8 +5,8 @@ export const HomepagePrestaShopEnhanced = () => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Günstige Software Lizenzen kaufen – Original & Sofort verfügbar | SoftwareKing24</title>
-        <meta name="description" content="Bei SoftwareKing24.de finden Sie hochwertige digitale Softwarelösungen für Arbeit, Sicherheit und Produktivität – sofort verfügbar und rechtssicher. Windows 11, Microsoft Office 2024, Antivirus-Programme, Server, CAD-Software zu Top-Preisen."/>
+        <title>Günstige Software Lizenzen kaufen – Original & Sofort verfügbar | KING24</title>
+        <meta name="description" content="Bei KING24.de finden Sie hochwertige digitale Softwarelösungen für Arbeit, Sicherheit und Produktivität – sofort verfügbar und rechtssicher. Windows 11, Microsoft Office 2024, Antivirus-Programme, Server, CAD-Software zu Top-Preisen."/>
         <meta name="keywords" content="Windows 11, Office 2024, Antivirus, Server Lizenzen, CAD Software, ESD Lizenzen, Software kaufen, Microsoft Lizenzen"/>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
@@ -579,7 +579,7 @@ export const HomepagePrestaShopEnhanced = () => {
                 <div class="flex items-center justify-between">
                     <!-- Logo -->
                     <a href="/" class="flex items-center hover-scale">
-                        <img src="/static/logo.png" alt="SoftwareKing24 - Original Software Lizenzen" class="h-16" />
+                        <img src="/static/logo.png" alt="KING24 - Original Software Lizenzen" class="h-16" />
                     </a>
 
                     <!-- Search Bar with Autocomplete -->
@@ -1479,7 +1479,7 @@ export const HomepagePrestaShopEnhanced = () => {
                         </h2>
                         <div class="prose prose-lg text-gray-700">
                             <p class="mb-4">
-                                <strong>SoftwareKing24.de</strong> ist Ihr vertrauenswürdiger Online-Shop für <strong>Original-Softwarelizenzen</strong> 
+                                <strong>KING24.de</strong> ist Ihr vertrauenswürdiger Online-Shop für <strong>Original-Softwarelizenzen</strong> 
                                 zu unschlagbaren Preisen. Wir spezialisieren uns auf den Verkauf von <strong>ESD-Lizenzen</strong> (Electronic Software Distribution) – 
                                 digitale Produktkeys, die sofort nach dem Kauf per E-Mail zugestellt werden.
                             </p>
@@ -1519,7 +1519,7 @@ export const HomepagePrestaShopEnhanced = () => {
                                 </h3>
                                 <p>
                                     Online-Shops haben deutlich geringere Betriebskosten als Ladengeschäfte. Diese Ersparnis geben wir direkt an Sie weiter. 
-                                    Bei SoftwareKing24.de sparen Sie oft <strong>bis zu 70% gegenüber dem Neupreis</strong>.
+                                    Bei KING24.de sparen Sie oft <strong>bis zu 70% gegenüber dem Neupreis</strong>.
                                 </p>
                             </div>
                             
@@ -1606,7 +1606,7 @@ export const HomepagePrestaShopEnhanced = () => {
                         <i class="fas fa-question-circle text-gold mr-3"></i>
                         Häufig gestellte Fragen
                     </h2>
-                    <p class="text-gray-600">Alles, was Sie über den Kauf von Software bei SoftwareKing24 wissen müssen</p>
+                    <p class="text-gray-600">Alles, was Sie über den Kauf von Software bei KING24 wissen müssen</p>
                 </div>
                 
                 <div class="space-y-4">
@@ -1832,7 +1832,7 @@ export const HomepagePrestaShopEnhanced = () => {
                         <i class="fas fa-comments text-gold mr-3"></i>
                         Das sagen unsere Kunden
                     </h2>
-                    <p class="text-gray-600">Über 50.000 zufriedene Kunden vertrauen auf SoftwareKing24</p>
+                    <p class="text-gray-600">Über 50.000 zufriedene Kunden vertrauen auf KING24</p>
                 </div>
                 
                 <div class="grid grid-cols-3 gap-6">
@@ -1955,7 +1955,7 @@ export const HomepagePrestaShopEnhanced = () => {
             <div class="w-full px-6">
                 <div class="grid grid-cols-4 gap-8 mb-8">
                     <div>
-                        <img src="/static/logo.png" alt="SoftwareKing24" class="h-12 mb-4" />
+                        <img src="/static/logo.png" alt="KING24" class="h-12 mb-4" />
                         <p class="text-gray-300 text-sm mb-4">
                             Ihr vertrauenswürdiger Partner für Original-Software zu unschlagbaren Preisen. 
                             Seit über 10 Jahren am Markt.
@@ -2013,7 +2013,7 @@ export const HomepagePrestaShopEnhanced = () => {
                 <div class="border-t border-gray-700 pt-8 mt-8">
                     <div class="flex items-center justify-between">
                         <div class="text-gray-400 text-sm">
-                            © 2026 SoftwareKing24.de – Alle Rechte vorbehalten
+                            © 2026 KING24.de – Alle Rechte vorbehalten
                         </div>
                         <div class="flex items-center space-x-6">
                             <img src="https://via.placeholder.com/60x40/1a2a4e/d4af37?text=PayPal" alt="PayPal" class="h-8" />

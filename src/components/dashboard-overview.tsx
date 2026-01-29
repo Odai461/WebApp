@@ -5,7 +5,7 @@ export const UserDashboard = () => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Mein Konto - SoftwareKing24</title>
+        <title>Mein Konto - KING24</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
@@ -27,7 +27,7 @@ export const UserDashboard = () => {
             <div class="max-w-7xl mx-auto px-4">
                 <div class="flex items-center justify-between py-4">
                     <a href="/" class="flex items-center space-x-3">
-                        <img src="/static/logo.png" alt="SoftwareKing24" class="h-12" />
+                        <img src="/static/logo.png" alt="KING24" class="h-12" />
                     </a>
                     <nav class="flex items-center space-x-6">
                         <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
@@ -174,7 +174,7 @@ export const UserDashboard = () => {
         <!-- Footer -->
         <footer class="bg-gray-900 text-white py-8 mt-12">
             <div class="max-w-7xl mx-auto px-4 text-center">
-                <p class="text-gray-400">&copy; 2026 SoftwareKing24. Alle Rechte vorbehalten.</p>
+                <p class="text-gray-400">&copy; 2026 KING24. Alle Rechte vorbehalten.</p>
             </div>
         </footer>
 
