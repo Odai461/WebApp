@@ -3789,6 +3789,7 @@ app.post('/api/admin/certificates/bulk-generate', async (c) => {
 // Import admin components
 import { AdminLayout, AdminDashboard } from './components/admin'
 import { AdminSidebarAdvanced } from './components/admin-sidebar-advanced'
+import { AdminPlaceholder } from './components/admin-placeholder'
 import { AdminProducts, AdminProductForm } from './components/admin-products'
 import { AdminProductImport } from './components/admin-product-import'
 import { AdminSliders } from './components/admin-sliders'
@@ -6586,6 +6587,23 @@ app.patch('/api/admin/settings/:key', async (c) => {
     return c.json({ success: false, error: 'Failed to update setting' }, 500)
   }
 })
+
+// ============================================
+// CATCH-ALL ROUTE HANDLER FOR MISSING ADMIN PAGES
+// ============================================
+
+// Universal placeholder for all unimplemented admin routes
+app.get('/admin/*', (c) => {
+  const path = c.req.path;
+  
+  // Generate page title from path
+  const pathParts = path.split('/').filter(Boolean).slice(1); // Remove 'admin'
+  const pageTitle = pathParts
+    .map(part => part.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '))
+    .join(' - ') || 'Admin Panel';
+  
+  return c.html(AdminPlaceholder(path, pageTitle));
+});
 
 // ============================================
 // SCHEDULED EVENT HANDLER (Cloudflare Cron)
