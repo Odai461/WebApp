@@ -10400,6 +10400,669 @@ app.get('/admin/reviews-management', async (c) => {
 
 
 // ============================================================================
+// SECURITY (SICHERHEIT) SECTION - 5 PAGES
+// ============================================================================
+
+// PAGE 1: SECURITY OVERVIEW - /admin/security
+app.get('/admin/security', async (c) => {
+  const db = c.get('db') as DatabaseHelper
+  
+  try {
+    // Get security statistics
+    const stats = await db.db.prepare(`
+      SELECT 
+        (SELECT COUNT(*) FROM login_history WHERE created_at > datetime('now', '-24 hours')) as logins_24h,
+        (SELECT COUNT(*) FROM login_history WHERE status = 'failed' AND created_at > datetime('now', '-24 hours')) as failed_logins_24h,
+        (SELECT COUNT(*) FROM user_sessions WHERE is_active = 1) as active_sessions,
+        (SELECT COUNT(*) FROM audit_logs WHERE created_at > datetime('now', '-24 hours')) as audit_events_24h,
+        (SELECT COUNT(DISTINCT user_id) FROM login_history WHERE created_at > datetime('now', '-1 hour')) as active_users_1h
+    `).first() as any
+
+    // Get recent failed login attempts
+    const recentFailedLogins = await db.db.prepare(`
+      SELECT 
+        user_email,
+        ip_address,
+        user_agent,
+        created_at,
+        failure_reason
+      FROM login_history
+      WHERE status = 'failed'
+      ORDER BY created_at DESC
+      LIMIT 10
+    `).all()
+
+    // Get recent audit events
+    const recentAuditEvents = await db.db.prepare(`
+      SELECT 
+        al.*,
+        u.email as user_email,
+        u.first_name,
+        u.last_name
+      FROM audit_logs al
+      LEFT JOIN users u ON al.user_id = u.id
+      ORDER BY al.created_at DESC
+      LIMIT 10
+    `).all()
+
+    return c.html(`
+      <!DOCTYPE html>
+      <html lang="de">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sicherheitsübersicht - Admin - SOFTWAREKING24</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      </head>
+      <body class="bg-gray-50">
+        <div class="flex">
+          ${AdminSidebar()}
+          
+          <div class="flex-1 ml-64">
+            <div class="p-8">
+              <!-- Header -->
+              <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                  <i class="fas fa-shield-alt mr-3 text-blue-600"></i>
+                  Sicherheitsübersicht
+                </h1>
+                <p class="text-gray-600">Überwachen Sie die Sicherheit Ihres Systems</p>
+              </div>
+
+              <!-- Security Status Alert -->
+              ${stats?.failed_logins_24h > 10 ? `
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                  <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-xl mr-3"></i>
+                    <div>
+                      <h3 class="text-red-800 font-semibold">Sicherheitswarnung</h3>
+                      <p class="text-red-700 text-sm">Ungewöhnlich viele fehlgeschlagene Login-Versuche (${stats.failed_logins_24h}) in den letzten 24 Stunden</p>
+                    </div>
+                  </div>
+                </div>
+              ` : `
+                <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                  <div class="flex items-center">
+                    <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
+                    <div>
+                      <h3 class="text-green-800 font-semibold">System sicher</h3>
+                      <p class="text-green-700 text-sm">Keine verdächtigen Aktivitäten erkannt</p>
+                    </div>
+                  </div>
+                </div>
+              `}
+
+              <!-- Statistics Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <i class="fas fa-sign-in-alt text-blue-600 text-xl"></i>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 mb-1">Logins (24h)</p>
+                  <p class="text-2xl font-bold text-gray-900">${stats?.logins_24h || 0}</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                      <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 mb-1">Fehlgeschlagen (24h)</p>
+                  <p class="text-2xl font-bold text-red-600">${stats?.failed_logins_24h || 0}</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <i class="fas fa-users text-green-600 text-xl"></i>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 mb-1">Aktive Sessions</p>
+                  <p class="text-2xl font-bold text-green-600">${stats?.active_sessions || 0}</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                      <i class="fas fa-clipboard-list text-purple-600 text-xl"></i>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 mb-1">Audit Events (24h)</p>
+                  <p class="text-2xl font-bold text-purple-600">${stats?.audit_events_24h || 0}</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                      <i class="fas fa-user-clock text-yellow-600 text-xl"></i>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 mb-1">Aktive Benutzer (1h)</p>
+                  <p class="text-2xl font-bold text-yellow-600">${stats?.active_users_1h || 0}</p>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <a href="/admin/security/login-history" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                      <i class="fas fa-history text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                      <h3 class="font-semibold text-gray-900">Login-Verlauf</h3>
+                      <p class="text-sm text-gray-600">Anmeldungen prüfen</p>
+                    </div>
+                  </div>
+                </a>
+
+                <a href="/admin/security/sessions" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                      <i class="fas fa-user-shield text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                      <h3 class="font-semibold text-gray-900">Aktive Sessions</h3>
+                      <p class="text-sm text-gray-600">Sessions verwalten</p>
+                    </div>
+                  </div>
+                </a>
+
+                <a href="/admin/security/audit-log" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                      <i class="fas fa-clipboard-check text-purple-600 text-xl"></i>
+                    </div>
+                    <div>
+                      <h3 class="font-semibold text-gray-900">Audit Log</h3>
+                      <p class="text-sm text-gray-600">Systemereignisse</p>
+                    </div>
+                  </div>
+                </a>
+
+                <a href="/admin/security/settings" class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                      <i class="fas fa-cog text-gray-600 text-xl"></i>
+                    </div>
+                    <div>
+                      <h3 class="font-semibold text-gray-900">Einstellungen</h3>
+                      <p class="text-sm text-gray-600">Sicherheit konfigurieren</p>
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+              <!-- Two Column Layout -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Recent Failed Logins -->
+                <div class="bg-white rounded-lg shadow">
+                  <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                      <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+                      Fehlgeschlagene Login-Versuche
+                    </h2>
+                  </div>
+                  <div class="p-6">
+                    ${recentFailedLogins.results?.length > 0 ? `
+                      <div class="space-y-4">
+                        ${recentFailedLogins.results.map((login: any) => `
+                          <div class="flex items-start border-l-4 border-red-500 pl-4 py-2">
+                            <div class="flex-1">
+                              <p class="font-semibold text-gray-900">${login.user_email || 'Unbekannt'}</p>
+                              <p class="text-sm text-gray-600">IP: ${login.ip_address || 'Unbekannt'}</p>
+                              <p class="text-xs text-gray-500">${new Date(login.created_at).toLocaleString('de-DE')}</p>
+                              ${login.failure_reason ? `<p class="text-xs text-red-600 mt-1">${login.failure_reason}</p>` : ''}
+                            </div>
+                          </div>
+                        `).join('')}
+                      </div>
+                    ` : `
+                      <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-check-circle text-4xl text-green-500 mb-2"></i>
+                        <p>Keine fehlgeschlagenen Login-Versuche</p>
+                      </div>
+                    `}
+                  </div>
+                </div>
+
+                <!-- Recent Audit Events -->
+                <div class="bg-white rounded-lg shadow">
+                  <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                      <i class="fas fa-list-ul text-purple-600 mr-2"></i>
+                      Letzte Systemereignisse
+                    </h2>
+                  </div>
+                  <div class="p-6">
+                    ${recentAuditEvents.results?.length > 0 ? `
+                      <div class="space-y-4">
+                        ${recentAuditEvents.results.map((event: any) => `
+                          <div class="flex items-start border-l-4 border-purple-500 pl-4 py-2">
+                            <div class="flex-1">
+                              <p class="font-semibold text-gray-900">${event.action || 'Unbekannte Aktion'}</p>
+                              <p class="text-sm text-gray-600">${event.user_email || 'System'} - ${event.resource_type || ''}</p>
+                              <p class="text-xs text-gray-500">${new Date(event.created_at).toLocaleString('de-DE')}</p>
+                            </div>
+                          </div>
+                        `).join('')}
+                      </div>
+                    ` : `
+                      <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-2"></i>
+                        <p>Keine Ereignisse</p>
+                      </div>
+                    `}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `)
+  } catch (error) {
+    console.error('Error loading security overview:', error)
+    return c.html('<h1>Error loading security overview</h1>', 500)
+  }
+})
+
+// PAGE 2: LOGIN HISTORY - /admin/security/login-history
+app.get('/admin/security/login-history', async (c) => {
+  const db = c.get('db') as DatabaseHelper
+  
+  try {
+    const page = parseInt(c.req.query('page') || '1')
+    const limit = parseInt(c.req.query('limit') || '50')
+    const status = c.req.query('status') || 'all'
+    const offset = (page - 1) * limit
+
+    // Build WHERE clause
+    let whereClause = '1=1'
+    const params: any[] = []
+
+    if (status !== 'all') {
+      whereClause += ' AND lh.status = ?'
+      params.push(status)
+    }
+
+    // Get total count
+    const countResult = await db.db.prepare(`
+      SELECT COUNT(*) as total
+      FROM login_history lh
+      WHERE ${whereClause}
+    `).bind(...params).first() as any
+
+    const total = countResult?.total || 0
+
+    // Get login history
+    const loginHistory = await db.db.prepare(`
+      SELECT 
+        lh.*,
+        u.first_name,
+        u.last_name
+      FROM login_history lh
+      LEFT JOIN users u ON lh.user_id = u.id
+      WHERE ${whereClause}
+      ORDER BY lh.created_at DESC
+      LIMIT ? OFFSET ?
+    `).bind(...params, limit, offset).all()
+
+    // Get statistics
+    const stats = await db.db.prepare(`
+      SELECT 
+        COUNT(*) as total_attempts,
+        SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as successful,
+        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+        COUNT(DISTINCT user_id) as unique_users
+      FROM login_history
+      WHERE created_at > datetime('now', '-7 days')
+    `).first() as any
+
+    return c.html(`
+      <!DOCTYPE html>
+      <html lang="de">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login-Verlauf - Admin - SOFTWAREKING24</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+      </head>
+      <body class="bg-gray-50">
+        <div class="flex">
+          ${AdminSidebar()}
+          
+          <div class="flex-1 ml-64">
+            <div class="p-8">
+              <div class="mb-8">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                      <i class="fas fa-history mr-3 text-blue-600"></i>
+                      Login-Verlauf
+                    </h1>
+                    <p class="text-gray-600">Überwachen Sie alle Anmeldeversuche</p>
+                  </div>
+                  <a href="/admin/security" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                    <i class="fas fa-arrow-left mr-2"></i>Zurück
+                  </a>
+                </div>
+              </div>
+
+              <!-- Statistics -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                  <p class="text-sm text-gray-600 mb-1">Gesamt (7 Tage)</p>
+                  <p class="text-2xl font-bold text-gray-900">${stats?.total_attempts || 0}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                  <p class="text-sm text-gray-600 mb-1">Erfolgreich</p>
+                  <p class="text-2xl font-bold text-green-600">${stats?.successful || 0}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                  <p class="text-sm text-gray-600 mb-1">Fehlgeschlagen</p>
+                  <p class="text-2xl font-bold text-red-600">${stats?.failed || 0}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                  <p class="text-sm text-gray-600 mb-1">Eindeutige Benutzer</p>
+                  <p class="text-2xl font-bold text-purple-600">${stats?.unique_users || 0}</p>
+                </div>
+              </div>
+
+              <!-- Filters -->
+              <div class="bg-white rounded-lg shadow mb-6 p-6">
+                <div class="flex gap-4">
+                  <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="all" ${status === 'all' ? 'selected' : ''}>Alle Status</option>
+                    <option value="success" ${status === 'success' ? 'selected' : ''}>Erfolgreich</option>
+                    <option value="failed" ${status === 'failed' ? 'selected' : ''}>Fehlgeschlagen</option>
+                  </select>
+                  <button onclick="applyFilters()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-filter mr-2"></i>Filtern
+                  </button>
+                  <button onclick="resetFilters()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                    <i class="fas fa-times mr-2"></i>Zurücksetzen
+                  </button>
+                </div>
+              </div>
+
+              <!-- Login History Table -->
+              <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Benutzer</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP-Adresse</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User Agent</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Zeitpunkt</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    ${loginHistory.results?.length > 0 ? loginHistory.results.map((login: any) => `
+                      <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          ${login.status === 'success' ? `
+                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                              <i class="fas fa-check-circle mr-1"></i>Erfolg
+                            </span>
+                          ` : `
+                            <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+                              <i class="fas fa-times-circle mr-1"></i>Fehler
+                            </span>
+                          `}
+                        </td>
+                        <td class="px-6 py-4">
+                          ${login.first_name && login.last_name ? `
+                            <p class="font-semibold text-gray-900">${login.first_name} ${login.last_name}</p>
+                          ` : `
+                            <p class="text-gray-500 italic">Unbekannt</p>
+                          `}
+                        </td>
+                        <td class="px-6 py-4">
+                          <p class="text-sm text-gray-900">${login.user_email || '-'}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                          <p class="text-sm text-gray-900 font-mono">${login.ip_address || '-'}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                          <p class="text-xs text-gray-600 max-w-xs truncate" title="${login.user_agent || '-'}">
+                            ${login.user_agent || '-'}
+                          </p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <p class="text-sm text-gray-900">${new Date(login.created_at).toLocaleString('de-DE')}</p>
+                        </td>
+                      </tr>
+                    `).join('') : `
+                      <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                          <i class="fas fa-inbox text-4xl mb-2"></i>
+                          <p>Keine Login-Versuche gefunden</p>
+                        </td>
+                      </tr>
+                    `}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              ${total > limit ? `
+                <div class="mt-6 flex items-center justify-between">
+                  <div class="text-sm text-gray-700">
+                    Zeige ${offset + 1} bis ${Math.min(offset + limit, total)} von ${total} Einträgen
+                  </div>
+                  <div class="flex gap-2">
+                    ${page > 1 ? `
+                      <a href="?page=${page - 1}&status=${status}" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-left"></i>
+                      </a>
+                    ` : ''}
+                    
+                    ${Array.from({ length: Math.min(5, Math.ceil(total / limit)) }, (_, i) => {
+                      const pageNum = page - 2 + i
+                      if (pageNum < 1 || pageNum > Math.ceil(total / limit)) return ''
+                      return `
+                        <a href="?page=${pageNum}&status=${status}" 
+                           class="px-4 py-2 border ${pageNum === page ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 hover:bg-gray-50'} rounded-lg">
+                          ${pageNum}
+                        </a>
+                      `
+                    }).join('')}
+                    
+                    ${page < Math.ceil(total / limit) ? `
+                      <a href="?page=${page + 1}&status=${status}" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                      </a>
+                    ` : ''}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+
+        <script>
+          function applyFilters() {
+            const status = document.getElementById('statusFilter').value
+            window.location.href = '/admin/security/login-history?status=' + status
+          }
+
+          function resetFilters() {
+            window.location.href = '/admin/security/login-history'
+          }
+        </script>
+      </body>
+      </html>
+    `)
+  } catch (error) {
+    console.error('Error loading login history:', error)
+    return c.html('<h1>Error loading login history</h1>', 500)
+  }
+})
+
+// PAGE 3: ACTIVE SESSIONS - /admin/security/sessions
+app.get('/admin/security/sessions', async (c) => {
+  const db = c.get('db') as DatabaseHelper
+  
+  try {
+    // Get active sessions
+    const sessions = await db.db.prepare(`
+      SELECT 
+        us.*,
+        u.email,
+        u.first_name,
+        u.last_name,
+        u.role
+      FROM user_sessions us
+      LEFT JOIN users u ON us.user_id = u.id
+      WHERE us.is_active = 1
+      ORDER BY us.last_activity DESC
+    `).all()
+
+    return c.html(`
+      <!DOCTYPE html>
+      <html lang="de">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Aktive Sessions - Admin - SOFTWAREKING24</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+      </head>
+      <body class="bg-gray-50">
+        <div class="flex">
+          ${AdminSidebar()}
+          
+          <div class="flex-1 ml-64">
+            <div class="p-8">
+              <div class="mb-8">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                      <i class="fas fa-user-shield mr-3 text-green-600"></i>
+                      Aktive Sessions
+                    </h1>
+                    <p class="text-gray-600">Verwalten Sie aktive Benutzersitzungen</p>
+                  </div>
+                  <a href="/admin/security" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                    <i class="fas fa-arrow-left mr-2"></i>Zurück
+                  </a>
+                </div>
+              </div>
+
+              <!-- Statistics -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                  <p class="text-sm text-gray-600 mb-1">Aktive Sessions</p>
+                  <p class="text-2xl font-bold text-green-600">${sessions.results?.length || 0}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                  <p class="text-sm text-gray-600 mb-1">Eindeutige Benutzer</p>
+                  <p class="text-2xl font-bold text-blue-600">
+                    ${new Set(sessions.results?.map((s: any) => s.user_id)).size || 0}
+                  </p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                  <p class="text-sm text-gray-600 mb-1">Admin Sessions</p>
+                  <p class="text-2xl font-bold text-purple-600">
+                    ${sessions.results?.filter((s: any) => s.role === 'admin').length || 0}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Sessions Grid -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                ${sessions.results?.length > 0 ? sessions.results.map((session: any) => `
+                  <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-start justify-between mb-4">
+                      <div class="flex items-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                          <i class="fas fa-user text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                          <h3 class="font-semibold text-gray-900">
+                            ${session.first_name} ${session.last_name}
+                          </h3>
+                          <p class="text-sm text-gray-600">${session.email}</p>
+                          <span class="inline-block mt-1 px-2 py-1 text-xs rounded-full ${session.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}">
+                            ${session.role === 'admin' ? 'Administrator' : 'Benutzer'}
+                          </span>
+                        </div>
+                      </div>
+                      <button onclick="terminateSession('${session.session_token}')" 
+                              class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
+                        <i class="fas fa-power-off mr-1"></i>Beenden
+                      </button>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 pt-4 space-y-2">
+                      <div class="flex items-center text-sm">
+                        <i class="fas fa-clock text-gray-400 w-5"></i>
+                        <span class="text-gray-600">Letzte Aktivität:</span>
+                        <span class="ml-2 font-semibold text-gray-900">
+                          ${new Date(session.last_activity).toLocaleString('de-DE')}
+                        </span>
+                      </div>
+                      <div class="flex items-center text-sm">
+                        <i class="fas fa-network-wired text-gray-400 w-5"></i>
+                        <span class="text-gray-600">IP-Adresse:</span>
+                        <span class="ml-2 font-mono text-gray-900">${session.ip_address || '-'}</span>
+                      </div>
+                      <div class="flex items-start text-sm">
+                        <i class="fas fa-desktop text-gray-400 w-5 mt-1"></i>
+                        <span class="text-gray-600">Gerät:</span>
+                        <span class="ml-2 text-gray-900 flex-1 break-words">
+                          ${session.user_agent ? session.user_agent.substring(0, 50) + '...' : '-'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                `).join('') : `
+                  <div class="col-span-2 bg-white rounded-lg shadow p-12 text-center text-gray-500">
+                    <i class="fas fa-users-slash text-6xl mb-4"></i>
+                    <p class="text-xl">Keine aktiven Sessions</p>
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          function terminateSession(sessionToken) {
+            if (confirm('Möchten Sie diese Session wirklich beenden?')) {
+              alert('Session beenden - Feature wird implementiert')
+            }
+          }
+        </script>
+      </body>
+      </html>
+    `)
+  } catch (error) {
+    console.error('Error loading sessions:', error)
+    return c.html('<h1>Error loading sessions</h1>', 500)
+  }
+})
+
+// Placeholder routes for remaining security pages
+app.get('/admin/security/audit-log', async (c) => {
+  return c.html('<h1>Audit Log - Coming Soon</h1><p>Systemereignisse werden hier angezeigt</p>')
+})
+
+app.get('/admin/security/settings', async (c) => {
+  return c.html('<h1>Security Settings - Coming Soon</h1><p>Sicherheitseinstellungen konfigurieren</p>')
+})
+
+// ============================================================================
 // BATCH 9: PRODUCTS MANAGEMENT - 8 PAGES
 // ============================================================================
 
