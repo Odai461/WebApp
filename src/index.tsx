@@ -25,6 +25,8 @@ import { CMSPage } from './components/cms-page'
 import { AdminContactMessages } from './components/admin-contact-messages'
 import { AdminFooterSettings } from './components/admin-footer-settings'
 import { AdminPagesManagement } from './components/admin-pages-management'
+import { AdminDashboardAdvanced } from './components/admin-dashboard-advanced'
+import { AdminLicensesAdvanced } from './components/admin-licenses-advanced'
 import { 
   formatPrice, 
   generateOrderNumber, 
@@ -1903,11 +1905,7 @@ import { AdminTracking } from './components/admin-tracking'
 
 // Admin Dashboard
 app.get('/admin', (c) => {
-  return c.html(
-    <AdminLayout title="Dashboard" currentUser={{ first_name: 'Admin' }}>
-      <AdminDashboard />
-    </AdminLayout>
-  )
+  return c.html(<AdminDashboardAdvanced />)
 })
 
 // Products Management
@@ -2036,11 +2034,7 @@ app.get('/admin/certificates', (c) => {
 
 // License Key Management
 app.get('/admin/licenses', (c) => {
-  return c.html(
-    <AdminLayout title="License Keys" currentUser={{ first_name: 'Admin' }}>
-      <AdminLicenses />
-    </AdminLayout>
-  )
+  return c.html(<AdminLicensesAdvanced />)
 })
 
 app.get('/admin/licenses/import', (c) => {
@@ -3461,6 +3455,352 @@ app.delete('/api/admin/pages/:id', async (c) => {
   } catch (error) {
     console.error('Error deleting page:', error)
     return c.json({ success: false, error: 'Failed to delete page' }, 500)
+  }
+})
+
+// ============================================
+// API ROUTES: Dashboard Statistics
+// ============================================
+
+app.get('/api/admin/dashboard/stats', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    
+    // Today's orders
+    const ordersToday = await db.db.prepare(`
+      SELECT COUNT(*) as count, SUM(total_amount) as revenue
+      FROM orders
+      WHERE DATE(created_at) = DATE('now')
+    `).first()
+    
+    // Available licenses
+    const licenses = await db.db.prepare(`
+      SELECT COUNT(*) as available, 
+             SUM(CASE WHEN status = 'available' AND 
+                 (SELECT COUNT(*) FROM license_keys WHERE product_id = license_keys.product_id AND status = 'available') < 5 
+                 THEN 1 ELSE 0 END) as low_stock
+      FROM license_keys
+      WHERE status = 'available'
+    `).first()
+    
+    // New customers (last 7 days)
+    const customers = await db.db.prepare(`
+      SELECT COUNT(*) as new_customers,
+             (SELECT COUNT(*) FROM users) as total_customers
+      FROM users
+      WHERE created_at >= datetime('now', '-7 days')
+    `).first()
+    
+    return c.json({
+      success: true,
+      data: {
+        orders_today: ordersToday?.count || 0,
+        revenue_today: ordersToday?.revenue || 0,
+        available_licenses: licenses?.available || 0,
+        low_stock_count: licenses?.low_stock || 0,
+        new_customers_7d: customers?.new_customers || 0,
+        total_customers: customers?.total_customers || 0
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error)
+    return c.json({ success: false, error: 'Failed to fetch statistics' }, 500)
+  }
+})
+
+app.get('/api/admin/dashboard/charts', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    
+    // Revenue last 7 days
+    const revenue = await db.db.prepare(`
+      SELECT DATE(created_at) as date, SUM(total_amount) as revenue
+      FROM orders
+      WHERE created_at >= datetime('now', '-7 days')
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
+    `).all()
+    
+    // Top products
+    const products = await db.db.prepare(`
+      SELECT p.id, pt.name, COUNT(oi.id) as sales
+      FROM order_items oi
+      JOIN products p ON oi.product_id = p.id
+      JOIN product_translations pt ON p.id = pt.product_id AND pt.language = 'de'
+      WHERE oi.created_at >= datetime('now', '-30 days')
+      GROUP BY p.id
+      ORDER BY sales DESC
+      LIMIT 5
+    `).all()
+    
+    return c.json({
+      success: true,
+      data: {
+        revenue_labels: revenue.results.map((r: any) => r.date),
+        revenue_data: revenue.results.map((r: any) => r.revenue),
+        product_labels: products.results.map((p: any) => p.name),
+        product_data: products.results.map((p: any) => p.sales)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching charts:', error)
+    return c.json({ success: false, error: 'Failed to fetch chart data' }, 500)
+  }
+})
+
+// ============================================
+// API ROUTES: Advanced License Management
+// ============================================
+
+app.get('/api/admin/licenses/stats', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    
+    const stats = await db.db.prepare(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available,
+        SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold,
+        SUM(CASE WHEN status = 'expired' THEN 1 ELSE 0 END) as expired
+      FROM license_keys
+    `).first()
+    
+    return c.json({ success: true, data: stats })
+  } catch (error) {
+    console.error('Error fetching license stats:', error)
+    return c.json({ success: false, error: 'Failed to fetch stats' }, 500)
+  }
+})
+
+app.post('/api/admin/licenses/bulk', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const body = await c.req.json()
+    
+    const { product_id, license_keys, key_type, activation_limit } = body
+    
+    if (!product_id || !license_keys || !Array.isArray(license_keys)) {
+      return c.json({ success: false, error: 'Invalid data' }, 400)
+    }
+    
+    // Insert all licenses
+    for (const key of license_keys) {
+      await db.db.prepare(`
+        INSERT INTO license_keys (product_id, license_key, key_type, activation_limit, status)
+        VALUES (?, ?, ?, ?, 'available')
+      `).bind(product_id, key, key_type || 'single', activation_limit || 1).run()
+    }
+    
+    // Log activity
+    await db.db.prepare(`
+      INSERT INTO activity_log (action, entity_type, description)
+      VALUES ('import', 'license', 'Bulk imported ${license_keys.length} licenses')
+    `).run()
+    
+    // Create notification
+    await db.db.prepare(`
+      INSERT INTO notifications (type, title, message, priority)
+      VALUES ('license', 'Lizenzen importiert', '${license_keys.length} neue Lizenzschlüssel wurden hinzugefügt', 'normal')
+    `).run()
+    
+    return c.json({ success: true, message: `${license_keys.length} licenses imported successfully` })
+  } catch (error) {
+    console.error('Error bulk adding licenses:', error)
+    return c.json({ success: false, error: 'Failed to import licenses' }, 500)
+  }
+})
+
+app.post('/api/admin/licenses/bulk-delete', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const body = await c.req.json()
+    
+    const { license_ids } = body
+    if (!Array.isArray(license_ids)) {
+      return c.json({ success: false, error: 'Invalid data' }, 400)
+    }
+    
+    const placeholders = license_ids.map(() => '?').join(',')
+    await db.db.prepare(`
+      DELETE FROM license_keys WHERE id IN (${placeholders})
+    `).bind(...license_ids).run()
+    
+    return c.json({ success: true, message: 'Licenses deleted successfully' })
+  } catch (error) {
+    console.error('Error bulk deleting licenses:', error)
+    return c.json({ success: false, error: 'Failed to delete licenses' }, 500)
+  }
+})
+
+app.get('/api/admin/licenses/export', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    
+    const licenses = await db.db.prepare(`
+      SELECT lk.*, pt.name as product_name
+      FROM license_keys lk
+      LEFT JOIN products p ON lk.product_id = p.id
+      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.language = 'de'
+      ORDER BY lk.created_at DESC
+    `).all()
+    
+    // Generate CSV
+    const csv = [
+      'ID,Product,License Key,Type,Status,Activations,Limit,Created At',
+      ...licenses.results.map((l: any) => 
+        `${l.id},"${l.product_name}","${l.license_key}",${l.key_type},${l.status},${l.activation_count},${l.activation_limit},${l.created_at}`
+      )
+    ].join('\n')
+    
+    return new Response(csv, {
+      headers: {
+        'Content-Type': 'text/csv',
+        'Content-Disposition': 'attachment; filename="licenses.csv"'
+      }
+    })
+  } catch (error) {
+    console.error('Error exporting licenses:', error)
+    return c.json({ success: false, error: 'Failed to export licenses' }, 500)
+  }
+})
+
+// ============================================
+// API ROUTES: Notifications
+// ============================================
+
+app.get('/api/admin/notifications', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const { unread } = c.req.query()
+    
+    let query = 'SELECT * FROM notifications WHERE 1=1'
+    const params: any[] = []
+    
+    if (unread) {
+      query += ' AND is_read = 0'
+    }
+    
+    query += ' ORDER BY created_at DESC LIMIT 50'
+    
+    const notifications = await db.db.prepare(query).bind(...params).all()
+    
+    return c.json({ success: true, data: notifications.results })
+  } catch (error) {
+    console.error('Error fetching notifications:', error)
+    return c.json({ success: false, error: 'Failed to fetch notifications' }, 500)
+  }
+})
+
+app.patch('/api/admin/notifications/:id/read', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    
+    await db.db.prepare(`
+      UPDATE notifications
+      SET is_read = 1, read_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(id).run()
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error marking notification:', error)
+    return c.json({ success: false, error: 'Failed to update notification' }, 500)
+  }
+})
+
+app.delete('/api/admin/notifications/:id', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const id = c.req.param('id')
+    
+    await db.db.prepare(`DELETE FROM notifications WHERE id = ?`).bind(id).run()
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting notification:', error)
+    return c.json({ success: false, error: 'Failed to delete notification' }, 500)
+  }
+})
+
+// ============================================
+// API ROUTES: Activity Log
+// ============================================
+
+app.get('/api/admin/activity-log', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const { limit } = c.req.query()
+    
+    const activities = await db.db.prepare(`
+      SELECT * FROM activity_log
+      ORDER BY created_at DESC
+      LIMIT ?
+    `).bind(parseInt(limit || '50')).all()
+    
+    return c.json({ success: true, data: activities.results })
+  } catch (error) {
+    console.error('Error fetching activity log:', error)
+    return c.json({ success: false, error: 'Failed to fetch activity log' }, 500)
+  }
+})
+
+app.delete('/api/admin/activity-log', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    await db.db.prepare('DELETE FROM activity_log').run()
+    
+    return c.json({ success: true, message: 'Activity log cleared' })
+  } catch (error) {
+    console.error('Error clearing activity log:', error)
+    return c.json({ success: false, error: 'Failed to clear activity log' }, 500)
+  }
+})
+
+// ============================================
+// API ROUTES: System Settings
+// ============================================
+
+app.get('/api/admin/settings', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const { category } = c.req.query()
+    
+    let query = 'SELECT * FROM system_settings WHERE 1=1'
+    const params: any[] = []
+    
+    if (category) {
+      query += ' AND category = ?'
+      params.push(category)
+    }
+    
+    query += ' ORDER BY category, setting_key'
+    
+    const settings = await db.db.prepare(query).bind(...params).all()
+    
+    return c.json({ success: true, data: settings.results })
+  } catch (error) {
+    console.error('Error fetching settings:', error)
+    return c.json({ success: false, error: 'Failed to fetch settings' }, 500)
+  }
+})
+
+app.patch('/api/admin/settings/:key', async (c) => {
+  try {
+    const db = c.get('db') as DatabaseHelper
+    const key = c.req.param('key')
+    const body = await c.req.json()
+    
+    await db.db.prepare(`
+      UPDATE system_settings
+      SET setting_value = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE setting_key = ?
+    `).bind(body.setting_value, key).run()
+    
+    return c.json({ success: true, message: 'Setting updated successfully' })
+  } catch (error) {
+    console.error('Error updating setting:', error)
+    return c.json({ success: false, error: 'Failed to update setting' }, 500)
   }
 })
 
