@@ -19,7 +19,7 @@ import { CheckoutPage } from './components/checkout-page'
 import { OrderSuccessPage } from './components/order-success'
 import { UserDashboard } from './components/dashboard-overview'
 import { UserOrders } from './components/dashboard-orders'
-import { UserDashboard } from './components/user-dashboard'
+import { DashboardPage } from './components/dashboard'
 import { 
   formatPrice, 
   generateOrderNumber, 
@@ -271,8 +271,16 @@ app.get('/bestellung-erfolg', (c) => {
 // USER DASHBOARD ROUTES
 // ===========================
 
+app.get('/dashboard', (c) => {
+  return c.html(DashboardPage())
+})
+
 app.get('/konto', (c) => {
-  return c.html(UserDashboard())
+  return c.html(DashboardPage())
+})
+
+app.get('/account', (c) => {
+  return c.html(DashboardPage())
 })
 
 app.get('/konto/bestellungen', (c) => {
@@ -285,18 +293,6 @@ app.get('/konto/lizenzen', (c) => {
 
 app.get('/konto/profil', (c) => {
   return c.html(UserOrders()) // Placeholder
-})
-
-// ===========================
-// USER DASHBOARD ROUTES
-// ===========================
-
-app.get('/konto', (c) => {
-  return c.html(<UserDashboard />)
-})
-
-app.get('/account', (c) => {
-  return c.html(<UserDashboard />)
 })
 
 // ============================================

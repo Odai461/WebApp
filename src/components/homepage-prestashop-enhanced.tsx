@@ -604,13 +604,46 @@ export const HomepagePrestaShopEnhanced = () => {
 
                     <!-- Header Actions -->
                     <div class="flex items-center space-x-4">
-                        <a href="/login" class="flex items-center text-navy-dark hover:text-gold transition-colors">
+                        <!-- Login Button (shown when not logged in) -->
+                        <button onclick="authManager.showLoginModal()" data-auth-button="login" class="flex items-center text-navy-dark hover:text-gold transition-colors">
                             <i class="fas fa-user text-2xl"></i>
                             <div class="ml-2">
                                 <div class="text-xs text-gray-600">Anmelden</div>
                                 <div class="font-semibold">Mein Konto</div>
                             </div>
-                        </a>
+                        </button>
+                        
+                        <!-- User Menu (shown when logged in) -->
+                        <div data-user-menu class="relative" style="display: none;">
+                            <button onclick="toggleUserMenu()" class="flex items-center text-navy-dark hover:text-gold transition-colors">
+                                <i class="fas fa-user-circle text-2xl"></i>
+                                <div class="ml-2">
+                                    <div class="text-xs text-gray-600">Willkommen</div>
+                                    <div class="font-semibold" data-user-name>Benutzer</div>
+                                </div>
+                                <i class="fas fa-chevron-down ml-2 text-sm"></i>
+                            </button>
+                            
+                            <!-- Dropdown Menu -->
+                            <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                                <a href="/dashboard" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                                    <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                                </a>
+                                <a href="/konto/bestellungen" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                                    <i class="fas fa-shopping-bag mr-2"></i> Bestellungen
+                                </a>
+                                <a href="/konto/lizenzen" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                                    <i class="fas fa-key mr-2"></i> Lizenzen
+                                </a>
+                                <a href="/konto/profil" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                                    <i class="fas fa-user-edit mr-2"></i> Profil
+                                </a>
+                                <hr class="my-2">
+                                <button onclick="authManager.logout()" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> Abmelden
+                                </button>
+                            </div>
+                        </div>
                         
                         <a href="/warenkorb" class="relative flex items-center bg-navy-dark hover:bg-navy-medium text-white px-4 py-3 rounded-lg transition-all hover-lift">
                             <i class="fas fa-shopping-cart text-xl"></i>
@@ -2326,7 +2359,23 @@ export const HomepagePrestaShopEnhanced = () => {
             document.addEventListener('DOMContentLoaded', () => {
                 initScrollAnimations();
             });
+
+            // Toggle user dropdown menu
+            function toggleUserMenu() {
+                const dropdown = document.getElementById('user-dropdown');
+                dropdown.classList.toggle('hidden');
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                const userMenu = document.querySelector('[data-user-menu]');
+                const dropdown = document.getElementById('user-dropdown');
+                if (userMenu && dropdown && !userMenu.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
         </script>
+        <script src="/static/auth.js"></script>
     </body>
     </html>
   `;
