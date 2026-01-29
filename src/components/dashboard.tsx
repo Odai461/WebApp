@@ -84,7 +84,7 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <div class="bg-gradient-to-br from-green-400 to-green-600 text-white p-6 rounded-lg shadow-lg">
+      <div class="bg-gradient-to-br stat-card text-white p-6 rounded-lg shadow-lg">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-white text-opacity-80 text-sm mb-1">Lizenzen</p>
@@ -94,7 +94,7 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <div class="bg-gradient-to-br from-orange-400 to-pink-500 text-white p-6 rounded-lg shadow-lg">
+      <div class="bg-gradient-to-br stat-card text-white p-6 rounded-lg shadow-lg">
         <div>
           <p class="text-white text-opacity-80 text-sm mb-1">Gesamtausgaben</p>
           <p class="text-3xl font-bold" id="total-spent">€0</p>
@@ -140,7 +140,7 @@ export function DashboardPage() {
         <!-- Quick Actions -->
         <div class="bg-white rounded-lg shadow-md p-6 dashboard-card">
           <h2 class="text-xl font-bold mb-4 flex items-center">
-            <i class="fas fa-bolt mr-2 text-yellow-500"></i>
+            <i class="fas fa-bolt mr-2 text-gold"></i>
             Schnellzugriff
           </h2>
           
@@ -149,10 +149,10 @@ export function DashboardPage() {
               <i class="fas fa-shopping-cart mr-2 text-blue-600"></i> Produkte durchsuchen
             </a>
             <button onclick="showChangePassword()" class="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
-              <i class="fas fa-lock mr-2 text-green-600"></i> Passwort ändern
+              <i class="fas fa-lock mr-2 text-gold"></i> Passwort ändern
             </button>
             <a href="/support" class="block px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
-              <i class="fas fa-question-circle mr-2 text-purple-600"></i> Support kontaktieren
+              <i class="fas fa-question-circle mr-2 text-navy"></i> Support kontaktieren
             </a>
           </div>
         </div>
@@ -185,7 +185,7 @@ export function DashboardPage() {
         <div class="bg-white rounded-lg shadow-md p-6 dashboard-card">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-bold flex items-center">
-              <i class="fas fa-key mr-2 text-green-600"></i>
+              <i class="fas fa-key mr-2 text-gold"></i>
               Meine Lizenzen
             </h2>
           </div>
@@ -202,7 +202,7 @@ export function DashboardPage() {
         <div class="bg-white rounded-lg shadow-md p-6 dashboard-card">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-bold flex items-center">
-              <i class="fas fa-star mr-2 text-yellow-500"></i>
+              <i class="fas fa-star mr-2 text-gold"></i>
               Meine Bewertungen
             </h2>
           </div>
@@ -314,7 +314,7 @@ export function DashboardPage() {
                   <span class="font-semibold">Bestellung #\${order.id}</span>
                   <span class="text-sm text-gray-500 ml-2">\${new Date(order.date).toLocaleDateString('de-DE')}</span>
                 </div>
-                <span class="text-green-600 font-semibold">
+                <span class="text-gold font-semibold">
                   <i class="fas fa-check-circle mr-1"></i> Abgeschlossen
                 </span>
               </div>

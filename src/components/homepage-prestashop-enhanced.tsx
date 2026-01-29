@@ -13,6 +13,7 @@ export const HomepagePrestaShopEnhanced = () => {
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="/static/cart-manager-enhanced.js"></script>
         <link href="/static/search-autocomplete.css" rel="stylesheet" />
+        <link href="/static/auth_colors.css" rel="stylesheet" />
         <script src="/static/search-autocomplete.js" defer></script>
         <style>
             :root {

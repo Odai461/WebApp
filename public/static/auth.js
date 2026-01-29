@@ -54,16 +54,23 @@ class AuthManager {
     modal.id = 'auth-modal';
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
     modal.innerHTML = `
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
-        <button onclick="authManager.closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+      <style>
+        .text-gold { color: #d4af37 !important; }
+        .border-gold { border-color: #d4af37 !important; }
+        .bg-navy { background: linear-gradient(135deg, #1a2a4e 0%, #2d3e6f 100%) !important; }
+        .bg-navy:hover { opacity: 0.9; }
+        input:focus { border-color: #d4af37 !important; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1) !important; }
+      </style>
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative" style="border-top: 4px solid #d4af37;">
+        <button onclick="authManager.closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
           <i class="fas fa-times text-xl"></i>
         </button>
         
-        <div id="auth-tabs" class="flex border-b mb-6">
-          <button id="login-tab" class="flex-1 py-2 px-4 text-center font-semibold border-b-2 border-blue-600 text-blue-600" onclick="authManager.switchTab('login')">
+        <div id="auth-tabs" class="flex border-b border-gray-200 mb-6">
+          <button id="login-tab" class="flex-1 py-3 px-4 text-center font-semibold border-b-3 transition-all" style="border-bottom: 3px solid #d4af37; color: #1a2a4e;" onclick="authManager.switchTab('login')">
             Anmelden
           </button>
-          <button id="register-tab" class="flex-1 py-2 px-4 text-center font-semibold text-gray-600 hover:text-gray-800" onclick="authManager.switchTab('register')">
+          <button id="register-tab" class="flex-1 py-3 px-4 text-center font-semibold text-gray-600 hover:text-gray-800 transition-colors" onclick="authManager.switchTab('register')">
             Registrieren
           </button>
         </div>
@@ -76,35 +83,35 @@ class AuthManager {
             <div class="mb-4">
               <label class="block text-gray-700 font-semibold mb-2">E-Mail</label>
               <input type="email" id="login-email" required 
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-2 focus:border-transparent"
                 placeholder="ihre@email.de">
             </div>
 
             <div class="mb-4">
               <label class="block text-gray-700 font-semibold mb-2">Passwort</label>
               <input type="password" id="login-password" required 
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-2 focus:border-transparent"
                 placeholder="••••••••">
             </div>
 
             <div class="flex items-center justify-between mb-6">
               <label class="flex items-center">
-                <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <input type="checkbox" class="rounded border-gray-300 text-gold focus:ring-2">
                 <span class="ml-2 text-sm text-gray-600">Angemeldet bleiben</span>
               </label>
-              <a href="#" class="text-sm text-blue-600 hover:underline">Passwort vergessen?</a>
+              <a href="#" class="text-sm text-gold hover:underline">Passwort vergessen?</a>
             </div>
 
             <div id="login-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
 
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors">
+            <button type="submit" class="w-full bg-navy hover:opacity-90 text-white font-semibold py-3 rounded-lg transition-colors">
               Anmelden
             </button>
           </form>
 
           <p class="mt-4 text-center text-sm text-gray-600">
             Noch kein Konto? 
-            <a href="#" onclick="authManager.switchTab('register'); return false;" class="text-blue-600 hover:underline font-semibold">
+            <a href="#" onclick="authManager.switchTab('register'); return false;" class="font-semibold hover:underline transition-colors" style="color: #d4af37;">
               Jetzt registrieren
             </a>
           </p>
@@ -119,13 +126,13 @@ class AuthManager {
               <div>
                 <label class="block text-gray-700 font-semibold mb-2">Vorname</label>
                 <input type="text" id="register-firstname" required 
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-2 focus:border-transparent"
                   placeholder="Max">
               </div>
               <div>
                 <label class="block text-gray-700 font-semibold mb-2">Nachname</label>
                 <input type="text" id="register-lastname" required 
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-2 focus:border-transparent"
                   placeholder="Mustermann">
               </div>
             </div>
@@ -133,14 +140,14 @@ class AuthManager {
             <div class="mb-4">
               <label class="block text-gray-700 font-semibold mb-2">E-Mail</label>
               <input type="email" id="register-email" required 
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-2 focus:border-transparent"
                 placeholder="max@mustermann.de">
             </div>
 
             <div class="mb-4">
               <label class="block text-gray-700 font-semibold mb-2">Passwort</label>
               <input type="password" id="register-password" required minlength="8"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-2 focus:border-transparent"
                 placeholder="Min. 8 Zeichen">
               <p class="text-xs text-gray-500 mt-1">Mindestens 8 Zeichen</p>
             </div>
@@ -148,30 +155,30 @@ class AuthManager {
             <div class="mb-4">
               <label class="block text-gray-700 font-semibold mb-2">Passwort bestätigen</label>
               <input type="password" id="register-password-confirm" required minlength="8"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-2 focus:border-transparent"
                 placeholder="Passwort wiederholen">
             </div>
 
             <div class="mb-6">
               <label class="flex items-start">
-                <input type="checkbox" required class="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <input type="checkbox" required class="mt-1 rounded border-gray-300 text-gold focus:ring-2">
                 <span class="ml-2 text-sm text-gray-600">
-                  Ich akzeptiere die <a href="#" class="text-blue-600 hover:underline">AGB</a> und die 
-                  <a href="#" class="text-blue-600 hover:underline">Datenschutzerklärung</a>
+                  Ich akzeptiere die <a href="#" class="text-gold hover:underline">AGB</a> und die 
+                  <a href="#" class="text-gold hover:underline">Datenschutzerklärung</a>
                 </span>
               </label>
             </div>
 
             <div id="register-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
 
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors">
+            <button type="submit" class="w-full bg-navy hover:opacity-90 text-white font-semibold py-3 rounded-lg transition-colors">
               Konto erstellen
             </button>
           </form>
 
           <p class="mt-4 text-center text-sm text-gray-600">
             Bereits registriert? 
-            <a href="#" onclick="authManager.switchTab('login'); return false;" class="text-blue-600 hover:underline font-semibold">
+            <a href="#" onclick="authManager.switchTab('login'); return false;" class="font-semibold hover:underline transition-colors" style="color: #d4af37;">
               Jetzt anmelden
             </a>
           </p>
@@ -192,13 +199,13 @@ class AuthManager {
     const registerForm = document.getElementById('register-form');
 
     if (tab === 'login') {
-      loginTab.className = 'flex-1 py-2 px-4 text-center font-semibold border-b-2 border-blue-600 text-blue-600';
+      loginTab.className = 'flex-1 py-2 px-4 text-center font-semibold border-b-2 border-gold text-gold';
       registerTab.className = 'flex-1 py-2 px-4 text-center font-semibold text-gray-600 hover:text-gray-800';
       loginForm.classList.remove('hidden');
       registerForm.classList.add('hidden');
     } else {
       loginTab.className = 'flex-1 py-2 px-4 text-center font-semibold text-gray-600 hover:text-gray-800';
-      registerTab.className = 'flex-1 py-2 px-4 text-center font-semibold border-b-2 border-blue-600 text-blue-600';
+      registerTab.className = 'flex-1 py-2 px-4 text-center font-semibold border-b-2 border-gold text-gold';
       loginForm.classList.add('hidden');
       registerForm.classList.remove('hidden');
     }
@@ -497,3 +504,11 @@ const authManager = new AuthManager();
 document.addEventListener('DOMContentLoaded', () => {
   authManager.updateUI();
 });
+stener('DOMContentLoaded', () => {
+  authManager.updateUI();
+});
+;
+stener('DOMContentLoaded', () => {
+  authManager.updateUI();
+});
+;
