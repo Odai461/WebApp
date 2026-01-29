@@ -3811,10 +3811,88 @@ import { AdminDelivery } from './components/admin-delivery'
 import { AdminOrderManagement } from './components/admin-order-management-full'
 import { AdminTracking } from './components/admin-tracking'
 
+// ============================================
+// ADMIN PANEL ROUTES - CORE BUSINESS FUNCTIONS
+// ============================================
+
 // Admin Dashboard
 app.get('/admin', (c) => {
   const html = AdminDashboardAdvanced()
   return c.html(html)
+})
+
+// Orders Management
+app.get('/admin/orders', (c) => {
+  const html = AdminOrdersAdvanced()
+  return c.html(html)
+})
+
+// Customers Management
+app.get('/admin/customers', (c) => {
+  const html = AdminCustomersAdvanced()
+  return c.html(html)
+})
+
+// License Management
+app.get('/admin/licenses', (c) => {
+  const html = AdminLicensesAdvanced()
+  return c.html(html)
+})
+
+// Settings
+app.get('/admin/settings', (c) => {
+  const html = AdminSettingsAdvanced()
+  return c.html(html)
+})
+
+// Notifications
+app.get('/admin/notifications', (c) => {
+  const html = AdminNotificationsAdvanced()
+  return c.html(html)
+})
+
+// Email Templates
+app.get('/admin/email-templates', (c) => {
+  const html = AdminEmailTemplates()
+  return c.html(html)
+})
+
+// Cookies Management
+app.get('/admin/cookies', (c) => {
+  const html = AdminCookies()
+  return c.html(html)
+})
+
+// Reports
+app.get('/admin/reports', (c) => {
+  const html = AdminReports()
+  return c.html(html)
+})
+
+// Tracking
+app.get('/admin/tracking', (c) => {
+  const html = AdminTracking()
+  return c.html(html)
+})
+
+// Delivery
+app.get('/admin/delivery', (c) => {
+  const html = AdminDelivery()
+  return c.html(html)
+})
+
+// Analytics
+app.get('/admin/analytics', (c) => {
+  return c.html(
+    <AdminLayout title="Analytics Dashboard" currentUser={{ first_name: 'Admin' }}>
+      <div dangerouslySetInnerHTML={{__html: `
+        <style>
+          .admin-content { padding: 0 !important; }
+        </style>
+      `}} />
+      <div dangerouslySetInnerHTML={{__html: AdminAnalyticsEnhanced()}} />
+    </AdminLayout>
+  )
 })
 
 // Admin Advanced Sidebar Demo
