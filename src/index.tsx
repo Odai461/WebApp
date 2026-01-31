@@ -19688,8 +19688,9 @@ Sitemap: https://softwareking24.de/sitemap.xml</textarea>
 })
 
 // ============================================
-// REVIEWS MANAGEMENT PAGE
+// REVIEWS MANAGEMENT PAGE - OLD ROUTE (Commented out to use dynamic handler)
 // ============================================
+/*
 app.get('/admin/reviews', async (c) => {
   try {
     const { env } = c;
@@ -19938,6 +19939,7 @@ app.get('/admin/reviews', async (c) => {
     `, 500)
   }
 })
+*/
 // ============================================
 // FOOTER SETTINGS PAGE
 // ============================================

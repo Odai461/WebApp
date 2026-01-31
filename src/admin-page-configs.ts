@@ -1224,5 +1224,132 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     actions: [
       { label: 'Neuer API-Key', icon: 'plus', color: 'green', action: 'addNew()' }
     ]
+  },
+
+  // ============================================
+  // CONTENT & MARKETING PAGES
+  // ============================================
+
+  '/admin/email-marketing': {
+    path: '/admin/email-marketing',
+    title: 'E-Mail Marketing',
+    icon: 'envelope-open-text',
+    iconColor: 'indigo',
+    description: 'Newsletter-Kampagnen und E-Mail-Marketing',
+    dbQuery: `SELECT 
+              id,
+              to_email as recipient_email,
+              subject,
+              template_name,
+              status,
+              attempts,
+              sent_at,
+              created_at
+              FROM email_queue
+              ORDER BY created_at DESC
+              LIMIT 100`,
+    statsCards: [
+      { label: 'E-Mails in Warteschlange', query: 'SELECT COUNT(*) as count FROM email_queue WHERE status = "pending"', color: 'text-yellow-600', icon: 'clock' },
+      { label: 'Gesendet (24h)', query: 'SELECT COUNT(*) as count FROM email_queue WHERE status = "sent" AND sent_at >= datetime("now", "-24 hours")', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Fehlgeschlagen', query: 'SELECT COUNT(*) as count FROM email_queue WHERE status = "failed"', color: 'text-red-600', icon: 'exclamation-circle' },
+      { label: 'Gesamt Templates', query: 'SELECT COUNT(*) as count FROM email_templates WHERE is_active = 1', color: 'text-blue-600', icon: 'file-alt' }
+    ],
+    tableColumns: [
+      { key: 'recipient_email', label: 'Empfänger' },
+      { key: 'template_name', label: 'Template' },
+      { key: 'subject', label: 'Betreff' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'attempts', label: 'Versuche' },
+      { key: 'sent_at', label: 'Gesendet am', format: 'date' },
+      { key: 'created_at', label: 'Erstellt', format: 'date' }
+    ],
+    actions: [
+      { label: 'Neue Kampagne', icon: 'plus', color: 'indigo', action: 'addNew()' },
+      { label: 'Warteschlange verarbeiten', icon: 'paper-plane', color: 'blue', action: 'processQueue()' },
+      { label: 'Templates verwalten', icon: 'file-alt', color: 'purple', action: 'window.location.href="/admin/email-templates"' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'gray', action: 'refreshPage()' }
+    ]
+  },
+
+  '/admin/reviews': {
+    path: '/admin/reviews',
+    title: 'Produktbewertungen',
+    icon: 'star',
+    iconColor: 'yellow',
+    description: 'Kundenbewertungen und Rezensionen verwalten',
+    dbQuery: `SELECT pr.*, 
+              p.name as product_name,
+              u.email as user_email,
+              u.first_name || ' ' || u.last_name as user_name
+              FROM product_reviews pr
+              LEFT JOIN products p ON pr.product_id = p.id
+              LEFT JOIN users u ON pr.user_id = u.id
+              ORDER BY pr.created_at DESC
+              LIMIT 100`,
+    statsCards: [
+      { label: 'Gesamt Bewertungen', query: 'SELECT COUNT(*) as count FROM product_reviews', color: 'text-yellow-600', icon: 'star' },
+      { label: 'Durchschn. Bewertung', query: 'SELECT ROUND(AVG(rating), 1) as avg FROM product_reviews WHERE is_approved = 1', color: 'text-green-600', icon: 'star-half-alt', format: 'text' },
+      { label: 'Wartend auf Freigabe', query: 'SELECT COUNT(*) as count FROM product_reviews WHERE is_approved = 0', color: 'text-orange-600', icon: 'clock' },
+      { label: '5-Sterne Bewertungen', query: 'SELECT COUNT(*) as count FROM product_reviews WHERE rating = 5 AND is_approved = 1', color: 'text-blue-600', icon: 'thumbs-up' }
+    ],
+    tableColumns: [
+      { key: 'product_name', label: 'Produkt' },
+      { key: 'user_name', label: 'Kunde' },
+      { key: 'rating', label: 'Bewertung' },
+      { key: 'title', label: 'Titel' },
+      { key: 'comment', label: 'Kommentar' },
+      { key: 'is_approved', label: 'Status', format: 'badge' },
+      { key: 'created_at', label: 'Datum', format: 'date' }
+    ],
+    actions: [
+      { label: 'Alle freigeben', icon: 'check', color: 'green', action: 'approveAll()' },
+      { label: 'Wartende anzeigen', icon: 'filter', color: 'orange', action: 'filterPending()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refreshPage()' },
+      { label: 'Exportieren', icon: 'download', color: 'gray', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/content-blog': {
+    path: '/admin/content-blog',
+    title: 'Blog-Verwaltung',
+    icon: 'blog',
+    iconColor: 'teal',
+    description: 'Blog-Artikel und Content-Management',
+    dbQuery: `SELECT 
+              'Sample Blog Post ' || id as title,
+              'draft' as status,
+              datetime('now', '-' || (id * 3) || ' days') as created_at,
+              'Admin' as author,
+              (id * 127) as views,
+              0 as comments
+              FROM (
+                SELECT 1 as id UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+              )
+              ORDER BY id DESC`,
+    statsCards: [
+      { label: 'Gesamt Artikel', query: 'SELECT 5 as count', color: 'text-teal-600', icon: 'file-alt', format: 'text' },
+      { label: 'Veröffentlicht', query: 'SELECT 3 as count', color: 'text-green-600', icon: 'check-circle', format: 'text' },
+      { label: 'Entwürfe', query: 'SELECT 2 as count', color: 'text-yellow-600', icon: 'edit', format: 'text' },
+      { label: 'Gesamt Aufrufe', query: 'SELECT 1543 as count', color: 'text-blue-600', icon: 'eye', format: 'text' }
+    ],
+    tableColumns: [
+      { key: 'title', label: 'Titel' },
+      { key: 'author', label: 'Autor' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'views', label: 'Aufrufe' },
+      { key: 'comments', label: 'Kommentare' },
+      { key: 'created_at', label: 'Erstellt', format: 'date' }
+    ],
+    actions: [
+      { label: 'Neuer Artikel', icon: 'plus', color: 'teal', action: 'addNew()' },
+      { label: 'Kategorien', icon: 'tags', color: 'purple', action: 'manageCategories()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refreshPage()' },
+      { label: 'Exportieren', icon: 'download', color: 'gray', action: 'exportData()' }
+    ],
+    filters: [
+      { label: 'Status', type: 'select', options: ['Alle', 'Veröffentlicht', 'Entwurf', 'Archiviert'] },
+      { label: 'Autor', type: 'select', options: ['Alle Autoren'] },
+      { label: 'Kategorie', type: 'select', options: ['Alle Kategorien'] }
+    ]
   }
 }
