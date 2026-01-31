@@ -57,10 +57,11 @@ export function HomepageSimple() {
         
         /* Top Bar */
         .top-bar {
-            background: var(--navy);
+            background: #001122;
             color: white;
-            padding: 10px 0;
-            font-size: 14px;
+            padding: 12px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,193,7,0.2);
         }
         
         .top-bar-content {
@@ -91,11 +92,12 @@ export function HomepageSimple() {
         
         /* Header */
         .header {
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: #002244;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             position: sticky;
             top: 0;
             z-index: 1000;
+            color: white;
         }
         
         .header-content {
@@ -110,8 +112,14 @@ export function HomepageSimple() {
         .logo {
             font-size: 1.8rem;
             font-weight: bold;
-            color: var(--navy);
+            color: white;
             text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .logo:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
         }
         
         .search-bar {
@@ -123,24 +131,36 @@ export function HomepageSimple() {
         
         .search-input {
             flex: 1;
-            padding: 12px 20px;
-            border: 2px solid var(--border);
-            border-radius: 25px;
-            font-size: 14px;
+            padding: 14px 24px;
+            border: 2px solid rgba(255,193,7,0.3);
+            border-radius: 30px;
+            font-size: 0.95rem;
+            background: rgba(255,255,255,0.95);
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(255,193,7,0.1);
         }
         
         .search-btn {
-            padding: 12px 30px;
-            background: var(--navy);
-            color: white;
+            padding: 14px 32px;
+            background: var(--gold);
+            color: #001933;
             border: none;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(255,193,7,0.3);
         }
         
         .search-btn:hover {
-            background: var(--navy-medium);
+            background: #FFD54F;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,193,7,0.4);
         }
         
         .header-actions {
@@ -150,38 +170,43 @@ export function HomepageSimple() {
         }
         
         .cart-btn {
-            padding: 12px 24px;
-            background: var(--navy);
-            color: white;
+            padding: 14px 28px;
+            background: var(--gold);
+            color: #001933;
             border: none;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: 600;
+            gap: 10px;
+            font-weight: 700;
             text-decoration: none;
             transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(255,193,7,0.3);
         }
         
         .cart-btn:hover {
-            background: var(--navy-medium);
-            transform: translateY(-2px);
+            background: #FFD54F;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(255,193,7,0.4);
         }
         
         .cart-count {
-            background: var(--gold);
-            color: var(--navy);
+            background: #001933;
+            color: var(--gold);
             border-radius: 50%;
-            padding: 2px 8px;
-            font-size: 13px;
-            font-weight: bold;
+            padding: 4px 10px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            min-width: 24px;
+            text-align: center;
         }
         
         /* Navigation */
         .navigation {
-            background: var(--light-gray);
-            border-bottom: 1px solid var(--border);
+            background: #001933;
+            border-bottom: 2px solid rgba(255,193,7,0.2);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         
         .nav-container {
@@ -197,22 +222,85 @@ export function HomepageSimple() {
         }
         
         #main-navigation a {
-            color: var(--navy);
+            color: rgba(255,255,255,0.9);
             text-decoration: none;
-            padding: 15px 20px;
+            padding: 16px 24px;
             display: block;
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-size: 0.95rem;
         }
         
         #main-navigation a:hover {
-            background: var(--navy);
-            color: white;
+            background: rgba(255,193,7,0.1);
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+        
+        #main-navigation a.active {
+            background: rgba(255,193,7,0.15);
+            color: var(--gold);
+            border-bottom-color: var(--gold);
         }
         
         /* Dynamic Sections Container */
         #dynamic-sections {
             min-height: 400px;
+            background: #f8f9fa;
+        }
+        
+        /* Section General Styles */
+        section {
+            transition: all 0.3s;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: var(--gold);
+            color: #001933;
+            padding: 14px 32px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(255,193,7,0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary:hover {
+            background: #FFD54F;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,193,7,0.4);
+        }
+        
+        .btn-secondary {
+            background: #001933;
+            color: white;
+            padding: 14px 32px;
+            border-radius: 30px;
+            border: 2px solid rgba(255,193,7,0.3);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-secondary:hover {
+            background: #002244;
+            border-color: var(--gold);
+            color: var(--gold);
+            transform: translateY(-2px);
         }
         
         /* Footer */
@@ -329,19 +417,24 @@ export function HomepageSimple() {
         <div class="container">
             <div class="top-bar-content">
                 <div class="top-bar-left">
-                    <a href="tel:+4912345678" class="top-bar-link">
+                    <a href="tel:+4908000008124" class="top-bar-link">
                         <i class="fas fa-phone"></i>
-                        +49 (0) 123 456 789
+                        <strong>0800 000 812 4</strong> - 24/7 Support
                     </a>
-                    <a href="mailto:info@softwareking24.de" class="top-bar-link">
+                    <a href="mailto:support@softwareking24.de" class="top-bar-link">
                         <i class="fas fa-envelope"></i>
-                        info@softwareking24.de
+                        support@softwareking24.de
                     </a>
                 </div>
                 <div class="top-bar-right">
                     <a href="/login" class="top-bar-link">
                         <i class="fas fa-user"></i>
-                        Login
+                        Mein Konto
+                    </a>
+                    <span style="opacity: 0.5; margin: 0 10px;">|</span>
+                    <a href="/kontakt" class="top-bar-link">
+                        <i class="fas fa-headset"></i>
+                        Hilfe & Support
                     </a>
                 </div>
             </div>
