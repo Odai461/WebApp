@@ -1,5 +1,5 @@
 export function AdminSidebarWorking(currentPath: string = '/admin') {
-  // ONLY WORKING PAGES - 14 functional admin pages
+  // ONLY WORKING PAGES - 15 functional admin pages
   const menuStructure = [
     {
       id: 'dashboard',
@@ -56,6 +56,14 @@ export function AdminSidebarWorking(currentPath: string = '/admin') {
       icon: 'percent',
       children: [
         { path: '/admin/vat-id-validation', label: 'VAT-ID Prüfung', icon: 'id-card' }
+      ]
+    },
+    {
+      id: 'support',
+      label: 'Support',
+      icon: 'life-ring',
+      children: [
+        { path: '/admin/tickets', label: 'Support-Tickets', icon: 'ticket-alt' }
       ]
     }
   ];

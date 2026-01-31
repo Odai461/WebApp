@@ -1280,12 +1280,75 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
   // ============================================
   // SUPPORT SECTION
   // ============================================
+  '/admin/tickets': {
+    path: '/admin/tickets',
+    title: 'Support-Tickets',
+    icon: 'life-ring',
+    iconColor: 'orange',
+    description: 'Kundensupport und Ticket-System',
+    dbQuery: `
+      SELECT 
+        ticket_number as ticket_id,
+        subject,
+        customer_name as customer,
+        customer_email,
+        category,
+        priority,
+        status,
+        created_at,
+        updated_at,
+        (SELECT COUNT(*) FROM ticket_messages WHERE ticket_id = support_tickets.id) as message_count
+      FROM support_tickets 
+      ORDER BY 
+        CASE priority 
+          WHEN 'high' THEN 1 
+          WHEN 'medium' THEN 2 
+          WHEN 'low' THEN 3 
+        END,
+        created_at DESC
+    `,
+    statsCards: [
+      { 
+        label: 'Offene Tickets', 
+        color: 'text-orange-600', 
+        icon: 'envelope-open',
+        dbQuery: "SELECT COUNT(*) as count FROM support_tickets WHERE status = 'open'"
+      },
+      { 
+        label: 'In Bearbeitung', 
+        color: 'text-blue-600', 
+        icon: 'spinner',
+        dbQuery: "SELECT COUNT(*) as count FROM support_tickets WHERE status = 'in_progress'"
+      },
+      { 
+        label: 'Geschlossen (heute)', 
+        color: 'text-green-600', 
+        icon: 'check',
+        dbQuery: "SELECT COUNT(*) as count FROM support_tickets WHERE status = 'closed' AND date(closed_at) = date('now')"
+      }
+    ],
+    tableColumns: [
+      { key: 'ticket_id', label: 'Ticket #' },
+      { key: 'subject', label: 'Betreff' },
+      { key: 'customer', label: 'Kunde' },
+      { key: 'category', label: 'Kategorie' },
+      { key: 'priority', label: 'Priorität', format: 'badge' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'message_count', label: 'Nachrichten' },
+      { key: 'created_at', label: 'Erstellt', format: 'date' }
+    ],
+    actions: [
+      { label: 'Neues Ticket', icon: 'plus', color: 'green', action: 'addNew()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refreshPage()' }
+    ]
+  },
+
   '/admin/support': {
     path: '/admin/support',
     title: 'Support-Tickets',
     icon: 'life-ring',
     iconColor: 'orange',
-    description: 'Kundensupport und Ticket-System',
+    description: 'Kundensupport und Ticket-System (Legacy - use /admin/tickets)',
     statsCards: [
       { label: 'Offene Tickets', color: 'text-orange-600', icon: 'envelope-open' },
       { label: 'In Bearbeitung', color: 'text-blue-600', icon: 'spinner' },
