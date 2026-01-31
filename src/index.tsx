@@ -21886,3 +21886,77 @@ app.get('/api/admin/firewall/stats', async (c) => {
   }
 })
 
+
+// Enhanced Firewall Admin Page (overrides dynamic handler)
+import { FirewallAdminPage } from './components/firewall-admin-page'
+
+app.get('/admin/firewall/enhanced', async (c) => {
+  try {
+    const { env } = c
+
+    // Get all data needed for the page
+    const [stats, blockedIPs, rules, threatPatterns, settings] = await Promise.all([
+      // Stats
+      (async () => {
+        const [activeRules, blockedIPsCount, events24h, threatPatterns] = await Promise.all([
+          env.DB.prepare('SELECT COUNT(*) as count FROM firewall_rules WHERE is_active = 1').first(),
+          env.DB.prepare('SELECT COUNT(*) as count FROM blocked_ips WHERE is_active = 1').first(),
+          env.DB.prepare('SELECT COUNT(*) as count FROM security_events WHERE created_at >= datetime("now", "-24 hours") AND is_blocked = 1').first(),
+          env.DB.prepare('SELECT COUNT(*) as count FROM threat_patterns WHERE is_active = 1').first()
+        ])
+
+        const topAttackTypes = await env.DB.prepare(`
+          SELECT attack_type, COUNT(*) as count 
+          FROM security_events 
+          WHERE created_at >= datetime("now", "-7 days")
+          GROUP BY attack_type 
+          ORDER BY count DESC 
+          LIMIT 5
+        `).all()
+
+        return {
+          activeRules: (activeRules as any)?.count || 0,
+          blockedIPs: (blockedIPsCount as any)?.count || 0,
+          events24h: (events24h as any)?.count || 0,
+          threatPatterns: (threatPatterns as any)?.count || 0,
+          topAttackTypes: (topAttackTypes as any).results || []
+        }
+      })(),
+
+      // Blocked IPs
+      env.DB.prepare(`
+        SELECT bi.*, 
+        (SELECT COUNT(*) FROM security_events WHERE ip_address = bi.ip_address AND created_at >= datetime('now', '-24 hours')) as recent_attempts
+        FROM blocked_ips bi
+        WHERE bi.is_active = 1
+        ORDER BY bi.created_at DESC
+        LIMIT 100
+      `).all().then(r => r.results || []),
+
+      // Rules
+      env.DB.prepare('SELECT * FROM firewall_rules WHERE is_active = 1 ORDER BY created_at DESC').all().then(r => r.results || []),
+
+      // Threat Patterns
+      env.DB.prepare('SELECT * FROM threat_patterns WHERE is_active = 1 ORDER BY severity DESC').all().then(r => r.results || []),
+
+      // Settings
+      env.DB.prepare('SELECT * FROM firewall_settings ORDER BY category, setting_key').all().then(r => r.results || [])
+    ])
+
+    const html = FirewallAdminPage({
+      stats,
+      blockedIPs,
+      rules,
+      threatPatterns,
+      settings,
+      sidebar: AdminSidebarAdvanced('/admin/firewall')
+    })
+
+    return c.html(html)
+
+  } catch (error: any) {
+    console.error('Firewall page error:', error)
+    return c.html(`<h1>Fehler</h1><pre>${error.message}</pre>`, 500)
+  }
+})
+
