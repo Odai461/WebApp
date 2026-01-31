@@ -1,6 +1,6 @@
-import { AdminSidebarMerged } from './admin-sidebar-merged'
+import { AdminSidebarAdvanced } from './admin-sidebar-advanced'
 
-// MERGED SIDEBAR: All sections with working pages marked (✅ = functional, 🔨 = placeholder)
+// Using the FULL STYLE advanced sidebar (with search, professional design)
 export function AdminSidebar(currentPath: string = '/admin') {
-  return AdminSidebarMerged(currentPath);
+  return AdminSidebarAdvanced(currentPath);
 }
