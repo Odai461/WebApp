@@ -306,7 +306,7 @@ export function HomepageSimple() {
         <div class="container">
             <div class="header-content">
                 <a href="/" class="logo">
-                    <span style="color: var(--navy);">SOFTWARE</span><span style="color: var(--gold);">KING24</span>
+                    <img src="/static/logo.png" alt="SOFTWAREKING24" style="height: 50px; width: auto;">
                 </a>
                 
                 <div class="search-bar">
