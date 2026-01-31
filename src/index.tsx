@@ -18,6 +18,10 @@ import { HomepageAdvancedFinal } from './components/homepage-advanced-final'
 import { HomepageSimple } from './components/homepage-simple'
 import { ModernPreviewPage } from './components/modern-preview-page'
 import { HomepageCompleteUltimate } from './components/homepage-complete-ultimate'
+// Temporary imports for preview - DELETE after choosing homepage
+// import { HomepageDynamicProfessional } from './components/homepage-dynamic-professional' // HAS SYNTAX ERROR
+import { HomepageLuxuryComplete } from './components/homepage-luxury-complete'
+import { HomepageUltraProfessional } from './components/homepage-ultra-professional'
 import { BundleDealsPage } from './components/bundle-deals-page'
 import { VolumeDiscountPage } from './components/volume-discount-page'
 import { ProductDetailPage } from './components/product-detail'
@@ -269,6 +273,416 @@ app.get('/', (c) => {
 
 app.get('/de', (c) => {
   return c.html(HomepageSimple())
+})
+
+// ============================================
+// HOMEPAGE PREVIEW ROUTES - FOR TESTING ONLY
+// Delete after choosing your homepage!
+// ============================================
+
+// 1. Current Active Homepage (homepage-simple.tsx - 52KB)
+app.get('/preview/homepage-simple', (c) => {
+  return c.html(HomepageSimple())
+})
+
+// 2. Advanced Final (homepage-advanced-final.tsx - 40KB)
+app.get('/preview/homepage-advanced-final', (c) => {
+  return c.html(HomepageAdvancedFinal())
+})
+
+// 3. Complete Ultimate (homepage-complete-ultimate.tsx - 92KB)
+app.get('/preview/homepage-complete-ultimate', (c) => {
+  return c.html(HomepageCompleteUltimate())
+})
+
+// 4. Dynamic Professional (homepage-dynamic-professional.tsx - 84KB)
+app.get('/preview/homepage-dynamic-professional', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Homepage Dynamic Professional - BROKEN</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-50">
+      <div class="container mx-auto px-4 py-8">
+        <div class="bg-red-100 border-l-4 border-red-500 p-4 mb-6">
+          <p class="text-red-700"><strong>❌ This component has syntax errors and cannot be previewed</strong></p>
+          <p class="text-sm">File: src/components/homepage-dynamic-professional.tsx (84KB)</p>
+          <p class="text-sm mt-2">Error: Expected ";" but found "class" at line 751</p>
+        </div>
+        <a href="/preview/homepages" class="text-blue-600 hover:underline">← Back to Homepage Gallery</a>
+      </div>
+    </body>
+    </html>
+  `)
+})
+
+// 5. Luxury Complete (homepage-luxury-complete.tsx - 36KB)
+app.get('/preview/homepage-luxury-complete', (c) => {
+  return c.html(HomepageLuxuryComplete())
+})
+
+// 6. PrestaShop Enhanced (homepage-prestashop-enhanced.tsx - 148KB - LARGEST!)
+app.get('/preview/homepage-prestashop-enhanced', (c) => {
+  return c.html(HomepagePrestaShopEnhanced())
+})
+
+// 7. PrestaShop VIP (homepage-prestashop-vip.tsx - 80KB)
+app.get('/preview/homepage-prestashop-vip', (c) => {
+  return c.html(HomepagePrestaShopVIP())
+})
+
+// 8. Softwareking Final (homepage-softwareking-final.tsx - 36KB)
+app.get('/preview/homepage-softwareking-final', (c) => {
+  return c.html(HomepageSoftwarekingFinal())
+})
+
+// 9. Softwareking24 (homepage-softwareking24.tsx - 28KB)
+app.get('/preview/homepage-softwareking24', (c) => {
+  return c.html(HomepageSoftwareking24())
+})
+
+// 10. Ultra Professional (homepage-ultra-professional.tsx - 64KB)
+app.get('/preview/homepage-ultra-professional', (c) => {
+  return c.html(HomepageUltraProfessional())
+})
+
+// 11. VIP Luxury (homepage-vip-luxury.tsx - 56KB)
+app.get('/preview/homepage-vip-luxury', (c) => {
+  return c.html(HomepageVIPLuxury())
+})
+
+// ============================================
+// HOMEPAGE PREVIEW INDEX - Easy Navigation
+// ============================================
+app.get('/preview/homepages', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Homepage Preview Gallery - Choose Your Design</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+      <style>
+        .preview-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+        .preview-card {
+          transition: all 0.3s ease;
+        }
+        .size-badge {
+          font-size: 0.75rem;
+          padding: 0.25rem 0.5rem;
+          border-radius: 9999px;
+        }
+      </style>
+    </head>
+    <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen py-8">
+      <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-12">
+          <h1 class="text-4xl font-bold text-gray-900 mb-4">
+            <i class="fas fa-palette mr-3"></i>Homepage Design Gallery
+          </h1>
+          <p class="text-gray-600 text-lg">Preview all 11 homepage designs and choose your favorite</p>
+          <div class="mt-4 inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-4 py-2 rounded-lg">
+            <i class="fas fa-info-circle text-blue-600"></i>
+            <span class="text-blue-800">Currently active: <strong>homepage-simple</strong></span>
+          </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-blue-600">11</div>
+            <div class="text-gray-600 text-sm">Total Designs</div>
+          </div>
+          <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-green-600">824KB</div>
+            <div class="text-gray-600 text-sm">Total Size</div>
+          </div>
+          <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-red-600">10</div>
+            <div class="text-gray-600 text-sm">Unused Files</div>
+          </div>
+          <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div class="text-3xl font-bold text-purple-600">~30%</div>
+            <div class="text-gray-600 text-sm">Potential Savings</div>
+          </div>
+        </div>
+
+        <!-- Preview Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <!-- 1. Homepage Simple (CURRENT) -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden border-4 border-green-500">
+            <div class="bg-green-500 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold"><i class="fas fa-check-circle mr-2"></i>CURRENTLY ACTIVE</span>
+              <span class="size-badge bg-green-700">52KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">1. Homepage Simple</h3>
+              <p class="text-gray-600 text-sm mb-4">Clean, modern design with dynamic sections from database</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Dynamic</span>
+                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">12 Sections</span>
+                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">DB-Driven</span>
+              </div>
+              <a href="/preview/homepage-simple" target="_blank" 
+                 class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 2. PrestaShop Enhanced (LARGEST) -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden border-2 border-red-300">
+            <div class="bg-red-500 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold"><i class="fas fa-exclamation-triangle mr-2"></i>LARGEST FILE</span>
+              <span class="size-badge bg-red-700">148KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">2. PrestaShop Enhanced</h3>
+              <p class="text-gray-600 text-sm mb-4">Full-featured eCommerce design (PrestaShop style)</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Heavy</span>
+                <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">148KB</span>
+              </div>
+              <a href="/preview/homepage-prestashop-enhanced" target="_blank" 
+                 class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 3. Complete Ultimate -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-700 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold">Complete Ultimate</span>
+              <span class="size-badge bg-gray-800">92KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">3. Complete Ultimate</h3>
+              <p class="text-gray-600 text-sm mb-4">Comprehensive design with all features</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Large</span>
+              </div>
+              <a href="/preview/homepage-complete-ultimate" target="_blank" 
+                 class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 4. Dynamic Professional -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-700 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold">Dynamic Professional</span>
+              <span class="size-badge bg-gray-800">84KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">4. Dynamic Professional</h3>
+              <p class="text-gray-600 text-sm mb-4">Professional business design (not imported)</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Not Imported</span>
+              </div>
+              <a href="/preview/homepage-dynamic-professional" target="_blank" 
+                 class="block w-full bg-gray-600 hover:bg-gray-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 5. PrestaShop VIP -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-700 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold">PrestaShop VIP</span>
+              <span class="size-badge bg-gray-800">80KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">5. PrestaShop VIP</h3>
+              <p class="text-gray-600 text-sm mb-4">VIP luxury eCommerce design</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Premium</span>
+              </div>
+              <a href="/preview/homepage-prestashop-vip" target="_blank" 
+                 class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 6. Ultra Professional -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-700 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold">Ultra Professional</span>
+              <span class="size-badge bg-gray-800">64KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">6. Ultra Professional</h3>
+              <p class="text-gray-600 text-sm mb-4">Ultra-clean professional layout (not imported)</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Not Imported</span>
+              </div>
+              <a href="/preview/homepage-ultra-professional" target="_blank" 
+                 class="block w-full bg-gray-600 hover:bg-gray-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 7. VIP Luxury -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-700 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold">VIP Luxury</span>
+              <span class="size-badge bg-gray-800">56KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">7. VIP Luxury</h3>
+              <p class="text-gray-600 text-sm mb-4">Luxury-focused premium design</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Luxury</span>
+              </div>
+              <a href="/preview/homepage-vip-luxury" target="_blank" 
+                 class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 8. Advanced Final -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-700 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold">Advanced Final</span>
+              <span class="size-badge bg-gray-800">40KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">8. Advanced Final</h3>
+              <p class="text-gray-600 text-sm mb-4">Advanced features finalized version</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Medium</span>
+              </div>
+              <a href="/preview/homepage-advanced-final" target="_blank" 
+                 class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 9. Luxury Complete -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-700 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold">Luxury Complete</span>
+              <span class="size-badge bg-gray-800">36KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">9. Luxury Complete</h3>
+              <p class="text-gray-600 text-sm mb-4">Complete luxury experience (not imported)</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Not Imported</span>
+              </div>
+              <a href="/preview/homepage-luxury-complete" target="_blank" 
+                 class="block w-full bg-gray-600 hover:bg-gray-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 10. Softwareking Final -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-700 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold">Softwareking Final</span>
+              <span class="size-badge bg-gray-800">36KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">10. Softwareking Final</h3>
+              <p class="text-gray-600 text-sm mb-4">Brand-specific finalized design</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Small</span>
+              </div>
+              <a href="/preview/homepage-softwareking-final" target="_blank" 
+                 class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+          <!-- 11. Softwareking24 -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-gray-700 text-white px-4 py-2 flex justify-between items-center">
+              <span class="font-bold">Softwareking24</span>
+              <span class="size-badge bg-gray-800">28KB</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">11. Softwareking24</h3>
+              <p class="text-gray-600 text-sm mb-4">Original brand homepage design</p>
+              <div class="flex gap-2 mb-4">
+                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Lightweight</span>
+              </div>
+              <a href="/preview/homepage-softwareking24" target="_blank" 
+                 class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-12 bg-white rounded-xl shadow-lg p-8">
+          <h2 class="text-2xl font-bold mb-4">Next Steps</h2>
+          <div class="space-y-4">
+            <div class="flex items-start gap-3">
+              <div class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+              <div>
+                <h3 class="font-bold">Preview All Designs</h3>
+                <p class="text-gray-600 text-sm">Click each preview button to see the full design</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+              <div>
+                <h3 class="font-bold">Choose Your Favorite</h3>
+                <p class="text-gray-600 text-sm">Tell me which design you want to keep (e.g., "I want homepage-simple")</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
+              <div>
+                <h3 class="font-bold">I'll Clean Up</h3>
+                <p class="text-gray-600 text-sm">I'll delete all other homepage files and save ~772KB</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
+            <p class="text-yellow-800">
+              <i class="fas fa-lightbulb mr-2"></i>
+              <strong>Tip:</strong> homepage-simple (52KB) is already active and works perfectly with your database sections. 
+              It's the most optimized choice!
+            </p>
+          </div>
+
+          <div class="mt-6 flex gap-4">
+            <a href="/" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-lg font-semibold transition">
+              <i class="fas fa-home mr-2"></i>View Current Homepage (Simple)
+            </a>
+            <a href="/admin" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-3 rounded-lg font-semibold transition">
+              <i class="fas fa-cog mr-2"></i>Go to Admin Panel
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `)
 })
 
 // Modern 3D Preview Page
