@@ -217,45 +217,92 @@ export function HomepageSimple() {
         
         /* Footer */
         .footer {
-            background: var(--navy);
+            background: #002244;
             color: white;
-            padding: 40px 0 20px;
+            padding: 60px 0 0;
             margin-top: 60px;
+        }
+        
+        .footer-top {
+            background: #001933;
+            padding: 40px 0;
+            text-align: center;
         }
         
         .footer-content {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 60px;
+            margin-bottom: 40px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 20px;
+        }
+        
+        .footer-content > div {
+            text-align: left;
         }
         
         .footer h3 {
-            color: var(--gold);
+            color: white;
             margin-bottom: 20px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
         
         .footer ul {
             list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .footer ul li {
+            margin-bottom: 12px;
         }
         
         .footer a {
-            color: white;
+            color: rgba(255,255,255,0.8);
             text-decoration: none;
             display: block;
-            margin-bottom: 10px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
         }
         
         .footer a:hover {
             color: var(--gold);
+            padding-left: 5px;
         }
         
         .footer-bottom {
+            background: #001122;
+            padding: 30px 20px;
             text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 14px;
+            font-size: 0.85rem;
+        }
+        
+        .footer-badge {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            color: #002244;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 100px;
+            min-height: 100px;
+            margin: 10px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        
+        .footer-badge i {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: #002244;
         }
         
         /* Shimmer animation for loading skeletons */
@@ -345,32 +392,31 @@ export function HomepageSimple() {
     
     <!-- Footer -->
     <footer class="footer">
-        <div class="container">
-            <!-- Top Section: Logo and Contact -->
-            <div class="footer-top">
-                <div class="footer-logo-section">
-                    <img src="/static/logo-footer.png" alt="SOFTWAREKING24" style="height: 60px; width: auto; margin-bottom: 20px;">
-                    <p style="margin-bottom: 10px;"><strong>24 / 7 EMAIL Support</strong></p>
-                    <p style="font-size: 1.5rem; font-weight: bold; margin-bottom: 5px;">0800 000 812 4</p>
-                    <p style="font-size: 0.9rem; opacity: 0.8;">Telefonische Beratung unter:</p>
-                    <p style="font-size: 0.9rem; opacity: 0.8;">E-Mail Support <strong>24/7</strong></p>
-                    
-                    <div style="margin-top: 30px;">
-                        <a href="/kontakt" style="display: inline-block; background: var(--gold); color: var(--navy); padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">E-Mail</a>
-                        <a href="#" style="display: inline-block; background: var(--gold); color: var(--navy); padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">Callback Service</a>
-                        <a href="/kontakt" style="display: inline-block; background: var(--gold); color: var(--navy); padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">Kontaktformular</a>
-                        <a href="tel:+4908000008124" style="display: inline-block; background: var(--gold); color: var(--navy); padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">Telefon</a>
-                    </div>
+        <!-- Top Section: Logo and Contact (Dark Background) -->
+        <div class="footer-top">
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+                <img src="/static/logo-footer.png" alt="SOFTWAREKING24" style="height: 60px; width: auto; margin-bottom: 20px;">
+                <p style="margin-bottom: 10px; font-size: 1.1rem;"><strong>24 / 7 EMAIL Support</strong></p>
+                <p style="font-size: 1.8rem; font-weight: bold; margin: 10px 0;">0800 000 812 4</p>
+                <p style="font-size: 0.95rem; opacity: 0.9; margin-bottom: 5px;">Telefonische Beratung unter:</p>
+                <p style="font-size: 0.95rem; opacity: 0.9;">E-Mail Support <strong>24/7</strong></p>
+                
+                <div style="margin-top: 30px; display: flex; justify-content: center; flex-wrap: wrap; gap: 12px;">
+                    <a href="/kontakt" style="display: inline-block; background: var(--gold); color: #001933; padding: 14px 32px; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 0.95rem;">E-Mail</a>
+                    <a href="#" style="display: inline-block; background: var(--gold); color: #001933; padding: 14px 32px; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Callback Service</a>
+                    <a href="/kontakt" style="display: inline-block; background: var(--gold); color: #001933; padding: 14px 32px; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Kontaktformular</a>
+                    <a href="tel:+4908000008124" style="display: inline-block; background: var(--gold); color: #001933; padding: 14px 32px; border-radius: 30px; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Telefon</a>
                 </div>
             </div>
+        </div>
 
-            <!-- Main Footer Links -->
+        <!-- Main Footer Links - Three Columns -->
+        <div style="padding: 50px 0;">
             <div class="footer-content">
                 <div>
-                    <h3>Rechtliches</h3>
+                    <h3>Widerrufsrecht</h3>
                     <ul>
-                        <li><a href="/widerruf">Widerrufsrecht</a></li>
-                        <li><a href="#" onclick="alert('Geld zurück Garantie'); return false;">Geld zurück Garantie</a></li>
+                        <li><a href="/widerruf">Geld zurück Garantie</a></li>
                         <li><a href="/agb">Versand- & Zahlungsbedingungen</a></li>
                         <li><a href="/agb">AGB</a></li>
                         <li><a href="/datenschutz">Datenschutz</a></li>
@@ -378,174 +424,174 @@ export function HomepageSimple() {
                     </ul>
                 </div>
                 <div>
-                    <h3>Mehr Über..</h3>
+                    <h3>Neue Artikel</h3>
                     <ul>
-                        <li><a href="/produkte?new=true">Neue Artikel</a></li>
-                        <li><a href="/produkte?sale=true">Angebote</a></li>
+                        <li><a href="/produkte?new=true">Angebote</a></li>
                         <li><a href="/ueber-uns">Über uns</a></li>
                         <li><a href="#">Sitemap</a></li>
                         <li><a href="#" onclick="alert('Windows-Fehlermeldung Hilfe'); return false;">Windows-Fehlermeldung</a></li>
                         <li><a href="#" onclick="alert('Partnerprogramm - Kontaktieren Sie uns'); return false;">Partnerprogramm</a></li>
                         <li><a href="#" onclick="alert('Bestellstatus prüfen'); return false;">Bestellstatus</a></li>
-                        <li><a href="#" onclick="alert('Sonderaktionen - Siehe Angebote'); return false;">Sonderaktionen</a></li>
-                        <li><a href="#" onclick="alert('Supportende - Informationen'); return false;">Supportende</a></li>
+                        <li><a href="#" onclick="alert('Sonderaktionen'); return false;">Sonderaktionen</a></li>
+                        <li><a href="#" onclick="alert('Supportende'); return false;">Supportende</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3>Informationen</h3>
+                    <h3>Support & Service</h3>
                     <ul>
-                        <li><a href="/kontakt">Support & Service</a></li>
                         <li><a href="/faq">FAQ</a></li>
                         <li><a href="#" onclick="alert('Umwelt-Information'); return false;">Umwelt</a></li>
                         <li><a href="#" onclick="alert('Karriere - Jobs verfügbar'); return false;">Karriere & Jobs</a></li>
                         <li><a href="#" onclick="alert('Großhandel - Kontaktieren Sie uns'); return false;">Großhandel</a></li>
-                        <li><a href="#" onclick="alert('Händlerregistrierung - Formular'); return false;">Händlerregistrierung</a></li>
+                        <li><a href="#" onclick="alert('Händlerregistrierung'); return false;">Händlerregistrierung</a></li>
                         <li><a href="#">Installationsanleitungen</a></li>
                         <li><a href="#" onclick="alert('Tech Blog - Coming Soon'); return false;">Tech Blog</a></li>
-                        <li><a href="#" onclick="alert('Gutschein Karten verfügbar'); return false;">Gutschein Karten</a></li>
+                        <li><a href="#" onclick="alert('Gutschein Karten'); return false;">Gutschein Karten</a></li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Trust Badges & Certifications - Matching Reference -->
-            <div class="footer-badges" style="display: flex; justify-content: center; align-items: center; gap: 20px; margin: 40px 0; flex-wrap: wrap;">
-                <div style="background: white; padding: 20px 25px; border-radius: 10px; text-align: center; min-width: 130px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <i class="fas fa-shield-alt" style="font-size: 2.5rem; color: var(--navy); margin-bottom: 8px;"></i>
-                    <p style="color: var(--navy); margin: 0; font-size: 0.85rem; font-weight: 600;">Geprüfte Qualität</p>
+            <!-- Trust Badges Row -->
+            <div style="text-align: center; margin: 50px 0;">
+                <div class="footer-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Geprüfte Qualität
                 </div>
-                <div style="background: white; padding: 20px 25px; border-radius: 10px; text-align: center; min-width: 130px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <i class="fas fa-certificate" style="font-size: 2.5rem; color: var(--navy); margin-bottom: 8px;"></i>
-                    <p style="color: var(--navy); margin: 0; font-size: 0.85rem; font-weight: 600;">Zertifiziert</p>
+                <div class="footer-badge">
+                    <i class="fas fa-certificate"></i>
+                    Zertifiziert
                 </div>
-                <div style="background: white; padding: 20px 25px; border-radius: 10px; text-align: center; min-width: 130px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <i class="fas fa-lock" style="font-size: 2.5rem; color: var(--navy); margin-bottom: 8px;"></i>
-                    <p style="color: var(--navy); margin: 0; font-size: 0.85rem; font-weight: 600;">SSL Sicher</p>
+                <div class="footer-badge">
+                    <i class="fas fa-lock"></i>
+                    SSL Gesichert
                 </div>
-                <div style="background: white; padding: 20px 25px; border-radius: 10px; text-align: center; min-width: 130px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <i class="fas fa-award" style="font-size: 2.5rem; color: var(--navy); margin-bottom: 8px;"></i>
-                    <p style="color: var(--navy); margin: 0; font-size: 0.85rem; font-weight: 600;">Ausgezeichnet</p>
+                <div class="footer-badge">
+                    <i class="fas fa-award"></i>
+                    Ausgezeichnet
                 </div>
-                <div style="background: white; padding: 20px 25px; border-radius: 10px; text-align: center; min-width: 130px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <i class="fas fa-star" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 8px;"></i>
-                    <p style="color: var(--navy); margin: 0; font-size: 0.85rem; font-weight: 600;">Top bewertet</p>
+                <div class="footer-badge">
+                    <i class="fas fa-star" style="color: #FFC107;"></i>
+                    Top Bewertet
                 </div>
-                <div style="background: white; padding: 20px 25px; border-radius: 10px; text-align: center; min-width: 130px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <i class="fas fa-check-circle" style="font-size: 2.5rem; color: #00A859; margin-bottom: 8px;"></i>
-                    <p style="color: var(--navy); margin: 0; font-size: 0.85rem; font-weight: 600;">Verifiziert</p>
+                <div class="footer-badge">
+                    <i class="fas fa-check-circle" style="color: #00A859;"></i>
+                    Verifiziert
                 </div>
             </div>
 
             <!-- Windows Activation Buttons -->
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="#" onclick="alert('Windows 10 Aktivierung - Kontaktieren Sie den Support'); return false;" style="display: inline-block; background: var(--gold); color: var(--navy); padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">Windows 10 aktivieren</a>
-                <a href="#" onclick="alert('Windows 11 Aktivierung - Kontaktieren Sie den Support'); return false;" style="display: inline-block; background: var(--gold); color: var(--navy); padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">Windows 11 aktivieren</a>
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="#" onclick="alert('Windows 10 Aktivierung'); return false;" style="display: inline-block; background: var(--gold); color: #001933; padding: 14px 35px; border-radius: 30px; text-decoration: none; font-weight: 600; margin: 8px; font-size: 0.95rem;">Windows 10 aktivieren</a>
+                <a href="#" onclick="alert('Windows 11 Aktivierung'); return false;" style="display: inline-block; background: var(--gold); color: #001933; padding: 14px 35px; border-radius: 30px; text-decoration: none; font-weight: 600; margin: 8px; font-size: 0.95rem;">Windows 11 aktivieren</a>
             </div>
 
-            <!-- Partner Logos - Matching Reference Style -->
-            <div class="footer-partners" style="display: flex; justify-content: center; align-items: center; gap: 30px; margin: 50px 0; flex-wrap: wrap;">
-                <div style="background: white; padding: 20px 30px; border-radius: 10px; text-align: center; min-width: 140px;">
-                    <i class="fab fa-microsoft" style="font-size: 2.5rem; color: #001f3f; margin-bottom: 10px;"></i>
-                    <p style="font-size: 0.75rem; color: #001f3f; font-weight: 600; line-height: 1.3;">Microsoft<br/>Solutions Partner</p>
+            <!-- Partner & Certificate Logos -->
+            <div style="text-align: center; margin: 50px 0;">
+                <div class="footer-badge">
+                    <i class="fab fa-microsoft"></i>
+                    Microsoft<br/>Solutions Partner
                 </div>
-                <div style="background: white; padding: 20px 30px; border-radius: 10px; text-align: center; min-width: 140px;">
-                    <i class="fas fa-award" style="font-size: 2.5rem; color: #001f3f; margin-bottom: 10px;"></i>
-                    <p style="font-size: 0.75rem; color: #001f3f; font-weight: 600; line-height: 1.3;">Autorisierter<br/>Reseller</p>
+                <div class="footer-badge">
+                    <i class="fas fa-certificate"></i>
+                    Zertifizierter<br/>Reseller
                 </div>
-                <div style="background: white; padding: 20px 30px; border-radius: 10px; text-align: center; min-width: 140px;">
-                    <i class="fas fa-shield-virus" style="font-size: 2.5rem; color: #001f3f; margin-bottom: 10px;"></i>
-                    <p style="font-size: 0.75rem; color: #001f3f; font-weight: 600; line-height: 1.3;">Bitdefender<br/>Reseller</p>
+                <div class="footer-badge">
+                    <i class="fas fa-shield-virus"></i>
+                    Bitdefender<br/>Reseller
                 </div>
-                <div style="background: white; padding: 20px 30px; border-radius: 10px; text-align: center; min-width: 140px;">
-                    <i class="fas fa-cloud" style="font-size: 2.5rem; color: #001f3f; margin-bottom: 10px;"></i>
-                    <p style="font-size: 0.75rem; color: #001f3f; font-weight: 600; line-height: 1.3;">Cloud<br/>Services</p>
+                <div class="footer-badge">
+                    <i class="fas fa-user-shield"></i>
+                    Autorisierter<br/>Partner
                 </div>
-                <div style="background: white; padding: 20px 30px; border-radius: 10px; text-align: center; min-width: 140px;">
-                    <i class="fas fa-film" style="font-size: 2.5rem; color: #001f3f; margin-bottom: 10px;"></i>
-                    <p style="font-size: 0.75rem; color: #001f3f; font-weight: 600; line-height: 1.3;">Wondershare<br/>Partner</p>
+                <div class="footer-badge">
+                    <i class="fas fa-film"></i>
+                    Wondershare<br/>Partner
                 </div>
-                <div style="background: white; padding: 20px 30px; border-radius: 10px; text-align: center; min-width: 140px;">
-                    <i class="fas fa-server" style="font-size: 2.5rem; color: #001f3f; margin-bottom: 10px;"></i>
-                    <p style="font-size: 0.75rem; color: #001f3f; font-weight: 600; line-height: 1.3;">Acronis<br/>Authorized Partner</p>
+                <div class="footer-badge">
+                    <i class="fas fa-server"></i>
+                    Acronis<br/>Partner
                 </div>
             </div>
 
             <!-- Reviews & Payment Methods -->
-            <div style="text-align: center; margin: 30px 0;">
-                <div style="display: inline-block; margin: 10px;">
-                    <i class="fas fa-star" style="color: var(--gold);"></i>
-                    <i class="fas fa-star" style="color: var(--gold);"></i>
-                    <i class="fas fa-star" style="color: var(--gold);"></i>
-                    <i class="fas fa-star" style="color: var(--gold);"></i>
-                    <i class="fas fa-star" style="color: var(--gold);"></i>
-                    <span style="margin-left: 10px; font-weight: bold;">5120 Bewertungen auf ProvenExpert.com</span>
+            <div style="text-align: center; margin: 40px 0;">
+                <div style="display: inline-block; margin: 15px 0;">
+                    <i class="fas fa-star" style="color: var(--gold); font-size: 1.3rem;"></i>
+                    <i class="fas fa-star" style="color: var(--gold); font-size: 1.3rem;"></i>
+                    <i class="fas fa-star" style="color: var(--gold); font-size: 1.3rem;"></i>
+                    <i class="fas fa-star" style="color: var(--gold); font-size: 1.3rem;"></i>
+                    <i class="fas fa-star" style="color: var(--gold); font-size: 1.3rem;"></i>
+                    <span style="margin-left: 12px; font-weight: 600; font-size: 1rem;">5120 Bewertungen auf ProvenExpert.com</span>
                 </div>
             </div>
 
             <!-- Payment Methods -->
-            <div class="footer-payment" style="text-align: center; margin: 30px 0;">
-                <p style="margin-bottom: 15px; font-weight: bold;">Zahlungsmöglichkeiten</p>
-                <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; align-items: center;">
-                    <i class="fab fa-cc-visa" style="font-size: 2.5rem; opacity: 0.8;"></i>
-                    <i class="fab fa-cc-mastercard" style="font-size: 2.5rem; opacity: 0.8;"></i>
-                    <i class="fab fa-cc-paypal" style="font-size: 2.5rem; opacity: 0.8;"></i>
-                    <i class="fab fa-cc-amex" style="font-size: 2.5rem; opacity: 0.8;"></i>
-                    <i class="fas fa-university" style="font-size: 2rem; opacity: 0.8;"></i>
-                    <i class="fas fa-money-bill-wave" style="font-size: 2rem; opacity: 0.8;"></i>
+            <div style="text-align: center; margin: 40px 0;">
+                <p style="margin-bottom: 20px; font-weight: 600; font-size: 1rem;">Zahlungsmöglichkeiten</p>
+                <div style="display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; align-items: center; opacity: 0.9;">
+                    <i class="fab fa-cc-visa" style="font-size: 3rem;"></i>
+                    <i class="fab fa-cc-mastercard" style="font-size: 3rem;"></i>
+                    <i class="fab fa-cc-paypal" style="font-size: 3rem;"></i>
+                    <i class="fab fa-cc-amex" style="font-size: 3rem;"></i>
+                    <i class="fas fa-university" style="font-size: 2.5rem;"></i>
+                    <i class="fas fa-money-bill-wave" style="font-size: 2.5rem;"></i>
                 </div>
             </div>
+        </div>
 
-            <!-- Categories Section -->
-            <div class="footer-categories" style="margin: 40px 0; padding: 30px 0; border-top: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid rgba(255,255,255,0.2);">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
+        <!-- Bottom Section: Categories & Info -->
+        <div style="background: #001933; padding: 40px 0;">
+            <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-bottom: 40px;">
                     <div>
-                        <h4 style="color: var(--gold); margin-bottom: 15px;">Top-Kategorien</h4>
-                        <ul style="list-style: none; padding: 0;">
-                            <li><a href="/produkte?category=bitdefender" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Bitdefender</a></li>
-                            <li><a href="/produkte?category=windows" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Windows Betriebssysteme</a></li>
-                            <li><a href="/produkte?category=office" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Microsoft Office Programme</a></li>
+                        <h4 style="color: white; margin-bottom: 15px; font-size: 0.95rem; font-weight: 600;">Top-Kategorien</h4>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="margin-bottom: 10px;"><a href="/produkte?category=bitdefender" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Bitdefender</a></li>
+                            <li style="margin-bottom: 10px;"><a href="/produkte?category=windows" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Windows Betriebssysteme</a></li>
+                            <li style="margin-bottom: 10px;"><a href="/produkte?category=office" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Microsoft Office Programme</a></li>
                         </ul>
                     </div>
                     <div>
-                        <h4 style="color: var(--gold); margin-bottom: 15px;">Top-Produkte</h4>
-                        <ul style="list-style: none; padding: 0;">
-                            <li><a href="/produkte" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Windows 10 Professional</a></li>
-                            <li><a href="/produkte" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Windows 11 Professional</a></li>
-                            <li><a href="/produkte" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Microsoft Office Professional Plus</a></li>
+                        <h4 style="color: white; margin-bottom: 15px; font-size: 0.95rem; font-weight: 600;">Top-Produkte</h4>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="margin-bottom: 10px;"><a href="/produkte" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Windows 10 Professional</a></li>
+                            <li style="margin-bottom: 10px;"><a href="/produkte" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Windows 11 Professional</a></li>
+                            <li style="margin-bottom: 10px;"><a href="/produkte" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Microsoft Office Professional Plus</a></li>
                         </ul>
                     </div>
                     <div>
-                        <h4 style="color: var(--gold); margin-bottom: 15px;">Bestseller</h4>
-                        <ul style="list-style: none; padding: 0;">
-                            <li><a href="/produkte?bestseller=true" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Acronis True Image</a></li>
-                            <li><a href="/produkte?bestseller=true" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Bitdefender Internet Security</a></li>
-                            <li><a href="/produkte?bestseller=true" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Microsoft SQL Server</a></li>
+                        <h4 style="color: white; margin-bottom: 15px; font-size: 0.95rem; font-weight: 600;">Bestseller</h4>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="margin-bottom: 10px;"><a href="/produkte?bestseller=true" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Acronis True Image</a></li>
+                            <li style="margin-bottom: 10px;"><a href="/produkte?bestseller=true" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Bitdefender Internet Security</a></li>
+                            <li style="margin-bottom: 10px;"><a href="/produkte?bestseller=true" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Microsoft SQL Server</a></li>
                         </ul>
                     </div>
                     <div>
-                        <h4 style="color: var(--gold); margin-bottom: 15px;">Top-Marken</h4>
-                        <ul style="list-style: none; padding: 0;">
-                            <li><a href="/produkte?brand=microsoft" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Microsoft</a></li>
-                            <li><a href="/produkte?brand=kaspersky" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Kaspersky</a></li>
-                            <li><a href="/produkte?brand=bitdefender" style="color: white; opacity: 0.8; text-decoration: none; line-height: 2;">Bitdefender</a></li>
+                        <h4 style="color: white; margin-bottom: 15px; font-size: 0.95rem; font-weight: 600;">Top-Marken</h4>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="margin-bottom: 10px;"><a href="/produkte?brand=microsoft" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Microsoft</a></li>
+                            <li style="margin-bottom: 10px;"><a href="/produkte?brand=kaspersky" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Kaspersky</a></li>
+                            <li style="margin-bottom: 10px;"><a href="/produkte?brand=bitdefender" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem;">Bitdefender</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Social Media & Copyright -->
-            <div class="footer-bottom" style="text-align: center; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.2);">
-                <div style="margin-bottom: 25px;">
-                    <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.3rem; margin: 5px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='var(--navy)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.3rem; margin: 5px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='var(--navy)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-twitter"></i></a>
-                    <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.3rem; margin: 5px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='var(--navy)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-instagram"></i></a>
-                    <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.3rem; margin: 5px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='var(--navy)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-youtube"></i></a>
-                    <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.3rem; margin: 5px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='var(--navy)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-whatsapp"></i></a>
-                    <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.3rem; margin: 5px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='var(--navy)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-discord"></i></a>
-                </div>
-                <p style="opacity: 0.7; font-size: 0.9rem; line-height: 1.6; max-width: 900px; margin: 0 auto 15px;">Alle Preise in Euro inkl. der gesetzlichen Mehrwertsteuer, ggf. zzgl. Versandkosten und ggf. Nachnahmegebühren, wenn nicht anders beschrieben.</p>
-                <p style="opacity: 0.7; font-size: 0.9rem; margin: 0 0 20px 0;">Liefergebiet: Deutschland Copyright © 2017 - 2026 SOFTWAREKING24 Support GmbH & Co. KG - Alle Rechte vorbehalten!</p>
-                <p style="margin: 0; font-weight: bold; font-size: 0.95rem;">&copy; 2024 SOFTWAREKING24. Alle Rechte vorbehalten.</p>
+        <!-- Bottom Most: Social Media & Copyright -->
+        <div class="footer-bottom">
+            <div style="margin-bottom: 25px;">
+                <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.2rem; margin: 0 8px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='#001933'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.2rem; margin: 0 8px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='#001933'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-twitter"></i></a>
+                <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.2rem; margin: 0 8px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='#001933'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-instagram"></i></a>
+                <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.2rem; margin: 0 8px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='#001933'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-youtube"></i></a>
+                <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.2rem; margin: 0 8px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='#001933'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-whatsapp"></i></a>
+                <a href="#" style="display: inline-block; width: 45px; height: 45px; line-height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; font-size: 1.2rem; margin: 0 8px; transition: all 0.3s;" onmouseover="this.style.background='var(--gold)'; this.style.color='#001933'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'"><i class="fab fa-discord"></i></a>
             </div>
+            <p style="opacity: 0.7; line-height: 1.6; max-width: 900px; margin: 0 auto 15px;">Alle Preise in Euro inkl. der gesetzlichen Mehrwertsteuer, ggf. zzgl. Versandkosten und ggf. Nachnahmegebühren, wenn nicht anders beschrieben.</p>
+            <p style="opacity: 0.7; margin: 0 0 20px 0;">Liefergebiet: Deutschland Copyright © 2017 - 2026 SOFTWAREKING24 Support GmbH & Co. KG - Alle Rechte vorbehalten!</p>
+            <p style="margin: 0; font-weight: 600;">&copy; 2024 SOFTWAREKING24. Alle Rechte vorbehalten.</p>
         </div>
     </footer>
     
