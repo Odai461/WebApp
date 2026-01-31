@@ -31,12 +31,16 @@ export interface AuditLogEntry {
 // ============================================
 
 export class AuditLogger {
-  constructor(private db: D1Database) {}
+  constructor(private db: D1Database | null | undefined) {}
 
   /**
    * Log an action
    */
   async log(entry: AuditLogEntry): Promise<void> {
+    if (!this.db) {
+      // Silently skip logging when DB is not available
+      return
+    }
     try {
       await this.db.prepare(`
         INSERT INTO audit_logs (
@@ -77,6 +81,10 @@ export class AuditLogger {
     limit?: number
     offset?: number
   }): Promise<{ logs: AuditLog[]; total: number }> {
+    if (!this.db) {
+      return { logs: [], total: 0 }
+    }
+    
     let query = 'SELECT * FROM audit_logs WHERE 1=1'
     const params: any[] = []
 
@@ -155,6 +163,10 @@ export class AuditLogger {
    * Get recent activity for a user
    */
   async getUserActivity(userId: number, limit: number = 50): Promise<AuditLog[]> {
+    if (!this.db) {
+      return []
+    }
+    
     const results = await this.db.prepare(`
       SELECT * FROM audit_logs
       WHERE user_id = ?
@@ -173,6 +185,10 @@ export class AuditLogger {
     actionsByType: Record<string, number>
     topAdmins: Array<{ user_id: number; action_count: number }>
   }> {
+    if (!this.db) {
+      return { totalActions: 0, actionsByType: {}, topAdmins: [] }
+    }
+    
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
@@ -223,7 +239,14 @@ export class AuditLogger {
 // AUDIT MIDDLEWARE
 // ============================================
 
-export const auditMiddleware = (db: D1Database) => {
+export const auditMiddleware = (db: D1Database | null | undefined) => {
+  if (!db) {
+    // Return a no-op middleware when DB is not available
+    return async (c: Context, next: any) => {
+      await next()
+    }
+  }
+  
   const logger = new AuditLogger(db)
 
   return async (c: Context, next: any) => {
@@ -271,12 +294,14 @@ export const auditMiddleware = (db: D1Database) => {
 // ============================================
 
 export class SecurityLogger {
-  constructor(private db: D1Database) {}
+  constructor(private db: D1Database | null | undefined) {}
 
   /**
    * Log failed login attempt
    */
   async logFailedLogin(email: string, ipAddress: string, reason: string): Promise<void> {
+    if (!this.db) return
+    
     const logger = new AuditLogger(this.db)
     await logger.log({
       action: 'failed_login',
@@ -290,6 +315,8 @@ export class SecurityLogger {
    * Log successful login
    */
   async logSuccessfulLogin(userId: number, ipAddress: string): Promise<void> {
+    if (!this.db) return
+    
     const logger = new AuditLogger(this.db)
     await logger.log({
       action: 'successful_login',
@@ -303,6 +330,8 @@ export class SecurityLogger {
    * Log password change
    */
   async logPasswordChange(userId: number, ipAddress: string): Promise<void> {
+    if (!this.db) return
+    
     const logger = new AuditLogger(this.db)
     await logger.log({
       action: 'password_changed',
@@ -320,6 +349,8 @@ export class SecurityLogger {
     ipAddress: string,
     userId?: number
   ): Promise<void> {
+    if (!this.db) return
+    
     const logger = new AuditLogger(this.db)
     await logger.log({
       action: 'suspicious_activity',
@@ -340,6 +371,8 @@ export class SecurityLogger {
     ipAddress?: string,
     userId?: number
   ): Promise<void> {
+    if (!this.db) return
+    
     const logger = new AuditLogger(this.db)
     await logger.log({
       action: `security_${eventType}`,
@@ -354,6 +387,10 @@ export class SecurityLogger {
    * Get security events
    */
   async getSecurityEvents(days: number = 30): Promise<AuditLog[]> {
+    if (!this.db) {
+      return []
+    }
+    
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
@@ -374,7 +411,7 @@ export class SecurityLogger {
 // ============================================
 
 export class DataChangeTracker {
-  constructor(private db: D1Database) {}
+  constructor(private db: D1Database | null | undefined) {}
 
   /**
    * Track data changes with before/after snapshots
@@ -387,6 +424,8 @@ export class DataChangeTracker {
     before: Record<string, any> | null,
     after: Record<string, any> | null
   ): Promise<void> {
+    if (!this.db) return
+    
     const logger = new AuditLogger(this.db)
 
     const changes: Record<string, any> = {
@@ -429,6 +468,10 @@ export class DataChangeTracker {
     resourceType: string,
     resourceId: number
   ): Promise<AuditLog[]> {
+    if (!this.db) {
+      return []
+    }
+    
     const results = await this.db.prepare(`
       SELECT * FROM audit_logs
       WHERE resource_type = ?
@@ -446,7 +489,7 @@ export class DataChangeTracker {
 // ============================================
 
 export class AuditReportGenerator {
-  constructor(private db: D1Database) {}
+  constructor(private db: D1Database | null | undefined) {}
 
   /**
    * Generate compliance report
@@ -462,6 +505,16 @@ export class AuditReportGenerator {
     securityEvents: number
     dataChanges: number
   }> {
+    if (!this.db) {
+      return {
+        period: { start: startDate, end: endDate },
+        summary: { totalActions: 0, uniqueUsers: 0, criticalActions: 0 },
+        topActions: [],
+        securityEvents: 0,
+        dataChanges: 0
+      }
+    }
+    
     // Total actions
     const totalResult = await this.db.prepare(`
       SELECT COUNT(*) as count
@@ -527,6 +580,10 @@ export class AuditReportGenerator {
    * Export audit logs to CSV
    */
   async exportToCSV(startDate: string, endDate: string): Promise<string> {
+    if (!this.db) {
+      return 'ID,User ID,Action,Resource Type,Resource ID,IP Address,Created At\n'
+    }
+    
     const logs = await this.db.prepare(`
       SELECT * FROM audit_logs
       WHERE created_at BETWEEN ? AND ?

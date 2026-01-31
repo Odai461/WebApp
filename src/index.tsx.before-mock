@@ -10,17 +10,9 @@ import { ProductsPageModern } from './components/products-page-modern'
 import { HomepageNew } from './components/homepage-modern'
 import { HomepagePrestaShop } from './components/homepage-prestashop'
 import { HomepagePrestaShopEnhanced } from './components/homepage-prestashop-enhanced'
-import { HomepageVIPLuxury } from './components/homepage-vip-luxury'
-import { HomepagePrestaShopVIP } from './components/homepage-prestashop-vip'
-import { HomepageSoftwareking24 } from './components/homepage-softwareking24'
-import { HomepageSoftwarekingFinal } from './components/homepage-softwareking-final'
-import { HomepageAdvancedFinal } from './components/homepage-advanced-final'
-import { HomepageSimple } from './components/homepage-simple'
-import { HomepageCompleteUltimate } from './components/homepage-complete-ultimate'
 import { ProductDetailPage } from './components/product-detail'
 import { ProductDetailPageModern } from './components/product-detail-modern'
 import { CartPage } from './components/cart-page'
-import { EnhancedCartPage } from './components/enhanced-cart-page'
 import { RegisterPage } from './components/register-page'
 import { LoginPage } from './components/login-page'
 import { CheckoutPage } from './components/checkout-page'
@@ -30,10 +22,6 @@ import { UserOrders } from './components/dashboard-orders'
 import { DashboardPage } from './components/dashboard'
 import { ContactPage } from './components/contact-page'
 import { CMSPage } from './components/cms-page'
-import { AGBPage } from './components/agb-page'
-import { FAQPage } from './components/faq-page'
-import { KontaktPage } from './components/kontakt-page'
-import { UeberUnsPage } from './components/ueber-uns-page'
 import { AdminContactMessages } from './components/admin-contact-messages'
 import { AdminFooterSettings } from './components/admin-footer-settings'
 import { AdminPagesManagement } from './components/admin-pages-management'
@@ -43,7 +31,6 @@ import { AdminProductsAdvanced } from './components/admin-products-advanced'
 import { AdminOrdersAdvanced } from './components/admin-orders-advanced'
 import { AdminCustomersAdvanced } from './components/admin-customers-advanced'
 import { AdminNotificationsAdvanced } from './components/admin-notifications-advanced'
-import { AdminHomepageManager } from './components/admin-homepage-manager'
 import { AdminSidebar } from './components/admin-sidebar'
 import { 
   formatPrice, 
@@ -56,10 +43,6 @@ import {
   generateFAQSchema
 } from './utils/helpers'
 import { AuthService, hashPassword, verifyPassword, generateSecureToken } from './lib/auth'
-import { EmailService } from './lib/email'
-import { setupCartRoutes } from './routes/cart'
-import { setupReviewRoutes } from './routes/reviews'
-import { setupReviewRoutes } from './routes/reviews'
 
 // Security Middleware
 import { 
@@ -171,11 +154,6 @@ app.use('/api/*', async (c, next) => {
     return next()
   }
   
-  // Check if path starts with /api/cart (shopping cart operations)
-  if (c.req.path.startsWith('/api/cart')) {
-    return next()
-  }
-  
   // Check if it's homepage sections products endpoint
   if (c.req.path.startsWith('/api/admin/homepage-sections/') && c.req.path.endsWith('/products')) {
     return next()
@@ -204,7 +182,6 @@ app.onError((error, c) => {
 
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
-app.use('/index.html', serveStatic({ path: './index.html', root: './public' }))
 
 // Mount legacy API routes (auth only - product routes are defined below with DatabaseHelper)
 // Commented out to use database-based product routes instead
@@ -246,26 +223,15 @@ app.use('*', async (c, next) => {
 })
 
 // ============================================
-// API ROUTES SETUP
-// ============================================
-
-// Setup shopping cart routes
-setupCartRoutes(app)
-
-// Setup product review routes  
-setupReviewRoutes(app)
-
-// ============================================
 // HOMEPAGE ROUTE
 // ============================================
 
-// Homepage - using HomepageSimple with external JS renderers
 app.get('/', (c) => {
-  return c.html(HomepageSimple())
+  return c.html(HomepagePrestaShopEnhanced())
 })
 
 app.get('/de', (c) => {
-  return c.html(HomepageSimple())
+  return c.html(HomepagePrestaShopEnhanced())
 })
 
 // Products page
@@ -292,7 +258,7 @@ app.get('/warenkorb', (c) => {
 })
 
 app.get('/cart', (c) => {
-  return c.html(EnhancedCartPage())
+  return c.html(CartPage())
 })
 
 // ===========================
@@ -333,17 +299,6 @@ app.get('/success', (c) => {
 
 app.get('/bestellung-erfolg', (c) => {
   return c.html(OrderSuccessPage())
-})
-
-// ===========================
-// USER DASHBOARD & ORDERS
-// ===========================
-app.get('/user/dashboard', (c) => {
-  return c.html(UserDashboard())
-})
-
-app.get('/user/orders', (c) => {
-  return c.html(UserOrders())
 })
 
 // ===========================
@@ -475,7 +430,7 @@ app.post('/api/auth/login', async (c) => {
     }
 
     // Get user from database
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const user = await db.db.prepare(`
       SELECT id, email, password_hash, first_name, last_name, role, status, created_at
       FROM users 
@@ -567,7 +522,7 @@ app.post('/api/auth/login', async (c) => {
 app.post('/api/auth/logout', requireAuth, async (c) => {
   try {
     const user = c.get('user')
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
 
     // Deactivate all user sessions
     await db.db.prepare(`
@@ -603,7 +558,7 @@ app.post('/api/auth/logout', requireAuth, async (c) => {
 app.get('/api/auth/me', requireAuth, async (c) => {
   try {
     const user = c.get('user')
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
 
     const userDetails = await db.db.prepare(`
       SELECT id, email, first_name, last_name, role, created_at
@@ -647,7 +602,7 @@ app.post('/api/auth/register', async (c) => {
     }
 
     // Check if user already exists
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const existingUser = await db.db.prepare(`
       SELECT id FROM users WHERE email = ?
     `).bind(email).first()
@@ -706,7 +661,7 @@ app.post('/api/auth/change-password', requireAuth, async (c) => {
       }, 400)
     }
 
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
 
     // Verify current password
     const userRecord = await db.db.prepare(`
@@ -757,7 +712,7 @@ app.post('/api/auth/change-password', requireAuth, async (c) => {
 // Get all products with pagination and search
 app.get('/api/products', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'de'
     const page = parseInt(c.req.query('page') || '1')
     const limit = parseInt(c.req.query('limit') || '20')
@@ -774,6 +729,7 @@ app.get('/api/products', async (c) => {
     let query = `
       SELECT DISTINCT
         p.id,
+        p.woocommerce_id,
         p.sku,
         p.slug,
         p.base_price,
@@ -782,32 +738,35 @@ app.get('/api/products', async (c) => {
         p.is_featured,
         p.is_bestseller,
         p.is_new,
-        p.rating,
-        p.review_count,
-        p.name,
-        p.short_description,
-        p.image_url,
+        p.rating_average,
+        p.rating_count,
+        pt.name,
+        pt.short_description,
+        ct.name as category_name,
         b.name as brand_name,
-        ct.name as category_name
+        pi.image_url,
+        pi.alt_text
       FROM products p
+      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.language = ?
       LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       LEFT JOIN brands b ON p.brand_id = b.id
+      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
       WHERE p.is_active = 1
     `
     
-    const params: any[] = [language]
+    const params: any[] = [language, language]
 
     // Search filter
     if (search) {
-      query += ` AND (p.name LIKE ? OR p.short_description LIKE ? OR p.sku LIKE ?)`
+      query += ` AND (pt.name LIKE ? OR pt.short_description LIKE ? OR p.sku LIKE ?)`
       const searchTerm = `%${search}%`
       params.push(searchTerm, searchTerm, searchTerm)
     }
 
     // Category filter
     if (category) {
-      query += ` AND c.slug = ?`
+      query += ` AND ct.slug = ?`
       params.push(category)
     }
 
@@ -822,7 +781,7 @@ app.get('/api/products', async (c) => {
 
     // Rating filter
     if (minRating > 0) {
-      query += ` AND p.rating >= ?`
+      query += ` AND p.rating_average >= ?`
       params.push(minRating)
     }
 
@@ -850,16 +809,16 @@ app.get('/api/products', async (c) => {
         query += ` ORDER BY COALESCE(p.discount_price, p.base_price) DESC`
         break
       case 'name':
-        query += ` ORDER BY p.name ASC`
+        query += ` ORDER BY pt.name ASC`
         break
       case 'bestseller':
-        query += ` ORDER BY p.is_bestseller DESC, p.rating DESC`
+        query += ` ORDER BY p.is_bestseller DESC, p.rating_average DESC`
         break
       case 'rating':
-        query += ` ORDER BY p.rating DESC, p.review_count DESC`
+        query += ` ORDER BY p.rating_average DESC, p.rating_count DESC`
         break
       case 'popular':
-        query += ` ORDER BY p.review_count DESC, p.rating DESC`
+        query += ` ORDER BY p.rating_count DESC, p.rating_average DESC`
         break
       case 'newest':
       default:
@@ -870,36 +829,27 @@ app.get('/api/products', async (c) => {
     query += ` LIMIT ? OFFSET ?`
     params.push(limit, offset)
 
-    // Use database helper if available, otherwise return error
-    if (!c.env.DB) {
-      return c.json({
-        success: true,
-        data: [],
-        pagination: { page, limit, total: 0, totalPages: 0 },
-        message: 'Database not configured'
-      })
-    }
-
     const result = await c.env.DB.prepare(query).bind(...params).all()
     
     // Get total count for pagination
     let countQuery = `
       SELECT COUNT(DISTINCT p.id) as total
       FROM products p
+      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.language = ?
       LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       WHERE p.is_active = 1
     `
-    const countParams: any[] = [language]
+    const countParams: any[] = [language, language]
     
     if (search) {
-      countQuery += ` AND (p.name LIKE ? OR p.short_description LIKE ? OR p.sku LIKE ?)`
+      countQuery += ` AND (pt.name LIKE ? OR pt.short_description LIKE ? OR p.sku LIKE ?)`
       const searchTerm = `%${search}%`
       countParams.push(searchTerm, searchTerm, searchTerm)
     }
     
     if (category) {
-      countQuery += ` AND c.slug = ?`
+      countQuery += ` AND ct.slug = ?`
       countParams.push(category)
     }
 
@@ -951,250 +901,10 @@ app.get('/api/products', async (c) => {
   }
 })
 
-// ============================================
-// HOMEPAGE CONTENT API ROUTES
-// ============================================
-
-// Get hero slides
-app.get('/api/homepage/hero', async (c) => {
-  try {
-    const query = `SELECT * FROM homepage_hero_slides WHERE is_active = 1 ORDER BY order_position ASC`
-    const result = await c.env.DB.prepare(query).all()
-    return c.json({ success: true, data: result.results })
-  } catch (error) {
-    console.error('Failed to fetch hero slides:', error)
-    return c.json({ success: false, error: 'Failed to fetch hero slides' }, 500)
-  }
-})
-
-// Get navigation menu
-app.get('/api/homepage/navigation', async (c) => {
-  try {
-    const query = `SELECT * FROM navigation_menu WHERE is_active = 1 ORDER BY order_position ASC`
-    const result = await c.env.DB.prepare(query).all()
-    
-    // Build hierarchical structure
-    const menuItems = result.results as any[]
-    const topLevel = menuItems.filter(item => !item.parent_id)
-    const submenu = menuItems.filter(item => item.parent_id)
-    
-    const menu = topLevel.map(item => ({
-      ...item,
-      children: submenu.filter(sub => sub.parent_id === item.id)
-    }))
-    
-    return c.json({ success: true, data: menu })
-  } catch (error) {
-    console.error('Failed to fetch navigation:', error)
-    return c.json({ success: false, error: 'Failed to fetch navigation' }, 500)
-  }
-})
-
-// Get trust badges
-app.get('/api/homepage/trust-badges', async (c) => {
-  try {
-    const query = `SELECT * FROM homepage_trust_badges WHERE is_active = 1 ORDER BY order_position ASC`
-    const result = await c.env.DB.prepare(query).all()
-    return c.json({ success: true, data: result.results })
-  } catch (error) {
-    console.error('Failed to fetch trust badges:', error)
-    return c.json({ success: false, error: 'Failed to fetch trust badges' }, 500)
-  }
-})
-
-// Get homepage sections configuration
-app.get('/api/homepage/sections', async (c) => {
-  try {
-    const query = `SELECT * FROM homepage_sections WHERE is_enabled = 1 ORDER BY sort_order ASC`
-    const result = await c.env.DB.prepare(query).all()
-    return c.json({ success: true, data: result.results })
-  } catch (error) {
-    console.error('Failed to fetch homepage sections:', error)
-    return c.json({ success: false, error: 'Failed to fetch homepage sections' }, 500)
-  }
-})
-
-// ============================================
-// ADMIN API: Homepage Management
-// ============================================
-
-// HERO SLIDES MANAGEMENT
-app.get('/api/admin/homepage/hero', async (c) => {
-  try {
-    const query = `SELECT * FROM homepage_hero_slides ORDER BY order_position ASC`
-    const result = await c.env.DB.prepare(query).all()
-    return c.json({ success: true, data: result.results })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to fetch hero slides' }, 500)
-  }
-})
-
-app.post('/api/admin/homepage/hero', async (c) => {
-  try {
-    const body = await c.req.json()
-    const { title, description, cta_text, cta_link, background_image, background_color, text_color } = body
-    
-    const query = `INSERT INTO homepage_hero_slides (title, description, cta_text, cta_link, background_image, background_color, text_color, order_position) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(order_position), 0) + 1 FROM homepage_hero_slides))`
-    
-    await c.env.DB.prepare(query).bind(title, description, cta_text, cta_link, background_image, background_color, text_color).run()
-    
-    return c.json({ success: true, message: 'Hero slide created' })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to create hero slide' }, 500)
-  }
-})
-
-app.put('/api/admin/homepage/hero/:id', async (c) => {
-  try {
-    const id = c.req.param('id')
-    const body = await c.req.json()
-    const { title, description, cta_text, cta_link, background_image, background_color, text_color, order_position, is_active } = body
-    
-    const query = `UPDATE homepage_hero_slides 
-                   SET title = ?, description = ?, cta_text = ?, cta_link = ?, background_image = ?, 
-                       background_color = ?, text_color = ?, order_position = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
-                   WHERE id = ?`
-    
-    await c.env.DB.prepare(query).bind(title, description, cta_text, cta_link, background_image, background_color, text_color, order_position, is_active ? 1 : 0, id).run()
-    
-    return c.json({ success: true, message: 'Hero slide updated' })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to update hero slide' }, 500)
-  }
-})
-
-app.delete('/api/admin/homepage/hero/:id', async (c) => {
-  try {
-    const id = c.req.param('id')
-    await c.env.DB.prepare(`DELETE FROM homepage_hero_slides WHERE id = ?`).bind(id).run()
-    return c.json({ success: true, message: 'Hero slide deleted' })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to delete hero slide' }, 500)
-  }
-})
-
-// NAVIGATION MENU MANAGEMENT
-app.get('/api/admin/homepage/navigation', async (c) => {
-  try {
-    const query = `SELECT * FROM navigation_menu ORDER BY order_position ASC`
-    const result = await c.env.DB.prepare(query).all()
-    return c.json({ success: true, data: result.results })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to fetch navigation' }, 500)
-  }
-})
-
-app.post('/api/admin/homepage/navigation', async (c) => {
-  try {
-    const body = await c.req.json()
-    const { parent_id, title, url, icon, category, is_mega_menu, mega_menu_columns } = body
-    
-    const query = `INSERT INTO navigation_menu (parent_id, title, url, icon, category, is_mega_menu, mega_menu_columns, order_position) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(order_position), 0) + 1 FROM navigation_menu WHERE parent_id IS ?))`
-    
-    await c.env.DB.prepare(query).bind(parent_id || null, title, url, icon, category, is_mega_menu ? 1 : 0, mega_menu_columns || 4, parent_id || null).run()
-    
-    return c.json({ success: true, message: 'Navigation item created' })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to create navigation item' }, 500)
-  }
-})
-
-app.put('/api/admin/homepage/navigation/:id', async (c) => {
-  try {
-    const id = c.req.param('id')
-    const body = await c.req.json()
-    const { title, url, icon, category, order_position, is_mega_menu, mega_menu_columns, is_active } = body
-    
-    const query = `UPDATE navigation_menu 
-                   SET title = ?, url = ?, icon = ?, category = ?, order_position = ?, 
-                       is_mega_menu = ?, mega_menu_columns = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
-                   WHERE id = ?`
-    
-    await c.env.DB.prepare(query).bind(title, url, icon, category, order_position, is_mega_menu ? 1 : 0, mega_menu_columns, is_active ? 1 : 0, id).run()
-    
-    return c.json({ success: true, message: 'Navigation item updated' })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to update navigation item' }, 500)
-  }
-})
-
-app.delete('/api/admin/homepage/navigation/:id', async (c) => {
-  try {
-    const id = c.req.param('id')
-    await c.env.DB.prepare(`DELETE FROM navigation_menu WHERE id = ?`).bind(id).run()
-    return c.json({ success: true, message: 'Navigation item deleted' })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to delete navigation item' }, 500)
-  }
-})
-
-// HOMEPAGE SECTIONS MANAGEMENT (Drag & Drop, Show/Hide)
-app.get('/api/admin/homepage/sections', async (c) => {
-  try {
-    const query = `SELECT * FROM homepage_sections ORDER BY sort_order ASC`
-    const result = await c.env.DB.prepare(query).all()
-    return c.json({ success: true, data: result.results })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to fetch sections' }, 500)
-  }
-})
-
-app.put('/api/admin/homepage/sections/:id', async (c) => {
-  try {
-    const id = c.req.param('id')
-    const body = await c.req.json()
-    const { title, subtitle, is_enabled, sort_order, config } = body
-    
-    const query = `UPDATE homepage_sections 
-                   SET title = ?, subtitle = ?, is_enabled = ?, sort_order = ?, config = ?, updated_at = CURRENT_TIMESTAMP
-                   WHERE id = ?`
-    
-    await c.env.DB.prepare(query).bind(title, subtitle, is_enabled ? 1 : 0, sort_order, config, id).run()
-    
-    return c.json({ success: true, message: 'Section updated' })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to update section' }, 500)
-  }
-})
-
-app.post('/api/admin/homepage/sections/reorder', async (c) => {
-  try {
-    const body = await c.req.json()
-    const { sections } = body // Array of {id, sort_order}
-    
-    // Update all sections' sort_order in a transaction-like manner
-    for (const section of sections) {
-      await c.env.DB.prepare(`UPDATE homepage_sections SET sort_order = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
-        .bind(section.sort_order, section.id).run()
-    }
-    
-    return c.json({ success: true, message: 'Sections reordered' })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to reorder sections' }, 500)
-  }
-})
-
-app.post('/api/admin/homepage/sections/:id/toggle', async (c) => {
-  try {
-    const id = c.req.param('id')
-    
-    // Toggle is_enabled
-    await c.env.DB.prepare(`UPDATE homepage_sections SET is_enabled = NOT is_enabled, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
-      .bind(id).run()
-    
-    return c.json({ success: true, message: 'Section visibility toggled' })
-  } catch (error) {
-    return c.json({ success: false, error: 'Failed to toggle section' }, 500)
-  }
-})
-
-// ============================================
-// ADMIN API: Products Management (with DatabaseHelper)
+// Admin Products API
 app.get('/api/admin/products', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const page = parseInt(c.req.query('page') || '1')
     const limit = parseInt(c.req.query('limit') || '20')
     const offset = (page - 1) * limit
@@ -1313,7 +1023,7 @@ app.get('/api/admin/products', async (c) => {
 // Admin Products Stats
 app.get('/api/admin/products/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const stats = await db.db.prepare(`
       SELECT
@@ -1341,7 +1051,7 @@ app.get('/api/admin/products/stats', async (c) => {
 // CREATE: Add new product
 app.post('/api/admin/products', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     // Validation
@@ -1415,7 +1125,7 @@ app.post('/api/admin/products', async (c) => {
 // UPDATE: Edit existing product
 app.put('/api/admin/products/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const productId = c.req.param('id')
     const body = await c.req.json()
 
@@ -1507,7 +1217,7 @@ app.put('/api/admin/products/:id', async (c) => {
 // DELETE: Remove product
 app.delete('/api/admin/products/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const productId = c.req.param('id')
 
     // Check if product exists
@@ -1535,7 +1245,7 @@ app.delete('/api/admin/products/:id', async (c) => {
 // BULK DELETE: Remove multiple products
 app.post('/api/admin/products/bulk-delete', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { ids } = await c.req.json()
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -1565,7 +1275,7 @@ app.post('/api/admin/products/bulk-delete', async (c) => {
 // BULK UPDATE: Update multiple products (status, price, etc.)
 app.post('/api/admin/products/bulk-update', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { ids, updates } = await c.req.json()
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -1618,7 +1328,7 @@ app.post('/api/admin/products/bulk-update', async (c) => {
 // GET: Single product by ID (for editing)
 app.get('/api/admin/products/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const productId = c.req.param('id')
 
     const product = await db.db.prepare(`
@@ -1654,7 +1364,7 @@ app.get('/api/admin/products/:id', async (c) => {
 // CREATE: Create new order
 app.post('/api/admin/orders', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     if (!body.email || !body.first_name || !body.last_name || !body.country || !body.total) {
@@ -1704,7 +1414,7 @@ app.post('/api/admin/orders', async (c) => {
 // READ: Get all orders (list with pagination, search, filters)
 app.get('/api/admin/orders', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const page = parseInt(c.req.query('page') || '1')
     const limit = parseInt(c.req.query('limit') || '20')
     const offset = (page - 1) * limit
@@ -1809,7 +1519,7 @@ app.get('/api/admin/orders', async (c) => {
 // READ: Get single order
 app.get('/api/admin/orders/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const orderId = c.req.param('id')
 
     const order = await db.db.prepare(`
@@ -1838,7 +1548,7 @@ app.get('/api/admin/orders/:id', async (c) => {
 // UPDATE: Update order
 app.put('/api/admin/orders/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const orderId = c.req.param('id')
     const body = await c.req.json()
 
@@ -1876,7 +1586,7 @@ app.put('/api/admin/orders/:id', async (c) => {
 // DELETE: Cancel order
 app.delete('/api/admin/orders/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const orderId = c.req.param('id')
 
     const existing = await db.db.prepare('SELECT id FROM orders WHERE id = ?').bind(orderId).first()
@@ -1896,7 +1606,7 @@ app.delete('/api/admin/orders/:id', async (c) => {
 // BULK UPDATE: Update order statuses
 app.post('/api/admin/orders/bulk-update', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { ids, updates } = await c.req.json()
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -1939,7 +1649,7 @@ app.post('/api/admin/orders/bulk-update', async (c) => {
 // CREATE: Add new customer
 app.post('/api/admin/customers', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     if (!body.email || !body.first_name || !body.last_name) {
@@ -1985,7 +1695,7 @@ app.post('/api/admin/customers', async (c) => {
 // READ: Get single customer
 app.get('/api/admin/customers/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const customerId = c.req.param('id')
 
     const customer = await db.db.prepare('SELECT * FROM users WHERE id = ?').bind(customerId).first()
@@ -2010,7 +1720,7 @@ app.get('/api/admin/customers/:id', async (c) => {
 // UPDATE: Update customer
 app.put('/api/admin/customers/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const customerId = c.req.param('id')
     const body = await c.req.json()
 
@@ -2048,7 +1758,7 @@ app.put('/api/admin/customers/:id', async (c) => {
 // DELETE: Delete customer (soft delete)
 app.delete('/api/admin/customers/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const customerId = c.req.param('id')
 
     const existing = await db.db.prepare('SELECT id FROM users WHERE id = ?').bind(customerId).first()
@@ -2068,7 +1778,7 @@ app.delete('/api/admin/customers/:id', async (c) => {
 // GDPR: Export customer data
 app.get('/api/admin/customers/:id/gdpr-export', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const customerId = c.req.param('id')
 
     const customer = await db.db.prepare('SELECT * FROM users WHERE id = ?').bind(customerId).first()
@@ -2100,7 +1810,7 @@ app.get('/api/admin/customers/:id/gdpr-export', async (c) => {
 // Get dashboard statistics
 app.get('/api/admin/dashboard/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
 
     // Get product stats
     const productStats = await db.db.prepare(`
@@ -2153,7 +1863,7 @@ app.get('/api/admin/dashboard/stats', async (c) => {
 // Get revenue chart data
 app.get('/api/admin/dashboard/revenue-chart', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const days = parseInt(c.req.query('days') || '30')
 
     const revenue = await db.db.prepare(`
@@ -2200,7 +1910,7 @@ function generateLicenseKey(): string {
 // CREATE: Generate license keys
 app.post('/api/admin/licenses', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     if (!body.product_id) {
@@ -2242,7 +1952,7 @@ app.post('/api/admin/licenses', async (c) => {
 // READ: Get single license
 app.get('/api/admin/licenses/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const licenseId = c.req.param('id')
 
     const license = await db.db.prepare(`
@@ -2272,7 +1982,7 @@ app.get('/api/admin/licenses/:id', async (c) => {
 // UPDATE: Update license
 app.put('/api/admin/licenses/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const licenseId = c.req.param('id')
     const body = await c.req.json()
 
@@ -2310,7 +2020,7 @@ app.put('/api/admin/licenses/:id', async (c) => {
 // DELETE: Revoke license
 app.delete('/api/admin/licenses/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const licenseId = c.req.param('id')
 
     const existing = await db.db.prepare('SELECT id FROM license_keys WHERE id = ?').bind(licenseId).first()
@@ -2330,7 +2040,7 @@ app.delete('/api/admin/licenses/:id', async (c) => {
 // BULK: Generate bulk licenses
 app.post('/api/admin/licenses/bulk-generate', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { product_id, quantity, key_type, activation_limit } = await c.req.json()
 
     if (!product_id || !quantity) {
@@ -2362,7 +2072,7 @@ app.post('/api/admin/licenses/bulk-generate', async (c) => {
 // Activate license
 app.post('/api/admin/licenses/:id/activate', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const licenseId = c.req.param('id')
     const body = await c.req.json()
 
@@ -2405,7 +2115,7 @@ app.post('/api/admin/licenses/:id/activate', async (c) => {
 // Categories CRUD
 app.post('/api/admin/categories', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     if (!body.slug) {
@@ -2437,7 +2147,7 @@ app.post('/api/admin/categories', async (c) => {
 
 app.put('/api/admin/categories/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const categoryId = c.req.param('id')
     const body = await c.req.json()
 
@@ -2486,7 +2196,7 @@ app.put('/api/admin/categories/:id', async (c) => {
 
 app.get('/api/admin/categories/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const categoryId = c.req.param('id')
     
     const category = await db.db.prepare(`
@@ -2509,7 +2219,7 @@ app.get('/api/admin/categories/:id', async (c) => {
 
 app.delete('/api/admin/categories/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const categoryId = c.req.param('id')
 
     const existing = await db.db.prepare('SELECT id FROM categories WHERE id = ?').bind(categoryId).first()
@@ -2528,7 +2238,7 @@ app.delete('/api/admin/categories/:id', async (c) => {
 // Brands CRUD
 app.post('/api/admin/brands', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     if (!body.name || !body.slug) {
@@ -2549,7 +2259,7 @@ app.post('/api/admin/brands', async (c) => {
 
 app.put('/api/admin/brands/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const brandId = c.req.param('id')
     const body = await c.req.json()
 
@@ -2583,7 +2293,7 @@ app.put('/api/admin/brands/:id', async (c) => {
 
 app.get('/api/admin/brands/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const brandId = c.req.param('id')
     
     const brand = await db.db.prepare('SELECT * FROM brands WHERE id = ?').bind(brandId).first()
@@ -2601,7 +2311,7 @@ app.get('/api/admin/brands/:id', async (c) => {
 
 app.delete('/api/admin/brands/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const brandId = c.req.param('id')
 
     const existing = await db.db.prepare('SELECT id FROM brands WHERE id = ?').bind(brandId).first()
@@ -2628,7 +2338,7 @@ app.delete('/api/admin/brands/:id', async (c) => {
 // GET: List all sliders
 app.get('/api/admin/sliders', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const sliders = await db.db.prepare(`
       SELECT * FROM sliders ORDER BY position ASC, created_at DESC
     `).all()
@@ -2642,7 +2352,7 @@ app.get('/api/admin/sliders', async (c) => {
 // GET: Single slider
 app.get('/api/admin/sliders/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const slider = await db.db.prepare('SELECT * FROM sliders WHERE id = ?').bind(id).first()
     
@@ -2660,7 +2370,7 @@ app.get('/api/admin/sliders/:id', async (c) => {
 // POST: Create slider
 app.post('/api/admin/sliders', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     
     if (!body.title || !body.image_url) {
@@ -2695,7 +2405,7 @@ app.post('/api/admin/sliders', async (c) => {
 // PUT: Update slider
 app.put('/api/admin/sliders/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
     
@@ -2746,7 +2456,7 @@ app.put('/api/admin/sliders/:id', async (c) => {
 // DELETE: Delete slider
 app.delete('/api/admin/sliders/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     const existing = await db.db.prepare('SELECT id FROM sliders WHERE id = ?').bind(id).first()
@@ -2766,7 +2476,7 @@ app.delete('/api/admin/sliders/:id', async (c) => {
 // GET: Stats
 app.get('/api/admin/sliders/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const stats = await db.db.prepare(`
       SELECT 
         COUNT(*) as total,
@@ -2792,7 +2502,7 @@ app.get('/api/admin/sliders/stats', async (c) => {
 // GET: List all CMS pages
 app.get('/api/admin/pages', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const page = parseInt(c.req.query('page') || '1')
     const limit = parseInt(c.req.query('limit') || '20')
     const offset = (page - 1) * limit
@@ -2822,7 +2532,7 @@ app.get('/api/admin/pages', async (c) => {
 // GET: Single page
 app.get('/api/admin/pages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     const page = await db.db.prepare('SELECT * FROM cms_pages WHERE id = ?').bind(id).first()
@@ -2842,7 +2552,7 @@ app.get('/api/admin/pages/:id', async (c) => {
 // POST: Create page
 app.post('/api/admin/pages', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     
     if (!body.slug) {
@@ -2882,7 +2592,7 @@ app.post('/api/admin/pages', async (c) => {
 // PUT: Update page
 app.put('/api/admin/pages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
     
@@ -2943,7 +2653,7 @@ app.put('/api/admin/pages/:id', async (c) => {
 // DELETE: Delete page
 app.delete('/api/admin/pages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     const existing = await db.db.prepare('SELECT id FROM cms_pages WHERE id = ?').bind(id).first()
@@ -2972,7 +2682,7 @@ app.delete('/api/admin/pages/:id', async (c) => {
 // GET: List notifications
 app.get('/api/admin/notifications', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const page = parseInt(c.req.query('page') || '1')
     const limit = parseInt(c.req.query('limit') || '20')
     const offset = (page - 1) * limit
@@ -2999,7 +2709,7 @@ app.get('/api/admin/notifications', async (c) => {
 // POST: Create notification
 app.post('/api/admin/notifications', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     
     if (!body.notification_type || !body.title) {
@@ -3029,7 +2739,7 @@ app.post('/api/admin/notifications', async (c) => {
 // PATCH: Mark as read
 app.patch('/api/admin/notifications/:id/read', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     await db.db.prepare('UPDATE notifications SET is_read = 1 WHERE id = ?').bind(id).run()
@@ -3044,7 +2754,7 @@ app.patch('/api/admin/notifications/:id/read', async (c) => {
 // DELETE: Delete notification
 app.delete('/api/admin/notifications/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     await db.db.prepare('DELETE FROM notifications WHERE id = ?').bind(id).run()
@@ -3059,7 +2769,7 @@ app.delete('/api/admin/notifications/:id', async (c) => {
 // GET: Stats
 app.get('/api/admin/notifications/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const stats = await db.db.prepare(`
       SELECT 
         COUNT(*) as total,
@@ -3085,7 +2795,7 @@ app.get('/api/admin/notifications/stats', async (c) => {
 // GET: List contact messages
 app.get('/api/admin/contact-messages', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const page = parseInt(c.req.query('page') || '1')
     const limit = parseInt(c.req.query('limit') || '20')
     const offset = (page - 1) * limit
@@ -3122,7 +2832,7 @@ app.get('/api/admin/contact-messages', async (c) => {
 // GET: Single message
 app.get('/api/admin/contact-messages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     const message = await db.db.prepare('SELECT * FROM contact_messages WHERE id = ?').bind(id).first()
@@ -3140,7 +2850,7 @@ app.get('/api/admin/contact-messages/:id', async (c) => {
 // PATCH: Update status
 app.patch('/api/admin/contact-messages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
     
@@ -3166,7 +2876,7 @@ app.patch('/api/admin/contact-messages/:id', async (c) => {
 // DELETE: Delete message
 app.delete('/api/admin/contact-messages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     await db.db.prepare('DELETE FROM contact_messages WHERE id = ?').bind(id).run()
@@ -3181,7 +2891,7 @@ app.delete('/api/admin/contact-messages/:id', async (c) => {
 // GET: Stats
 app.get('/api/admin/contact-messages/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const stats = await db.db.prepare(`
       SELECT 
         COUNT(*) as total,
@@ -3203,7 +2913,7 @@ app.get('/api/admin/contact-messages/stats', async (c) => {
 
 app.get('/api/products/featured', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'en'
     const limit = parseInt(c.req.query('limit') || '8')
 
@@ -3217,7 +2927,7 @@ app.get('/api/products/featured', async (c) => {
 
 app.get('/api/products/bestsellers', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'en'
     const limit = parseInt(c.req.query('limit') || '6')
 
@@ -3231,7 +2941,7 @@ app.get('/api/products/bestsellers', async (c) => {
 
 app.get('/api/products/new', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'en'
     const limit = parseInt(c.req.query('limit') || '6')
 
@@ -3246,7 +2956,7 @@ app.get('/api/products/new', async (c) => {
 // Get single product by ID (for cart operations)
 app.get('/api/products/id/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'en'
     const productId = parseInt(c.req.param('id'))
 
@@ -3268,23 +2978,11 @@ app.get('/api/products/id/:id', async (c) => {
 
 app.get('/api/products/:slug', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'en'
-    const slugOrId = c.req.param('slug')
+    const slug = c.req.param('slug')
 
-    // Check if it's a numeric ID
-    const numericId = parseInt(slugOrId)
-    if (!isNaN(numericId) && numericId.toString() === slugOrId) {
-      // It's a numeric ID
-      const product = await db.getProductById(numericId, language)
-      if (!product) {
-        return c.json({ success: false, error: 'Product not found' }, 404)
-      }
-      return c.json({ success: true, data: product })
-    }
-
-    // It's a slug
-    const product = await db.getProductBySlug(slugOrId, language)
+    const product = await db.getProductBySlug(slug, language)
 
     if (!product) {
       return c.json({ success: false, error: 'Product not found' }, 404)
@@ -3360,7 +3058,7 @@ app.get('/api/products/search/autocomplete', async (c) => {
 
 app.get('/api/categories', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'en'
 
     const categories = await db.getAllCategories(language)
@@ -3373,7 +3071,7 @@ app.get('/api/categories', async (c) => {
 
 app.get('/api/categories/:slug/products', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'en'
     const slug = c.req.param('slug')
     const page = parseInt(c.req.query('page') || '1')
@@ -3419,7 +3117,7 @@ app.get('/api/brands', async (c) => {
 
 app.get('/api/brands/featured', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const limit = parseInt(c.req.query('limit') || '8')
 
     const brands = await db.getFeaturedBrands(limit)
@@ -3438,7 +3136,7 @@ app.get('/api/brands/featured', async (c) => {
 // Get reviews for a product
 app.get('/api/reviews/product/:productId', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const productId = c.req.param('productId')
     const sort = c.req.query('sort') || 'newest' // newest, highest, lowest, helpful
     const page = parseInt(c.req.query('page') || '1')
@@ -3535,7 +3233,7 @@ app.get('/api/reviews/product/:productId', async (c) => {
 // Submit a new review
 app.post('/api/reviews', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     const { productId, userId, rating, title, content, images, orderId } = body
 
@@ -3608,7 +3306,7 @@ app.post('/api/reviews', async (c) => {
 // Vote on a review (helpful/unhelpful)
 app.post('/api/reviews/:reviewId/vote', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const reviewId = c.req.param('reviewId')
     const body = await c.req.json()
     const { userId, isHelpful } = body
@@ -3647,7 +3345,7 @@ app.post('/api/reviews/:reviewId/vote', async (c) => {
 // Get review stats for a product
 app.get('/api/reviews/product/:productId/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const productId = c.req.param('productId')
 
     // Get overall stats
@@ -3703,7 +3401,7 @@ app.get('/api/reviews/product/:productId/stats', async (c) => {
 // Get all sliders
 app.get('/api/admin/sliders', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const sliders = await db.db.prepare(`
       SELECT * FROM sliders ORDER BY sort_order ASC
     `).all()
@@ -3718,7 +3416,7 @@ app.get('/api/admin/sliders', async (c) => {
 // Create slider
 app.post('/api/admin/sliders', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     const result = await db.db.prepare(`
@@ -3746,7 +3444,7 @@ app.post('/api/admin/sliders', async (c) => {
 // Update slider
 app.put('/api/admin/sliders/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
 
@@ -3786,7 +3484,7 @@ app.put('/api/admin/sliders/:id', async (c) => {
 // Patch slider (partial update)
 app.patch('/api/admin/sliders/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
 
@@ -3803,7 +3501,7 @@ app.patch('/api/admin/sliders/:id', async (c) => {
 // Delete slider
 app.delete('/api/admin/sliders/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     await db.db.prepare(`DELETE FROM sliders WHERE id = ?`).bind(id).run()
@@ -3822,7 +3520,7 @@ app.delete('/api/admin/sliders/:id', async (c) => {
 // Get all homepage sections
 app.get('/api/admin/homepage-sections', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const sections = await db.db.prepare(`
       SELECT 
         hs.*,
@@ -3843,7 +3541,7 @@ app.get('/api/admin/homepage-sections', async (c) => {
 // Create section
 app.post('/api/admin/homepage-sections', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     const result = await db.db.prepare(`
@@ -3870,7 +3568,7 @@ app.post('/api/admin/homepage-sections', async (c) => {
 // Update section
 app.put('/api/admin/homepage-sections/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
 
@@ -3908,7 +3606,7 @@ app.put('/api/admin/homepage-sections/:id', async (c) => {
 // Patch section (partial update)
 app.patch('/api/admin/homepage-sections/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
 
@@ -3925,7 +3623,7 @@ app.patch('/api/admin/homepage-sections/:id', async (c) => {
 // Delete section
 app.delete('/api/admin/homepage-sections/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     await db.db.prepare(`DELETE FROM homepage_sections WHERE id = ?`).bind(id).run()
@@ -3940,7 +3638,7 @@ app.delete('/api/admin/homepage-sections/:id', async (c) => {
 // Toggle section status
 app.patch('/api/admin/homepage-sections/:id/toggle', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
 
@@ -3960,7 +3658,7 @@ app.patch('/api/admin/homepage-sections/:id/toggle', async (c) => {
 // Duplicate section
 app.post('/api/admin/homepage-sections/:id/duplicate', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     // Get the original section
@@ -4000,7 +3698,7 @@ app.post('/api/admin/homepage-sections/:id/duplicate', async (c) => {
 // Reorder sections
 app.post('/api/admin/homepage-sections/reorder', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     const sections = body.sections || []
 
@@ -4023,7 +3721,7 @@ app.post('/api/admin/homepage-sections/reorder', async (c) => {
 // Get section products
 app.get('/api/admin/homepage-sections/:id/products', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     const products = await db.db.prepare(`
@@ -4051,7 +3749,7 @@ app.get('/api/admin/homepage-sections/:id/products', async (c) => {
 // Save section products
 app.post('/api/admin/homepage-sections/:id/products', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
     const products = body.products || []
@@ -4081,7 +3779,7 @@ app.post('/api/admin/homepage-sections/:id/products', async (c) => {
 // Get active homepage sections with their products
 app.get('/api/homepage-sections', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.req.query('language') || c.get('language') || 'de'
 
     // Get active sections with translations
@@ -4355,7 +4053,7 @@ app.get('/api/auth/verify-email/:token', async (c) => {
 
 app.post('/api/auth/logout', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const authHeader = c.req.header('Authorization')
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -4373,7 +4071,7 @@ app.post('/api/auth/logout', async (c) => {
 
 app.get('/api/auth/me', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const authHeader = c.req.header('Authorization')
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -4408,7 +4106,7 @@ app.get('/api/auth/me', async (c) => {
 
 app.post('/api/orders', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     // Validate input from checkout form
@@ -4505,7 +4203,7 @@ app.post('/api/orders', async (c) => {
 
 app.get('/api/orders/:orderNumber', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const orderNumber = c.req.param('orderNumber')
 
     const order = await db.getOrderByNumber(orderNumber)
@@ -4531,7 +4229,7 @@ app.get('/api/orders/:orderNumber', async (c) => {
 
 app.get('/api/admin/dashboard', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     // Get dashboard statistics
     const stats = {
@@ -4549,173 +4247,10 @@ app.get('/api/admin/dashboard', async (c) => {
   }
 })
 
-// ============================================
-// ROLES & PERMISSIONS API
-// ============================================
-
-// Create new role
-app.post('/api/admin/roles', async (c) => {
-  try {
-    const db = c.get('db') as DatabaseHelper
-    const { role_name, role_display_name, description } = await c.req.json()
-
-    if (!role_name || !role_display_name) {
-      return c.json({ success: false, error: 'Role name and display name are required' }, 400)
-    }
-
-    // Create role slug from name
-    const role_slug = role_name.toLowerCase().replace(/\s+/g, '-')
-
-    const result = await db.db.prepare(`
-      INSERT INTO roles (role_name, role_display_name, role_slug, description, is_system)
-      VALUES (?, ?, ?, ?, 0)
-    `).bind(role_name, role_display_name, role_slug, description || null).run()
-
-    return c.json({
-      success: true,
-      message: 'Role created successfully',
-      roleId: result.meta.last_row_id
-    })
-  } catch (error: any) {
-    console.error('Error creating role:', error)
-    return c.json({ success: false, error: error.message || 'Failed to create role' }, 500)
-  }
-})
-
-// Update role
-app.put('/api/admin/roles/:id', async (c) => {
-  try {
-    const db = c.get('db') as DatabaseHelper
-    const roleId = c.req.param('id')
-    const { role_name, role_display_name, description } = await c.req.json()
-
-    // Check if role exists and is not a system role
-    const role = await db.db.prepare(`SELECT * FROM roles WHERE id = ?`).bind(roleId).first() as any
-
-    if (!role) {
-      return c.json({ success: false, error: 'Role not found' }, 404)
-    }
-
-    if (role.is_system) {
-      return c.json({ success: false, error: 'System roles cannot be modified' }, 403)
-    }
-
-    // Create role slug from name
-    const role_slug = role_name.toLowerCase().replace(/\s+/g, '-')
-
-    await db.db.prepare(`
-      UPDATE roles 
-      SET role_name = ?, role_display_name = ?, role_slug = ?, description = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).bind(role_name, role_display_name, role_slug, description || null, roleId).run()
-
-    return c.json({
-      success: true,
-      message: 'Role updated successfully'
-    })
-  } catch (error: any) {
-    console.error('Error updating role:', error)
-    return c.json({ success: false, error: error.message || 'Failed to update role' }, 500)
-  }
-})
-
-// Delete role
-app.delete('/api/admin/roles/:id', async (c) => {
-  try {
-    const db = c.get('db') as DatabaseHelper
-    const roleId = c.req.param('id')
-
-    // Check if role exists and is not a system role
-    const role = await db.db.prepare(`SELECT * FROM roles WHERE id = ?`).bind(roleId).first() as any
-
-    if (!role) {
-      return c.json({ success: false, error: 'Role not found' }, 404)
-    }
-
-    if (role.is_system) {
-      return c.json({ success: false, error: 'System roles cannot be deleted' }, 403)
-    }
-
-    // Delete role assignments first
-    await db.db.prepare(`DELETE FROM user_role_assignments WHERE role_id = ?`).bind(roleId).run()
-
-    // Delete role
-    await db.db.prepare(`DELETE FROM roles WHERE id = ?`).bind(roleId).run()
-
-    return c.json({
-      success: true,
-      message: 'Role deleted successfully'
-    })
-  } catch (error: any) {
-    console.error('Error deleting role:', error)
-    return c.json({ success: false, error: error.message || 'Failed to delete role' }, 500)
-  }
-})
-
-// Assign roles to user
-app.post('/api/admin/users/:userId/roles', async (c) => {
-  try {
-    const db = c.get('db') as DatabaseHelper
-    const userId = c.req.param('userId')
-    const { role_ids } = await c.req.json()
-
-    if (!Array.isArray(role_ids)) {
-      return c.json({ success: false, error: 'role_ids must be an array' }, 400)
-    }
-
-    // Delete existing role assignments
-    await db.db.prepare(`DELETE FROM user_role_assignments WHERE user_id = ?`).bind(userId).run()
-
-    // Insert new role assignments
-    for (const roleId of role_ids) {
-      await db.db.prepare(`
-        INSERT INTO user_role_assignments (user_id, role_id, assigned_at)
-        VALUES (?, ?, CURRENT_TIMESTAMP)
-      `).bind(userId, roleId).run()
-    }
-
-    return c.json({
-      success: true,
-      message: 'Roles assigned successfully'
-    })
-  } catch (error: any) {
-    console.error('Error assigning roles:', error)
-    return c.json({ success: false, error: error.message || 'Failed to assign roles' }, 500)
-  }
-})
-
-// Get users by role
-app.get('/api/admin/roles/:roleId/users', async (c) => {
-  try {
-    const db = c.get('db') as DatabaseHelper
-    const roleId = c.req.param('roleId')
-
-    const users = await db.db.prepare(`
-      SELECT u.id, u.email, u.first_name, u.last_name, u.status, ura.assigned_at
-      FROM users u
-      JOIN user_role_assignments ura ON u.id = ura.user_id
-      WHERE ura.role_id = ?
-      ORDER BY u.email
-    `).bind(roleId).all()
-
-    return c.json({
-      success: true,
-      data: users.results || []
-    })
-  } catch (error: any) {
-    console.error('Error fetching role users:', error)
-    return c.json({ success: false, error: error.message || 'Failed to fetch users' }, 500)
-  }
-})
-
-// ============================================
-// END ROLES & PERMISSIONS API
-// ============================================
-
 // Admin API: Get all licenses
 app.get('/api/admin/licenses', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const licenses = await c.env.DB.prepare(`
       SELECT lk.*, p.sku, pt.name as product_name
@@ -4953,7 +4488,7 @@ app.post('/api/admin/licenses/bulk-delete', async (c) => {
 // Get all invoices with filters
 app.get('/api/admin/invoices', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { status, search, date_from, date_to } = c.req.query()
 
     let sql = `SELECT * FROM invoices WHERE 1=1`
@@ -4993,7 +4528,7 @@ app.get('/api/admin/invoices', async (c) => {
 // Get invoice stats (must be before :id route)
 app.get('/api/admin/invoices/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
 
     const stats = await db.db.prepare(`
       SELECT 
@@ -5014,7 +4549,7 @@ app.get('/api/admin/invoices/stats', async (c) => {
 // Get invoice by ID with items
 app.get('/api/admin/invoices/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     const invoice = await db.db.prepare(`SELECT * FROM invoices WHERE id = ?`).bind(id).first()
@@ -5038,7 +4573,7 @@ app.get('/api/admin/invoices/:id', async (c) => {
 // Create new invoice
 app.post('/api/admin/invoices', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     // Calculate totals
@@ -5116,7 +4651,7 @@ app.post('/api/admin/invoices', async (c) => {
 // Update invoice
 app.put('/api/admin/invoices/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
 
@@ -5198,7 +4733,7 @@ app.put('/api/admin/invoices/:id', async (c) => {
 // Delete invoice
 app.delete('/api/admin/invoices/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     await db.db.prepare(`DELETE FROM invoices WHERE id = ?`).bind(id).run()
@@ -5217,7 +4752,7 @@ app.delete('/api/admin/invoices/:id', async (c) => {
 // Get certificate settings
 app.get('/api/admin/certificate-settings', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const settings = await db.db.prepare(`
       SELECT * FROM certificate_settings WHERE id = 1
@@ -5250,7 +4785,7 @@ app.get('/api/admin/certificate-settings', async (c) => {
 // Update certificate settings
 app.put('/api/admin/certificate-settings', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const data = await c.req.json()
     
     // Check if settings exist
@@ -5639,7 +5174,7 @@ app.get('/api/marketing/performance', async (c) => {
 // Traffic analytics endpoint
 app.get('/api/marketing/traffic', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { period } = c.req.query()
     
     // Calculate date range
@@ -5737,7 +5272,7 @@ app.get('/api/marketing/gmc/feed', async (c) => {
 // Get all coupons with filters
 app.get('/api/admin/coupons', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { status, search, discount_type } = c.req.query()
     
     let sql = `
@@ -5780,7 +5315,7 @@ app.get('/api/admin/coupons', async (c) => {
 // Get coupon stats
 app.get('/api/admin/coupons/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const stats = await db.db.prepare(`
       SELECT 
@@ -5803,7 +5338,7 @@ app.get('/api/admin/coupons/stats', async (c) => {
 // Get single coupon
 app.get('/api/admin/coupons/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     const coupon = await db.db.prepare(`
@@ -5844,7 +5379,7 @@ app.get('/api/admin/coupons/:id', async (c) => {
 // Create new coupon
 app.post('/api/admin/coupons', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     
     // Validate required fields
@@ -5913,7 +5448,7 @@ app.post('/api/admin/coupons', async (c) => {
 // Update coupon
 app.put('/api/admin/coupons/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
     
@@ -5991,7 +5526,7 @@ app.put('/api/admin/coupons/:id', async (c) => {
 // Delete coupon
 app.delete('/api/admin/coupons/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     // Check if coupon has been used
@@ -6018,7 +5553,7 @@ app.delete('/api/admin/coupons/:id', async (c) => {
 // Validate coupon code (public API for checkout)
 app.post('/api/coupons/validate', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { code, cart_total, customer_email, product_ids } = await c.req.json()
     
     if (!code) {
@@ -6150,7 +5685,7 @@ async function applyCouponToOrder(
 // Get all certificates with filters
 app.get('/api/admin/certificates', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { brand, order_id, order_ids, customer, date_from, date_to, status } = c.req.query()
     
     let sql = `
@@ -6216,7 +5751,7 @@ app.get('/api/admin/certificates', async (c) => {
 // Get certificate stats
 app.get('/api/admin/certificates/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const stats = await db.db.prepare(`
       SELECT 
@@ -6240,7 +5775,7 @@ app.get('/api/admin/certificates/stats', async (c) => {
 // Get single certificate
 app.get('/api/admin/certificates/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     const certificate = await db.db.prepare(`
@@ -6266,7 +5801,7 @@ app.get('/api/admin/certificates/:id', async (c) => {
 // Generate certificate manually
 app.post('/api/admin/certificates/generate', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { order_id, product_id, license_key } = await c.req.json()
     
     if (!order_id || !product_id || !license_key) {
@@ -6354,7 +5889,7 @@ app.post('/api/admin/certificates/generate', async (c) => {
 // Regenerate certificate
 app.post('/api/admin/certificates/:id/regenerate', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     await db.db.prepare(`
@@ -6374,7 +5909,7 @@ app.post('/api/admin/certificates/:id/regenerate', async (c) => {
 // Email certificate
 app.post('/api/admin/certificates/:id/email', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     // Get certificate data
@@ -6425,7 +5960,7 @@ app.post('/api/admin/certificates/:id/email', async (c) => {
 // Delete certificate
 app.delete('/api/admin/certificates/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     await db.db.prepare(`DELETE FROM certificates WHERE id = ?`).bind(id).run()
@@ -6440,7 +5975,7 @@ app.delete('/api/admin/certificates/:id', async (c) => {
 // Bulk generate certificates
 app.post('/api/admin/certificates/bulk-generate', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { order_ids } = await c.req.json()
     
     if (!order_ids || !Array.isArray(order_ids) || order_ids.length === 0) {
@@ -6578,8 +6113,6 @@ app.get('/admin/delivery', (c) => {
 })
 
 // Analytics
-// DUPLICATE ROUTE - Commented out, using route at line 6825 instead
-/*
 app.get('/admin/analytics', (c) => {
   return c.html(
     <AdminLayout title="Analytics Dashboard" currentUser={{ first_name: 'Admin' }}>
@@ -6592,7 +6125,6 @@ app.get('/admin/analytics', (c) => {
     </AdminLayout>
   )
 })
-*/
 
 // Admin Advanced Sidebar Demo
 app.get('/admin/v2', (c) => {
@@ -6834,12 +6366,7 @@ app.get('/admin/brands', async (c) => {
 // 3. ATTRIBUTES
 app.get('/admin/attributes', async (c) => {
   const { env } = c;
-  let attributes = { results: [] };
-  try {
-    attributes = await env.DB.prepare(`SELECT pa.*, COUNT(DISTINCT pav.id) as value_count FROM product_attributes pa LEFT JOIN product_attribute_values pav ON pav.attribute_id = pa.id GROUP BY pa.id ORDER BY pa.name ASC`).all();
-  } catch (e) {
-    console.log('Product attributes table not yet created');
-  }
+  const attributes = await env.DB.prepare(`SELECT pa.*, COUNT(DISTINCT pav.id) as value_count FROM product_attributes pa LEFT JOIN product_attribute_values pav ON pav.attribute_id = pa.id GROUP BY pa.id ORDER BY pa.name ASC`).all();
   return c.html(<html lang="de"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Attribute - Admin</title><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet"/></head><body class="bg-gray-50">{AdminSidebarAdvanced('/admin/attributes')}<div style="margin-left: 280px; padding: 2rem;"><div class="mb-6 flex justify-between items-center"><div><h1 class="text-3xl font-bold text-gray-800 mb-2"><i class="fas fa-tags mr-3 text-green-600"></i>Attribute & Varianten</h1><p class="text-gray-600">Produktattribute verwalten (Größe, Farbe, etc.)</p></div><button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg"><i class="fas fa-plus mr-2"></i>Neues Attribut</button></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"><div class="bg-white rounded-lg shadow p-6"><p class="text-gray-500 text-sm">Gesamt Attribute</p><p class="text-2xl font-bold">{attributes.results?.length || 0}</p></div><div class="bg-white rounded-lg shadow p-6"><p class="text-gray-500 text-sm">Aktive Attribute</p><p class="text-2xl font-bold text-green-600">{attributes.results?.filter((a: any) => a.is_active === 1).length || 0}</p></div><div class="bg-white rounded-lg shadow p-6"><p class="text-gray-500 text-sm">Gesamt Werte</p><p class="text-2xl font-bold text-blue-600">{attributes.results?.reduce((sum: number, a: any) => sum + (a.value_count || 0), 0) || 0}</p></div></div><div class="bg-white rounded-lg shadow"><div class="p-6 border-b"><h2 class="text-xl font-semibold">Alle Attribute</h2></div><table class="w-full"><thead class="bg-gray-50 border-b"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Typ</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Werte</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th></tr></thead><tbody>{attributes.results && attributes.results.length > 0 ? attributes.results.map((attr: any) => (<tr class="hover:bg-gray-50 border-b"><td class="px-6 py-4"><div class="flex items-center"><i class="fas fa-tag text-green-500 mr-3"></i><div><div class="font-medium">{attr.name}</div><div class="text-sm text-gray-500">{attr.code}</div></div></div></td><td class="px-6 py-4 text-sm text-gray-600">{attr.input_type || 'select'}</td><td class="px-6 py-4"><span class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">{attr.value_count || 0}</span></td><td class="px-6 py-4">{attr.is_active === 1 ? <span class="px-3 py-1 text-xs bg-green-100 text-green-800 rounded-full">Aktiv</span> : <span class="px-3 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">Inaktiv</span>}</td><td class="px-6 py-4"><button class="text-blue-600 mr-3"><i class="fas fa-edit"></i></button><button class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>)) : (<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500"><i class="fas fa-tags text-6xl mb-4 text-gray-300"></i><p class="text-lg mb-4">Keine Attribute gefunden</p><button class="bg-green-600 text-white px-6 py-2 rounded-lg">Erstes Attribut erstellen</button></td></tr>)}</tbody></table></div></div></body></html>);
 });
 
@@ -6848,7 +6375,7 @@ app.get('/admin/bundles', async (c) => {
   const { env } = c;
   let bundles = { results: [] };
   try {
-    bundles = await env.DB.prepare(`SELECT pb.*, COUNT(DISTINCT bp.id) as item_count FROM product_bundles pb LEFT JOIN bundle_products bp ON bp.bundle_id = pb.id GROUP BY pb.id ORDER BY pb.created_at DESC`).all();
+    bundles = await env.DB.prepare(`SELECT pb.*, COUNT(DISTINCT bi.id) as item_count FROM product_bundles pb LEFT JOIN bundle_items bi ON bi.bundle_id = pb.id GROUP BY pb.id ORDER BY pb.created_at DESC`).all();
   } catch (e) {
     console.log('Bundles table not yet created');
   }
@@ -6971,11 +6498,6 @@ app.get('/admin/homepage-sections', (c) => {
   return c.html(<AdminHomepageSectionsAdvanced />)
 })
 
-// Admin Homepage Manager (Dynamic Content)
-app.get('/admin/homepage', (c) => {
-  return c.html(<AdminHomepageManager />)
-})
-
 // Import API endpoint (no auth for now - accessed from admin panel)
 app.post('/api/admin/import/woocommerce', async (c) => {
   try {
@@ -7032,7 +6554,7 @@ app.get('/admin/invoices', (c) => {
 // Invoice Preview with new template
 app.get('/admin/invoices/:id/preview', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     const invoice = await db.db.prepare(`SELECT * FROM invoices WHERE id = ?`).bind(id).first()
@@ -7082,7 +6604,7 @@ app.get('/admin/invoices/:id/preview', async (c) => {
 // Generate Certificate for Invoice
 app.get('/admin/invoices/:id/certificate', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     const invoice = await db.db.prepare(`SELECT * FROM invoices WHERE id = ?`).bind(id).first()
@@ -7138,7 +6660,7 @@ app.get('/admin/invoices/:id/certificate', async (c) => {
 // Certificate Preview
 app.get('/admin/certificates/:id/preview', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     const certificate = await db.db.prepare(`
@@ -7165,7 +6687,7 @@ app.get('/admin/certificates/:id/preview', async (c) => {
 // Certificate PDF Download
 app.get('/api/admin/certificates/:id/pdf', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     const certificate = await db.db.prepare(`
@@ -7291,220 +6813,12 @@ app.get('/admin/cookies', (c) => {
 
 // Settings
 // Enhanced Analytics & Reporting
-app.get('/admin/analytics', async (c) => {
-  try {
-    const db = c.env.DB
-    
-    // Get basic stats
-    const productsCount = await db.prepare('SELECT COUNT(*) as count FROM products').first()
-    const ordersCount = await db.prepare('SELECT COUNT(*) as count FROM orders').first()
-    const usersCount = await db.prepare('SELECT COUNT(*) as count FROM users').first()
-    const categoriesCount = await db.prepare('SELECT COUNT(*) as count FROM categories').first()
-    
-    return c.html(
-      <html lang="de">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>Analytics Dashboard - Admin - SOFTWAREKING24</title>
-          <script src="https://cdn.tailwindcss.com"></script>
-          <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
-          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        </head>
-        <body class="bg-gray-100">
-          <div class="container mx-auto px-4 py-8">
-            <div class="mb-8">
-              <div class="flex items-center justify-between">
-                <h1 class="text-3xl font-bold text-gray-800">
-                  <i class="fas fa-chart-line mr-2 text-blue-600"></i>
-                  Analytics Dashboard
-                </h1>
-                <a href="/admin" class="text-blue-600 hover:text-blue-800">
-                  <i class="fas fa-arrow-left mr-2"></i>Zurück zum Dashboard
-                </a>
-              </div>
-            </div>
-
-            {/* Stats Overview */}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 bg-blue-100 rounded-full p-3">
-                    <i class="fas fa-box text-blue-600 text-2xl"></i>
-                  </div>
-                  <div class="ml-4">
-                    <p class="text-gray-500 text-sm">Produkte</p>
-                    <p class="text-2xl font-bold text-gray-800">{productsCount?.count || 0}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 bg-green-100 rounded-full p-3">
-                    <i class="fas fa-shopping-cart text-green-600 text-2xl"></i>
-                  </div>
-                  <div class="ml-4">
-                    <p class="text-gray-500 text-sm">Bestellungen</p>
-                    <p class="text-2xl font-bold text-gray-800">{ordersCount?.count || 0}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 bg-purple-100 rounded-full p-3">
-                    <i class="fas fa-users text-purple-600 text-2xl"></i>
-                  </div>
-                  <div class="ml-4">
-                    <p class="text-gray-500 text-sm">Benutzer</p>
-                    <p class="text-2xl font-bold text-gray-800">{usersCount?.count || 0}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 bg-yellow-100 rounded-full p-3">
-                    <i class="fas fa-folder text-yellow-600 text-2xl"></i>
-                  </div>
-                  <div class="ml-4">
-                    <p class="text-gray-500 text-sm">Kategorien</p>
-                    <p class="text-2xl font-bold text-gray-800">{categoriesCount?.count || 0}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Charts Section */}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">
-                  <i class="fas fa-chart-bar mr-2 text-blue-600"></i>
-                  Verkaufsübersicht
-                </h2>
-                <canvas id="salesChart"></canvas>
-              </div>
-
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">
-                  <i class="fas fa-chart-pie mr-2 text-green-600"></i>
-                  Produktkategorien
-                </h2>
-                <canvas id="categoriesChart"></canvas>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div class="bg-white p-6 rounded-lg shadow">
-              <h2 class="text-xl font-bold text-gray-800 mb-4">
-                <i class="fas fa-link mr-2 text-blue-600"></i>
-                Schnellzugriff
-              </h2>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <a href="/admin/products" class="text-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                  <i class="fas fa-box text-blue-600 text-2xl mb-2"></i>
-                  <p class="text-sm text-gray-700">Produkte</p>
-                </a>
-                <a href="/admin/orders" class="text-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                  <i class="fas fa-shopping-cart text-green-600 text-2xl mb-2"></i>
-                  <p class="text-sm text-gray-700">Bestellungen</p>
-                </a>
-                <a href="/admin/users" class="text-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                  <i class="fas fa-users text-purple-600 text-2xl mb-2"></i>
-                  <p class="text-sm text-gray-700">Benutzer</p>
-                </a>
-                <a href="/admin/reports" class="text-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                  <i class="fas fa-file-alt text-yellow-600 text-2xl mb-2"></i>
-                  <p class="text-sm text-gray-700">Berichte</p>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <script>{`
-            // Sales Chart
-            const salesCtx = document.getElementById('salesChart').getContext('2d');
-            new Chart(salesCtx, {
-              type: 'line',
-              data: {
-                labels: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun'],
-                datasets: [{
-                  label: 'Verkäufe',
-                  data: [12, 19, 3, 5, 2, 3],
-                  borderColor: 'rgb(59, 130, 246)',
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                  tension: 0.4
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                  legend: {
-                    display: true,
-                    position: 'top'
-                  }
-                }
-              }
-            });
-
-            // Categories Chart
-            const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
-            new Chart(categoriesCtx, {
-              type: 'doughnut',
-              data: {
-                labels: ['Software', 'Games', 'Office', 'Security', 'Other'],
-                datasets: [{
-                  data: [30, 20, 25, 15, 10],
-                  backgroundColor: [
-                    'rgb(59, 130, 246)',
-                    'rgb(16, 185, 129)',
-                    'rgb(245, 158, 11)',
-                    'rgb(239, 68, 68)',
-                    'rgb(107, 114, 128)'
-                  ]
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                  legend: {
-                    display: true,
-                    position: 'bottom'
-                  }
-                }
-              }
-            });
-          `}</script>
-        </body>
-      </html>
-    )
-  } catch (error) {
-    console.error('Error loading analytics:', error)
-    return c.html(
-      <html lang="de">
-        <head>
-          <meta charset="UTF-8" />
-          <title>Error - Analytics</title>
-          <script src="https://cdn.tailwindcss.com"></script>
-        </head>
-        <body class="bg-gray-100 p-8">
-          <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow">
-            <h1 class="text-2xl font-bold text-red-600 mb-4">
-              <i class="fas fa-exclamation-triangle mr-2"></i>
-              Error loading analytics
-            </h1>
-            <p class="text-gray-700">{error.message}</p>
-            <a href="/admin" class="mt-4 inline-block text-blue-600 hover:text-blue-800">
-              ← Zurück zum Dashboard
-            </a>
-          </div>
-        </body>
-      </html>
-    )
-  }
+app.get('/admin/analytics', (c) => {
+  return c.html(
+    <AdminLayout title="Analytics & Reporting" currentUser={{ first_name: 'Admin' }}>
+      <AdminAnalytics />
+    </AdminLayout>
+  )
 })
 
 // Delivery Management
@@ -7635,7 +6949,7 @@ app.get('/api/init-db', async (c) => {
 // Product Detail Page
 app.get('/products/:slug', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'en'
     const slug = c.req.param('slug')
 
@@ -7659,7 +6973,7 @@ app.get('/products/:slug', async (c) => {
 // Category Listing Page
 app.get('/categories/:slug', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const language = c.get('language') || 'en'
     const slug = c.req.param('slug')
 
@@ -7715,13 +7029,10 @@ app.get('/ueber-uns', (c) => {
   return c.html(<UeberUnsPage />)
 })
 
-// Über Uns alias (common typo)
-app.get('/uber-uns', (c) => {
-  return c.redirect('/ueber-uns')
-})
-
 // CMS Pages - Dynamic routes
-// Note: /agb is already defined above at line 7013, using AGBPage component
+app.get('/agb', (c) => {
+  return c.html(<CMSPage slug="agb" />)
+})
 
 app.get('/datenschutz', (c) => {
   return c.html(<CMSPage slug="datenschutz" />)
@@ -7729,12 +7040,6 @@ app.get('/datenschutz', (c) => {
 
 app.get('/impressum', (c) => {
   return c.html(<CMSPage slug="impressum" />)
-})
-
-// Dynamic CMS page route
-app.get('/page/:slug', (c) => {
-  const slug = c.req.param('slug')
-  return c.html(<CMSPage slug={slug} />)
 })
 
 app.get('/versand', (c) => {
@@ -7760,7 +7065,7 @@ app.get('/cookies', (c) => {
 // Get page by slug (public)
 app.get('/api/pages/:slug', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const slug = c.req.param('slug')
     
     const page = await db.db.prepare(`
@@ -7798,7 +7103,7 @@ app.post('/api/payments/stripe/create-intent', async (c) => {
     const { order_id } = body
     
     // CRITICAL: Always recalculate amount server-side (never trust client)
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     // Fetch order from database
     const order = await c.env.DB.prepare(`
@@ -7949,7 +7254,7 @@ app.post('/api/payments/stripe/webhook', async (c) => {
       return c.json({ error: validation.error }, 400)
     }
 
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const auditLogger = new AuditLogger(c.env.DB)
     
     // Initialize email and license services
@@ -8103,7 +7408,7 @@ app.post('/api/payments/paypal/create-order', async (c) => {
     const { order_id } = body
     
     // CRITICAL: Always recalculate amount server-side
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     // Fetch order
     const order = await c.env.DB.prepare(`
@@ -8268,7 +7573,7 @@ app.post('/api/payments/paypal/webhook', async (c) => {
       return c.json({ error: validation.error }, 400)
     }
     
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const auditLogger = new AuditLogger(c.env.DB)
     
     // Handle PayPal events
@@ -8453,7 +7758,7 @@ app.post('/api/admin/maintenance', enhancedAdminAuth, async (c) => {
 // Submit contact form (Public)
 app.post('/api/contact', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     // Validate required fields
@@ -8495,7 +7800,7 @@ app.post('/api/contact', async (c) => {
 // Get all contact messages (Admin)
 app.get('/api/admin/contact-messages', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const page = parseInt(c.req.query('page') || '1')
     const limit = parseInt(c.req.query('limit') || '20')
     const offset = (page - 1) * limit
@@ -8587,7 +7892,7 @@ app.get('/api/admin/contact-messages', async (c) => {
 // Get single contact message (Admin)
 app.get('/api/admin/contact-messages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     const message = await db.db.prepare(`
@@ -8614,7 +7919,7 @@ app.get('/api/admin/contact-messages/:id', async (c) => {
 // Update contact message (Admin)
 app.patch('/api/admin/contact-messages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
 
@@ -8665,7 +7970,7 @@ app.patch('/api/admin/contact-messages/:id', async (c) => {
 // Delete contact message (Admin)
 app.delete('/api/admin/contact-messages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     await db.db.prepare(`
@@ -8692,7 +7997,7 @@ app.delete('/api/admin/contact-messages/:id', async (c) => {
 // Get all footer settings
 app.get('/api/admin/footer-settings', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const settings = await db.db.prepare(`
       SELECT * FROM footer_settings WHERE is_active = 1 ORDER BY sort_order ASC
     `).all()
@@ -8707,7 +8012,7 @@ app.get('/api/admin/footer-settings', async (c) => {
 // Update footer setting
 app.patch('/api/admin/footer-settings/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
 
@@ -8758,7 +8063,7 @@ app.patch('/api/admin/footer-settings/:id', async (c) => {
 // Get all pages
 app.get('/api/admin/pages', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const pages = await db.db.prepare(`
       SELECT 
         p.id,
@@ -8784,7 +8089,7 @@ app.get('/api/admin/pages', async (c) => {
 // Get single page
 app.get('/api/admin/pages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     const page = await db.db.prepare(`
@@ -8810,7 +8115,7 @@ app.get('/api/admin/pages/:id', async (c) => {
 // Create page
 app.post('/api/admin/pages', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
 
     // Insert page
@@ -8835,7 +8140,7 @@ app.post('/api/admin/pages', async (c) => {
 // Update page
 app.patch('/api/admin/pages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
 
@@ -8863,7 +8168,7 @@ app.patch('/api/admin/pages/:id', async (c) => {
 // Delete page
 app.delete('/api/admin/pages/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
 
     // Delete translations
@@ -8889,7 +8194,7 @@ app.delete('/api/admin/pages/:id', async (c) => {
 
 app.get('/api/admin/dashboard/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     console.log('Dashboard stats: Starting query...')
     
@@ -8940,7 +8245,7 @@ app.get('/api/admin/dashboard/stats', async (c) => {
 
 app.get('/api/admin/dashboard/charts', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     // Revenue last 7 days
     const revenue = await db.db.prepare(`
@@ -8984,7 +8289,7 @@ app.get('/api/admin/dashboard/charts', async (c) => {
 
 app.get('/api/admin/licenses/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const stats = await db.db.prepare(`
       SELECT 
@@ -9004,7 +8309,7 @@ app.get('/api/admin/licenses/stats', async (c) => {
 
 app.post('/api/admin/licenses/bulk', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     
     const { product_id, license_keys, key_type, activation_limit } = body
@@ -9042,7 +8347,7 @@ app.post('/api/admin/licenses/bulk', async (c) => {
 
 app.post('/api/admin/licenses/bulk-delete', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     
     const { license_ids } = body
@@ -9064,7 +8369,7 @@ app.post('/api/admin/licenses/bulk-delete', async (c) => {
 
 app.get('/api/admin/licenses/export', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const licenses = await db.db.prepare(`
       SELECT lk.*, pt.name as product_name
@@ -9100,7 +8405,7 @@ app.get('/api/admin/licenses/export', async (c) => {
 
 app.get('/api/admin/notifications', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { unread } = c.req.query()
     
     let query = 'SELECT * FROM notifications WHERE 1=1'
@@ -9123,7 +8428,7 @@ app.get('/api/admin/notifications', async (c) => {
 
 app.patch('/api/admin/notifications/:id/read', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     await db.db.prepare(`
@@ -9141,7 +8446,7 @@ app.patch('/api/admin/notifications/:id/read', async (c) => {
 
 app.delete('/api/admin/notifications/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     await db.db.prepare(`DELETE FROM notifications WHERE id = ?`).bind(id).run()
@@ -9159,7 +8464,7 @@ app.delete('/api/admin/notifications/:id', async (c) => {
 
 app.get('/api/admin/activity-log', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { limit } = c.req.query()
     
     const activities = await db.db.prepare(`
@@ -9177,7 +8482,7 @@ app.get('/api/admin/activity-log', async (c) => {
 
 app.delete('/api/admin/activity-log', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     await db.db.prepare('DELETE FROM activity_log').run()
     
     return c.json({ success: true, message: 'Activity log cleared' })
@@ -9193,7 +8498,7 @@ app.delete('/api/admin/activity-log', async (c) => {
 
 app.get('/api/admin/settings', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const { category } = c.req.query()
     
     // Use system_settings table
@@ -9219,7 +8524,7 @@ app.get('/api/admin/settings', async (c) => {
 // Bulk update settings
 app.post('/api/admin/settings', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     const { settings } = body
     
@@ -9290,7 +8595,7 @@ app.post('/api/admin/settings/test-smtp', async (c) => {
 // Get all email templates
 app.get('/api/admin/email-templates', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const templates = await db.db.prepare(`
       SELECT * FROM email_templates 
@@ -9307,7 +8612,7 @@ app.get('/api/admin/email-templates', async (c) => {
 // Get single template
 app.get('/api/admin/email-templates/:key', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const templateKey = c.req.param('key')
     
     const template = await db.db.prepare(`
@@ -9328,7 +8633,7 @@ app.get('/api/admin/email-templates/:key', async (c) => {
 // Update template
 app.put('/api/admin/email-templates/:key', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const templateKey = c.req.param('key')
     const body = await c.req.json()
     const { subject, html_content } = body
@@ -9353,7 +8658,7 @@ app.put('/api/admin/email-templates/:key', async (c) => {
 // Toggle template active status
 app.patch('/api/admin/email-templates/:key/toggle', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const templateKey = c.req.param('key')
     
     await db.db.prepare(`
@@ -9376,7 +8681,7 @@ app.patch('/api/admin/email-templates/:key/toggle', async (c) => {
 // Get all cookies
 app.get('/api/admin/cookies', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const cookies = await db.db.prepare(`
       SELECT * FROM cookie_settings 
@@ -9393,7 +8698,7 @@ app.get('/api/admin/cookies', async (c) => {
 // Get cookie statistics
 app.get('/api/admin/cookies/stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const total = await db.db.prepare(`SELECT COUNT(*) as count FROM cookie_settings`).first()
     const enabled = await db.db.prepare(`SELECT COUNT(*) as count FROM cookie_settings WHERE is_enabled = 1`).first()
@@ -9421,7 +8726,7 @@ app.get('/api/admin/cookies/stats', async (c) => {
 // Create cookie
 app.post('/api/admin/cookies', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     
     await db.db.prepare(`
@@ -9455,7 +8760,7 @@ app.post('/api/admin/cookies', async (c) => {
 // Update cookie
 app.put('/api/admin/cookies/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     const body = await c.req.json()
     
@@ -9491,7 +8796,7 @@ app.put('/api/admin/cookies/:id', async (c) => {
 // Delete cookie
 app.delete('/api/admin/cookies/:id', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     // Check if cookie is essential
@@ -9517,7 +8822,7 @@ app.delete('/api/admin/cookies/:id', async (c) => {
 // Toggle cookie enabled status
 app.patch('/api/admin/cookies/:id/toggle', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const id = c.req.param('id')
     
     await db.db.prepare(`
@@ -9536,7 +8841,7 @@ app.patch('/api/admin/cookies/:id/toggle', async (c) => {
 // Save user consent
 app.post('/api/cookies/consent', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const body = await c.req.json()
     const sessionId = c.req.header('x-session-id') || crypto.randomUUID()
     const ipAddress = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown'
@@ -9587,7 +8892,7 @@ app.post('/api/cookies/consent', async (c) => {
 // Get enabled tracking scripts
 app.get('/api/cookies/scripts', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const scripts = await db.db.prepare(`
       SELECT category, tracking_code 
@@ -9606,7 +8911,7 @@ app.get('/api/cookies/scripts', async (c) => {
 // Get enabled cookies for frontend banner
 app.get('/api/cookies/settings', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const cookies = await db.db.prepare(`
       SELECT * FROM cookie_settings 
@@ -9624,7 +8929,7 @@ app.get('/api/cookies/settings', async (c) => {
 // Get consent statistics for admin
 app.get('/api/admin/cookies/consent-stats', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     
     const stats = await db.db.prepare(`
       SELECT 
@@ -9645,7 +8950,7 @@ app.get('/api/admin/cookies/consent-stats', async (c) => {
 
 app.patch('/api/admin/settings/:key', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper
+    const env = c.env as any; const db = { db: env?.DB || null } as any
     const key = c.req.param('key')
     const body = await c.req.json()
     
@@ -9741,7 +9046,7 @@ app.get('/konto/adressen', (c) => c.html(FrontendPlaceholder('/konto/adressen', 
 
 // CATEGORIES MANAGEMENT PAGE
 app.get('/admin/categories', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   const categories = await db.db.prepare(`
     SELECT c.*, ct.name, ct.description, 
            COUNT(DISTINCT p.id) as product_count
@@ -9980,7 +9285,7 @@ app.get('/admin/categories', async (c) => {
 
 // BRANDS MANAGEMENT PAGE  
 app.get('/admin/brands', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   const brands = await db.db.prepare(`
     SELECT b.*, COUNT(DISTINCT p.id) as product_count
     FROM brands b
@@ -10188,7 +9493,7 @@ app.get('/admin/brands', async (c) => {
 
 // CUSTOMER PROFILES PAGE
 app.get('/admin/customer-profiles', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   const page = parseInt(c.req.query('page') || '1')
   const limit = 20
   const offset = (page - 1) * limit
@@ -10333,7 +9638,7 @@ app.get('/admin/customer-profiles', async (c) => {
 
 // REFUNDS MANAGEMENT PAGE
 app.get('/admin/refunds', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   const refunds = await db.db.prepare(`
     SELECT o.id, o.order_number, o.email, o.first_name, o.last_name,
@@ -10464,7 +9769,7 @@ app.get('/admin/refunds', async (c) => {
 
 // SYSTEM STATUS MONITORING PAGE
 app.get('/admin/system-status', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   // Get system statistics
   const stats = {
@@ -10897,13 +10202,13 @@ app.get('/admin/quick-actions', async (c) => {
 
 // VOLUME LICENSES MANAGEMENT PAGE
 app.get('/admin/volume-licenses', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     // Get volume license statistics (simplified query for empty data handling)
     const bulkOrders = await db.db.prepare(`
       SELECT o.id, o.order_number, o.user_id, o.total, o.created_at,
-             (u.first_name || ' ' || u.last_name) as customer_name, u.email as customer_email,
+             u.name as customer_name, u.email as customer_email,
              COUNT(lk.id) as license_count
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
@@ -11070,7 +10375,7 @@ app.get('/admin/volume-licenses', async (c) => {
 
 // LICENSE USAGE & ACTIVATIONS TRACKING PAGE
 app.get('/admin/license-usage', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     // Simple counts without complex joins
@@ -11108,7 +10413,7 @@ app.get('/admin/license-usage', async (c) => {
 
 // SECURITY DASHBOARD PAGE
 app.get('/admin/security-dashboard', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     const securityStats = {
@@ -11126,7 +10431,7 @@ app.get('/admin/security-dashboard', async (c) => {
 
 // MARKETING OVERVIEW PAGE
 app.get('/admin/marketing-overview', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     const stats = {
@@ -11145,7 +10450,7 @@ app.get('/admin/marketing-overview', async (c) => {
 
 // SEO MANAGEMENT PAGE
 app.get('/admin/seo-management', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     const products = await db.db.prepare('SELECT COUNT(*) as count FROM products WHERE is_active = 1').first()
@@ -11174,7 +10479,7 @@ app.get('/admin/reviews-management', async (c) => {
 
 // PAGE 1: SECURITY OVERVIEW - /admin/security
 app.get('/admin/security', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     // Get security statistics
@@ -11190,7 +10495,7 @@ app.get('/admin/security', async (c) => {
     // Get recent failed login attempts
     const recentFailedLogins = await db.db.prepare(`
       SELECT 
-        email,
+        user_email,
         ip_address,
         user_agent,
         created_at,
@@ -11383,7 +10688,7 @@ app.get('/admin/security', async (c) => {
                         ${recentFailedLogins.results.map((login: any) => `
                           <div class="flex items-start border-l-4 border-red-500 pl-4 py-2">
                             <div class="flex-1">
-                              <p class="font-semibold text-gray-900">${login.email || 'Unbekannt'}</p>
+                              <p class="font-semibold text-gray-900">${login.user_email || 'Unbekannt'}</p>
                               <p class="text-sm text-gray-600">IP: ${login.ip_address || 'Unbekannt'}</p>
                               <p class="text-xs text-gray-500">${new Date(login.created_at).toLocaleString('de-DE')}</p>
                               ${login.failure_reason ? `<p class="text-xs text-red-600 mt-1">${login.failure_reason}</p>` : ''}
@@ -11444,7 +10749,7 @@ app.get('/admin/security', async (c) => {
 
 // PAGE 2: LOGIN HISTORY - /admin/security/login-history
 app.get('/admin/security/login-history', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     const page = parseInt(c.req.query('page') || '1')
@@ -11680,7 +10985,7 @@ app.get('/admin/security/login-history', async (c) => {
 
 // PAGE 3: ACTIVE SESSIONS - /admin/security/sessions
 app.get('/admin/security/sessions', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     // Get active sessions
@@ -11824,7 +11129,7 @@ app.get('/admin/security/sessions', async (c) => {
 
 // PAGE 4: AUDIT LOG - /admin/security/audit-log
 app.get('/admin/security/audit-log', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     const page = parseInt(c.req.query('page') || '1')
@@ -12372,7 +11677,7 @@ app.get('/admin/security/settings', async (c) => {
 
 // PAGE: FIREWALL - /admin/security/firewall
 app.get('/admin/security/firewall', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     // Get all firewall rules
@@ -12585,7 +11890,7 @@ app.get('/admin/security/firewall', async (c) => {
 
 // PAGE: BLOCKED IPS - /admin/security/blocked-ips
 app.get('/admin/security/blocked-ips', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   
   try {
     // Get blocked IPs
@@ -12788,7 +12093,7 @@ app.get('/admin/security/blocked-ips', async (c) => {
 
 // PAGE 3: LOGIN PROTECTION - /admin/security/login-protection  
 app.get('/admin/security/login-protection', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   try {
     const settings = await db.db.prepare(`SELECT * FROM login_protection_settings WHERE id = 1`).first() as any
     return c.html(`
@@ -12936,11 +12241,11 @@ app.get('/admin/security/login-protection', async (c) => {
 
 // PAGE 4: USERS & ROLES - /admin/security/users-roles
 app.get('/admin/security/users-roles', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   try {
     const roles = await db.db.prepare(`SELECT * FROM roles ORDER BY id`).all()
     const users = await db.db.prepare(`
-      SELECT u.*, GROUP_CONCAT(r.role_display_name) as roles_list, GROUP_CONCAT(ura.role_id) as role_ids
+      SELECT u.*, GROUP_CONCAT(r.role_display_name) as roles_list
       FROM users u
       LEFT JOIN user_role_assignments ura ON u.id = ura.user_id
       LEFT JOIN roles r ON ura.role_id = r.id
@@ -12975,7 +12280,7 @@ app.get('/admin/security/users-roles', async (c) => {
                     <a href="/admin/security" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                       <i class="fas fa-arrow-left mr-2"></i>Zurück
                     </a>
-                    <button onclick="openCreateRoleModal()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                    <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
                       <i class="fas fa-plus mr-2"></i>Neue Rolle
                     </button>
                   </div>
@@ -12999,20 +12304,20 @@ app.get('/admin/security/users-roles', async (c) => {
                             <h3 class="font-semibold text-gray-900">${role.role_display_name}</h3>
                             <p class="text-xs text-gray-500">${role.role_name}</p>
                           </div>
-                          ${role.is_system ? `
+                          ${role.is_system_role ? `
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">System</span>
                           ` : `
-                            <button onclick="deleteRole(${role.id}, '${role.role_display_name || role.role_name}')" class="text-gray-400 hover:text-red-600" title="Rolle löschen">
+                            <button class="text-gray-400 hover:text-red-600">
                               <i class="fas fa-trash"></i>
                             </button>
                           `}
                         </div>
                         <p class="text-sm text-gray-600 mb-3">${role.description || 'Keine Beschreibung'}</p>
                         <div class="flex gap-2">
-                          <button onclick="editRole(${role.id}, '${role.role_name}', '${role.role_display_name || role.role_name}', '${(role.description || '').replace(/'/g, "\\'")}'})" class="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200">
+                          <button class="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200">
                             <i class="fas fa-edit mr-1"></i>Bearbeiten
                           </button>
-                          <button onclick="viewRoleUsers(${role.id}, '${role.role_display_name || role.role_name}')" class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200">
+                          <button class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200">
                             <i class="fas fa-users mr-1"></i>Benutzer
                           </button>
                         </div>
@@ -13070,11 +12375,11 @@ app.get('/admin/security/users-roles', async (c) => {
                             </span>
                           </td>
                           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="assignUserRole(${user.id}, '${user.email}', '${user.role_ids || ''}')" class="text-blue-600 hover:text-blue-900 mr-3" title="Rollen zuweisen">
-                              <i class="fas fa-shield-alt"></i>
+                            <button class="text-blue-600 hover:text-blue-900 mr-3">
+                              <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="viewUserDetails(${user.id})" class="text-gray-600 hover:text-gray-900" title="Details anzeigen">
-                              <i class="fas fa-eye"></i>
+                            <button class="text-gray-600 hover:text-gray-900">
+                              <i class="fas fa-shield-alt"></i>
                             </button>
                           </td>
                         </tr>
@@ -13086,404 +12391,6 @@ app.get('/admin/security/users-roles', async (c) => {
             </div>
           </div>
         </div>
-
-        <!-- Create/Edit Role Modal -->
-        <div id="roleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold text-gray-900" id="roleModalTitle">Neue Rolle erstellen</h3>
-                <button onclick="closeRoleModal()" class="text-gray-400 hover:text-gray-600">
-                  <i class="fas fa-times text-2xl"></i>
-                </button>
-              </div>
-
-              <form id="roleForm" class="space-y-6">
-                <input type="hidden" id="roleId" name="roleId">
-                
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Rollenname *</label>
-                  <input type="text" id="roleName" name="roleName" required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="z.B. manager">
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Anzeigename *</label>
-                  <input type="text" id="roleDisplayName" name="roleDisplayName" required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="z.B. Manager">
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Beschreibung</label>
-                  <textarea id="roleDescription" name="roleDescription" rows="3"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Beschreiben Sie die Rolle und ihre Berechtigungen..."></textarea>
-                </div>
-
-                <div class="flex gap-3 pt-4">
-                  <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors">
-                    <i class="fas fa-save mr-2"></i>
-                    Rolle speichern
-                  </button>
-                  <button type="button" onclick="closeRoleModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                    Abbrechen
-                  </button>
-                </div>
-              </form>
-
-              <div id="roleSuccess" class="hidden mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
-                <div class="flex items-center gap-3">
-                  <i class="fas fa-check-circle text-green-600 text-2xl"></i>
-                  <div>
-                    <h4 class="font-semibold text-green-900">Erfolgreich gespeichert!</h4>
-                    <p class="text-sm text-green-700 mt-1">Die Rolle wurde erfolgreich gespeichert.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div id="roleError" class="hidden mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-                <div class="flex items-center gap-3">
-                  <i class="fas fa-exclamation-circle text-red-600 text-2xl"></i>
-                  <div>
-                    <h4 class="font-semibold text-red-900">Fehler</h4>
-                    <p class="text-sm text-red-700 mt-1" id="roleErrorMessage"></p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Assign Role to User Modal -->
-        <div id="assignRoleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div class="bg-white rounded-lg max-w-2xl w-full">
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold text-gray-900">Rollen zuweisen</h3>
-                <button onclick="closeAssignRoleModal()" class="text-gray-400 hover:text-gray-600">
-                  <i class="fas fa-times text-2xl"></i>
-                </button>
-              </div>
-
-              <div class="mb-4">
-                <p class="text-sm text-gray-600">Benutzer: <strong id="assignUserEmail"></strong></p>
-              </div>
-
-              <form id="assignRoleForm" class="space-y-4">
-                <input type="hidden" id="assignUserId" name="userId">
-                
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-3">Rollen auswählen:</label>
-                  <div id="rolesCheckboxes" class="space-y-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                    ${roles.results.map((role: any) => `
-                      <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
-                        <input type="checkbox" name="roles" value="${role.id}" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
-                        <span class="ml-3 text-sm">
-                          <span class="font-medium text-gray-900">${role.role_display_name || role.role_name}</span>
-                          <span class="text-gray-500 ml-2">${role.description || ''}</span>
-                        </span>
-                      </label>
-                    `).join('')}
-                  </div>
-                </div>
-
-                <div class="flex gap-3 pt-4">
-                  <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors">
-                    <i class="fas fa-check mr-2"></i>
-                    Rollen zuweisen
-                  </button>
-                  <button type="button" onclick="closeAssignRoleModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                    Abbrechen
-                  </button>
-                </div>
-              </form>
-
-              <div id="assignSuccess" class="hidden mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
-                <p class="text-green-800"><i class="fas fa-check-circle mr-2"></i>Rollen erfolgreich zugewiesen!</p>
-              </div>
-
-              <div id="assignError" class="hidden mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-                <p class="text-red-800" id="assignErrorMessage"></p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- View Role Users Modal -->
-        <div id="roleUsersModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold text-gray-900">
-                  <i class="fas fa-users mr-2 text-purple-600"></i>
-                  Benutzer mit Rolle: <span id="roleUsersRoleName" class="text-purple-600"></span>
-                </h3>
-                <button onclick="closeRoleUsersModal()" class="text-gray-400 hover:text-gray-600">
-                  <i class="fas fa-times text-2xl"></i>
-                </button>
-              </div>
-
-              <div id="roleUsersLoading" class="text-center py-8">
-                <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
-                <p class="mt-4 text-gray-600">Lade Benutzer...</p>
-              </div>
-
-              <div id="roleUsersContent" class="hidden">
-                <div class="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p class="text-sm text-blue-800">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <span id="roleUsersCount">0</span> Benutzer haben diese Rolle
-                  </p>
-                </div>
-
-                <div class="overflow-x-auto">
-                  <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                      <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Benutzer</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">E-Mail</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Zugewiesen am</th>
-                      </tr>
-                    </thead>
-                    <tbody id="roleUsersTable" class="bg-white divide-y divide-gray-200">
-                    </tbody>
-                  </table>
-                </div>
-
-                <div id="roleUsersEmpty" class="hidden text-center py-8">
-                  <i class="fas fa-users text-gray-300 text-5xl mb-4"></i>
-                  <p class="text-gray-600">Keine Benutzer mit dieser Rolle gefunden</p>
-                </div>
-              </div>
-
-              <div id="roleUsersError" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
-                <p class="text-red-800"><i class="fas fa-exclamation-circle mr-2"></i><span id="roleUsersErrorMessage"></span></p>
-              </div>
-
-              <div class="flex justify-end gap-3 pt-6 border-t mt-6">
-                <button onclick="closeRoleUsersModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  Schließen
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <script>
-          // Create/Edit Role Modal
-          function openCreateRoleModal() {
-            document.getElementById('roleModalTitle').textContent = 'Neue Rolle erstellen';
-            document.getElementById('roleForm').reset();
-            document.getElementById('roleId').value = '';
-            document.getElementById('roleModal').classList.remove('hidden');
-          }
-
-          function editRole(id, name, displayName, description) {
-            document.getElementById('roleModalTitle').textContent = 'Rolle bearbeiten';
-            document.getElementById('roleId').value = id;
-            document.getElementById('roleName').value = name;
-            document.getElementById('roleDisplayName').value = displayName;
-            document.getElementById('roleDescription').value = description;
-            document.getElementById('roleModal').classList.remove('hidden');
-          }
-
-          function closeRoleModal() {
-            document.getElementById('roleModal').classList.add('hidden');
-            document.getElementById('roleSuccess').classList.add('hidden');
-            document.getElementById('roleError').classList.add('hidden');
-          }
-
-          // Handle role form submission
-          document.getElementById('roleForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const roleId = document.getElementById('roleId').value;
-            const formData = {
-              role_name: document.getElementById('roleName').value,
-              role_display_name: document.getElementById('roleDisplayName').value,
-              description: document.getElementById('roleDescription').value
-            };
-
-            try {
-              const url = roleId ? \`/api/admin/roles/\${roleId}\` : '/api/admin/roles';
-              const method = roleId ? 'PUT' : 'POST';
-              
-              const response = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-              });
-
-              const data = await response.json();
-
-              if (data.success) {
-                document.getElementById('roleSuccess').classList.remove('hidden');
-                setTimeout(() => {
-                  window.location.reload();
-                }, 1500);
-              } else {
-                throw new Error(data.error || 'Fehler beim Speichern');
-              }
-            } catch (error) {
-              document.getElementById('roleError').classList.remove('hidden');
-              document.getElementById('roleErrorMessage').textContent = error.message;
-            }
-          });
-
-          // Assign Role Modal
-          function assignUserRole(userId, email, currentRoleIds) {
-            document.getElementById('assignUserId').value = userId;
-            document.getElementById('assignUserEmail').textContent = email;
-            
-            // Uncheck all checkboxes first
-            document.querySelectorAll('#rolesCheckboxes input[type="checkbox"]').forEach(cb => {
-              cb.checked = false;
-            });
-            
-            // Check current roles
-            if (currentRoleIds) {
-              const roleIds = currentRoleIds.split(',');
-              roleIds.forEach(roleId => {
-                const checkbox = document.querySelector(\`#rolesCheckboxes input[value="\${roleId}"]\`);
-                if (checkbox) checkbox.checked = true;
-              });
-            }
-            
-            document.getElementById('assignRoleModal').classList.remove('hidden');
-          }
-
-          function closeAssignRoleModal() {
-            document.getElementById('assignRoleModal').classList.add('hidden');
-            document.getElementById('assignSuccess').classList.add('hidden');
-            document.getElementById('assignError').classList.add('hidden');
-          }
-
-          // Handle assign role form submission
-          document.getElementById('assignRoleForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const userId = document.getElementById('assignUserId').value;
-            const selectedRoles = Array.from(document.querySelectorAll('#rolesCheckboxes input:checked')).map(cb => cb.value);
-
-            try {
-              const response = await fetch(\`/api/admin/users/\${userId}/roles\`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role_ids: selectedRoles })
-              });
-
-              const data = await response.json();
-
-              if (data.success) {
-                document.getElementById('assignSuccess').classList.remove('hidden');
-                setTimeout(() => {
-                  window.location.reload();
-                }, 1500);
-              } else {
-                throw new Error(data.error || 'Fehler beim Zuweisen');
-              }
-            } catch (error) {
-              document.getElementById('assignError').classList.remove('hidden');
-              document.getElementById('assignErrorMessage').textContent = error.message;
-            }
-          });
-
-          // View role users
-          async function viewRoleUsers(roleId, roleName) {
-            document.getElementById('roleUsersRoleName').textContent = roleName;
-            document.getElementById('roleUsersModal').classList.remove('hidden');
-            document.getElementById('roleUsersLoading').classList.remove('hidden');
-            document.getElementById('roleUsersContent').classList.add('hidden');
-            document.getElementById('roleUsersError').classList.add('hidden');
-            
-            try {
-              const response = await fetch(\`/api/admin/roles/\${roleId}/users\`);
-              const data = await response.json();
-              
-              if (data.success) {
-                const users = data.data || [];
-                document.getElementById('roleUsersCount').textContent = users.length;
-                
-                if (users.length === 0) {
-                  document.getElementById('roleUsersEmpty').classList.remove('hidden');
-                } else {
-                  document.getElementById('roleUsersEmpty').classList.add('hidden');
-                  const tableBody = document.getElementById('roleUsersTable');
-                  tableBody.innerHTML = users.map(user => \`
-                    <tr class="hover:bg-gray-50">
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                          <div class="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
-                            <i class="fas fa-user text-purple-600 text-sm"></i>
-                          </div>
-                          <div class="ml-3">
-                            <div class="text-sm font-medium text-gray-900">\${user.first_name} \${user.last_name}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">\${user.email}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full \${
-                          user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }">
-                          \${user.status}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        \${user.assigned_at ? new Date(user.assigned_at).toLocaleDateString('de-DE') : '-'}
-                      </td>
-                    </tr>
-                  \`).join('');
-                }
-                
-                document.getElementById('roleUsersLoading').classList.add('hidden');
-                document.getElementById('roleUsersContent').classList.remove('hidden');
-              } else {
-                throw new Error(data.error || 'Fehler beim Laden der Benutzer');
-              }
-            } catch (error) {
-              document.getElementById('roleUsersLoading').classList.add('hidden');
-              document.getElementById('roleUsersError').classList.remove('hidden');
-              document.getElementById('roleUsersErrorMessage').textContent = error.message;
-            }
-          }
-
-          function closeRoleUsersModal() {
-            document.getElementById('roleUsersModal').classList.add('hidden');
-          }
-
-          // Delete role
-          async function deleteRole(roleId, roleName) {
-            if (!confirm(\`Möchten Sie die Rolle "\${roleName}" wirklich löschen?\\n\\nDies kann nicht rückgängig gemacht werden.\`)) {
-              return;
-            }
-            
-            try {
-              const response = await fetch(\`/api/admin/roles/\${roleId}\`, {
-                method: 'DELETE'
-              });
-              
-              const data = await response.json();
-              
-              if (data.success) {
-                alert('Rolle erfolgreich gelöscht!');
-                window.location.reload();
-              } else {
-                throw new Error(data.error || 'Fehler beim Löschen');
-              }
-            } catch (error) {
-              alert('Fehler: ' + error.message);
-            }
-          }
-
-          // View user details
-          function viewUserDetails(userId) {
-            window.location.href = \`/admin/users/\${userId}\`;
-          }
-        </script>
       </body>
       </html>
     `)
@@ -13494,7 +12401,7 @@ app.get('/admin/security/users-roles', async (c) => {
 
 // PAGE 5: 2FA - /admin/security/2fa
 app.get('/admin/security/2fa', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   try {
     const twoFaUsers = await db.db.prepare(`
       SELECT u.*, u2fa.method, u2fa.is_enabled, u2fa.enabled_at, u2fa.last_verified_at
@@ -13662,7 +12569,7 @@ app.get('/admin/security/2fa', async (c) => {
 
 // PAGE 6: FILE & SYSTEM PROTECTION - /admin/security/file-protection
 app.get('/admin/security/file-protection', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   try {
     const scans = await db.db.prepare(`
       SELECT * FROM file_scans 
@@ -13831,7 +12738,7 @@ app.get('/admin/security/file-protection', async (c) => {
 
 // PAGE 7: API & WEBHOOKS - /admin/security/api-webhooks
 app.get('/admin/security/api-webhooks', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   try {
     const apiKeys = await db.db.prepare(`SELECT * FROM api_keys ORDER BY created_at DESC LIMIT 20`).all()
     const webhooks = await db.db.prepare(`SELECT * FROM webhooks ORDER BY created_at DESC LIMIT 20`).all()
@@ -14004,7 +12911,7 @@ app.get('/admin/security/api-webhooks', async (c) => {
 
 // PAGE 8: EMAIL SECURITY - /admin/security/email-security
 app.get('/admin/security/email-security', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   try {
     const settings = await db.db.prepare(`SELECT * FROM email_security_settings WHERE id = 1`).first() as any
 
@@ -14151,7 +13058,7 @@ app.get('/admin/security/email-security', async (c) => {
 
 // PAGE 9: SECURITY SCANS - /admin/security/scans
 app.get('/admin/security/scans', async (c) => {
-  const db = c.get('db') as DatabaseHelper
+  const env = c.env as any; const db = { db: env?.DB || null } as any
   try {
     const scans = await db.db.prepare(`
       SELECT * FROM security_scans 
@@ -14375,7 +13282,7 @@ app.get('/admin/products/pricing', async (c) => {
 // PAGE 1: CAMPAIGNS MANAGEMENT - /admin/marketing/campaigns
 app.get('/admin/marketing/campaigns', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper;
+    const env = c.env as any; const db = { db: env?.DB || null } as any;
     const page = parseInt(c.req.query('page') || '1');
     const limit = parseInt(c.req.query('limit') || '20');
     const offset = (page - 1) * limit;
@@ -14713,7 +13620,7 @@ app.get('/admin/marketing/campaigns', async (c) => {
 // PAGE 2: EMAIL MARKETING - /admin/marketing/emails
 app.get('/admin/marketing/emails', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper;
+    const env = c.env as any; const db = { db: env?.DB || null } as any;
     const page = parseInt(c.req.query('page') || '1');
     const limit = parseInt(c.req.query('limit') || '20');
     const offset = (page - 1) * limit;
@@ -14968,7 +13875,7 @@ app.get('/admin/marketing/emails', async (c) => {
 // PAGE 3: COUPONS MANAGEMENT - /admin/marketing/coupons
 app.get('/admin/marketing/coupons', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper;
+    const env = c.env as any; const db = { db: env?.DB || null } as any;
     const page = parseInt(c.req.query('page') || '1');
     const limit = parseInt(c.req.query('limit') || '20');
     const offset = (page - 1) * limit;
@@ -15444,7 +14351,7 @@ app.get('/admin/marketing/promotions', async (c) => {
 // PAGE 5: MARKETING ANALYTICS - /admin/marketing/analytics
 app.get('/admin/marketing/analytics', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper;
+    const env = c.env as any; const db = { db: env?.DB || null } as any;
 
     // Get campaign performance
     const campaignStats = await db.db.prepare(`
@@ -16014,7 +14921,7 @@ app.get('/admin/marketing/automation', async (c) => {
 // PAGE 1: ALL USERS - /admin/users
 app.get('/admin/users', async (c) => {
   try {
-    const db = c.get('db') as DatabaseHelper;
+    const env = c.env as any; const db = { db: env?.DB || null } as any;
     const page = parseInt(c.req.query('page') || '1');
     const limit = parseInt(c.req.query('limit') || '20');
     const offset = (page - 1) * limit;

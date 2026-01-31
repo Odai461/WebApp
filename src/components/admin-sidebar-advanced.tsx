@@ -93,11 +93,12 @@ export function AdminSidebarAdvanced(currentPath: string = '/admin') {
           ]
         },
         {
-          label: 'Menü',
-          icon: 'bars',
+          label: 'Homepage & Menü',
+          icon: 'home',
           children: [
+            { path: '/admin/homepage', label: 'Homepage Manager', icon: 'magic' },
             { path: '/admin/sliders', label: 'Slider', icon: 'images' },
-            { path: '/admin/homepage-sections', label: 'Homepage', icon: 'th-large' },
+            { path: '/admin/homepage-sections', label: 'Sections (Alt)', icon: 'th-large' },
             { path: '/admin/footer', label: 'Footer', icon: 'shoe-prints' }
           ]
         },
@@ -879,6 +880,16 @@ export function AdminSidebarAdvanced(currentPath: string = '/admin') {
           }
         });
       </script>
+    </div>
+  `;
+}
+
+export function AdminHeaderAdvanced(title: string) {
+  return `
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">
+        ${title}
+      </h1>
     </div>
   `;
 }

@@ -1,7 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "webapp",
-  "main": "src/index.tsx",
   "compatibility_date": "2026-01-28",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
@@ -11,15 +10,7 @@
     {
       "binding": "DB",
       "database_name": "webapp-production",
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "preview_database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "8336fdbd-9357-4049-82b9-8a57f2754879"
     }
-  ],
-  "triggers": {
-    "crons": [
-      "*/15 * * * *",
-      "0 */6 * * *",
-      "0 3 * * *"
-    ]
-  }
+  ]
 }
