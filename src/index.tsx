@@ -635,6 +635,11 @@ app.get('/volume-discount', (c) => {
   return c.html(VolumeDiscountPage())
 })
 
+// Alias for volume-discount-page
+app.get('/volume-discount-page', (c) => {
+  return c.html(VolumeDiscountPage())
+})
+
 // Shopping cart page
 app.get('/warenkorb', (c) => {
   return c.html(CartPage())
@@ -712,6 +717,11 @@ app.get('/contact', (c) => {
 // ===========================
 
 app.get('/dashboard', (c) => {
+  return c.html(DashboardPage())
+})
+
+// Alias for dashboard-overview
+app.get('/dashboard-overview', (c) => {
   return c.html(DashboardPage())
 })
 
