@@ -21654,3 +21654,235 @@ export default {
     ctx.waitUntil(handleScheduledTasks(event, env))
   }
 }
+
+// ============================================
+// FIREWALL API ENDPOINTS
+// ============================================
+
+// Get firewall settings
+app.get('/api/admin/firewall/settings', async (c) => {
+  try {
+    const { env } = c
+    const settings = await env.DB.prepare(`
+      SELECT * FROM firewall_settings ORDER BY category, setting_key
+    `).all()
+
+    return c.json({ success: true, settings: settings.results })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Update firewall settings
+app.post('/api/admin/firewall/settings', async (c) => {
+  try {
+    const { env } = c
+    const { settings } = await c.req.json()
+
+    for (const [key, value] of Object.entries(settings)) {
+      await env.DB.prepare(`
+        UPDATE firewall_settings 
+        SET setting_value = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE setting_key = ?
+      `).bind(value, key).run()
+    }
+
+    return c.json({ success: true, message: 'Settings updated' })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Get security events
+app.get('/api/admin/firewall/events', async (c) => {
+  try {
+    const { env } = c
+    const limit = parseInt(c.req.query('limit') || '100')
+    const offset = parseInt(c.req.query('offset') || '0')
+
+    const events = await env.DB.prepare(`
+      SELECT * FROM security_events
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    `).bind(limit, offset).all()
+
+    const total = await env.DB.prepare(`
+      SELECT COUNT(*) as count FROM security_events
+    `).first() as any
+
+    return c.json({
+      success: true,
+      events: events.results,
+      total: total?.count || 0,
+      limit,
+      offset
+    })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Block IP address
+app.post('/api/admin/firewall/block-ip', async (c) => {
+  try {
+    const { env } = c
+    const { ip_address, reason, duration } = await c.req.json()
+
+    const blockedUntil = duration ? new Date(Date.now() + duration * 1000).toISOString() : null
+
+    await env.DB.prepare(`
+      INSERT OR REPLACE INTO blocked_ips (ip_address, reason, block_type, blocked_until, is_active)
+      VALUES (?, ?, 'manual', ?, 1)
+    `).bind(ip_address, reason, blockedUntil).run()
+
+    return c.json({ success: true, message: 'IP blocked successfully' })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Unblock IP address
+app.delete('/api/admin/firewall/block-ip/:ip', async (c) => {
+  try {
+    const { env } = c
+    const ip = c.req.param('ip')
+
+    await env.DB.prepare(`
+      UPDATE blocked_ips
+      SET is_active = 0, updated_at = CURRENT_TIMESTAMP
+      WHERE ip_address = ?
+    `).bind(ip).run()
+
+    return c.json({ success: true, message: 'IP unblocked successfully' })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Get threat patterns
+app.get('/api/admin/firewall/threat-patterns', async (c) => {
+  try {
+    const { env } = c
+    const patterns = await env.DB.prepare(`
+      SELECT * FROM threat_patterns WHERE is_active = 1
+      ORDER BY severity DESC, pattern_type
+    `).all()
+
+    return c.json({ success: true, patterns: patterns.results })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Add threat pattern
+app.post('/api/admin/firewall/threat-patterns', async (c) => {
+  try {
+    const { env } = c
+    const { pattern_type, pattern, description, severity } = await c.req.json()
+
+    await env.DB.prepare(`
+      INSERT INTO threat_patterns (pattern_type, pattern, description, severity, is_active)
+      VALUES (?, ?, ?, ?, 1)
+    `).bind(pattern_type, pattern, description, severity).run()
+
+    return c.json({ success: true, message: 'Threat pattern added' })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Get firewall rules
+app.get('/api/admin/firewall/rules', async (c) => {
+  try {
+    const { env } = c
+    const rules = await env.DB.prepare(`
+      SELECT * FROM firewall_rules WHERE is_active = 1
+      ORDER BY created_at DESC
+    `).all()
+
+    return c.json({ success: true, rules: rules.results })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Add firewall rule
+app.post('/api/admin/firewall/rules', async (c) => {
+  try {
+    const { env } = c
+    const { name, rule_type, pattern, action, severity } = await c.req.json()
+
+    await env.DB.prepare(`
+      INSERT INTO firewall_rules (name, rule_type, pattern, action, severity, is_active)
+      VALUES (?, ?, ?, ?, ?, 1)
+    `).bind(name, rule_type, pattern, action, severity).run()
+
+    return c.json({ success: true, message: 'Firewall rule added' })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Delete firewall rule
+app.delete('/api/admin/firewall/rules/:id', async (c) => {
+  try {
+    const { env } = c
+    const id = c.req.param('id')
+
+    await env.DB.prepare(`
+      UPDATE firewall_rules
+      SET is_active = 0, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(id).run()
+
+    return c.json({ success: true, message: 'Firewall rule deleted' })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+
+// Get firewall statistics
+app.get('/api/admin/firewall/stats', async (c) => {
+  try {
+    const { env } = c
+
+    const [activeRules, blockedIPs, events24h, threatPatterns, topAttackTypes, topBlockedIPs] = await Promise.all([
+      env.DB.prepare('SELECT COUNT(*) as count FROM firewall_rules WHERE is_active = 1').first(),
+      env.DB.prepare('SELECT COUNT(*) as count FROM blocked_ips WHERE is_active = 1').first(),
+      env.DB.prepare('SELECT COUNT(*) as count FROM security_events WHERE created_at >= datetime("now", "-24 hours") AND is_blocked = 1').first(),
+      env.DB.prepare('SELECT COUNT(*) as count FROM threat_patterns WHERE is_active = 1').first(),
+      env.DB.prepare(`
+        SELECT attack_type, COUNT(*) as count 
+        FROM security_events 
+        WHERE created_at >= datetime("now", "-7 days")
+        GROUP BY attack_type 
+        ORDER BY count DESC 
+        LIMIT 5
+      `).all(),
+      env.DB.prepare(`
+        SELECT ip_address, COUNT(*) as count 
+        FROM security_events 
+        WHERE created_at >= datetime("now", "-7 days")
+        AND is_blocked = 1
+        GROUP BY ip_address 
+        ORDER BY count DESC 
+        LIMIT 10
+      `).all()
+    ])
+
+    return c.json({
+      success: true,
+      stats: {
+        activeRules: (activeRules as any)?.count || 0,
+        blockedIPs: (blockedIPs as any)?.count || 0,
+        events24h: (events24h as any)?.count || 0,
+        threatPatterns: (threatPatterns as any)?.count || 0,
+        topAttackTypes: (topAttackTypes as any).results || [],
+        topBlockedIPs: (topBlockedIPs as any).results || []
+      }
+    })
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500)
+  }
+})
+

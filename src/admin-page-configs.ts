@@ -976,24 +976,35 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
 
   '/admin/firewall': {
     path: '/admin/firewall',
-    title: 'Firewall',
-    icon: 'fire',
+    title: 'Web Application Firewall (WAF)',
+    icon: 'shield-alt',
     iconColor: 'orange',
-    description: 'Firewall-Regeln und IP-Blocking',
+    description: 'Endpoint-Firewall mit intelligenter Bedrohungserkennung',
+    dbQuery: `SELECT bi.*, 
+              (SELECT COUNT(*) FROM security_events WHERE ip_address = bi.ip_address AND created_at >= datetime('now', '-24 hours')) as recent_attempts
+              FROM blocked_ips bi
+              WHERE bi.is_active = 1
+              ORDER BY bi.created_at DESC
+              LIMIT 100`,
     statsCards: [
-      { label: 'Aktive Regeln', color: 'text-orange-600', icon: 'fire' },
-      { label: 'Geblockte IPs', color: 'text-red-600', icon: 'ban' },
-      { label: 'Versuche (24h)', color: 'text-yellow-600', icon: 'exclamation' }
+      { label: 'Aktive Regeln', query: 'SELECT COUNT(*) as count FROM firewall_rules WHERE is_active = 1', color: 'text-orange-600', icon: 'fire' },
+      { label: 'Geblockte IPs', query: 'SELECT COUNT(*) as count FROM blocked_ips WHERE is_active = 1', color: 'text-red-600', icon: 'ban' },
+      { label: 'Angriffe (24h)', query: 'SELECT COUNT(*) as count FROM security_events WHERE created_at >= datetime("now", "-24 hours") AND is_blocked = 1', color: 'text-yellow-600', icon: 'exclamation-triangle' },
+      { label: 'Bedrohungsmuster', query: 'SELECT COUNT(*) as count FROM threat_patterns WHERE is_active = 1', color: 'text-purple-600', icon: 'brain' }
     ],
     tableColumns: [
       { key: 'ip_address', label: 'IP-Adresse' },
+      { key: 'block_type', label: 'Typ', format: 'badge' },
       { key: 'reason', label: 'Grund' },
-      { key: 'blocked_at', label: 'Blockiert am', format: 'date' },
-      { key: 'expires', label: 'Läuft ab', format: 'date' },
-      { key: 'status', label: 'Status', format: 'badge' }
+      { key: 'recent_attempts', label: 'Versuche (24h)' },
+      { key: 'blocked_until', label: 'Läuft ab', format: 'date' },
+      { key: 'is_active', label: 'Status', format: 'badge' }
     ],
     actions: [
-      { label: 'IP blockieren', icon: 'ban', color: 'red', action: 'addNew()' }
+      { label: 'IP blockieren', icon: 'ban', color: 'red', action: 'blockIP()' },
+      { label: 'Regeln verwalten', icon: 'cog', color: 'blue', action: 'manageRules()' },
+      { label: 'Lernmodus', icon: 'graduation-cap', color: 'green', action: 'toggleLearningMode()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'gray', action: 'refreshPage()' }
     ]
   },
 
