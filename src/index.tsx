@@ -12435,17 +12435,18 @@ app.get('/admin/security/sessions', async (c) => {
   
   try {
     // Get active sessions
-    const sessions = await db.db.prepare(`
+    const sessions = await c.env.DB.prepare(`
       SELECT 
-        us.*,
+        s.*,
         u.email,
         u.first_name,
         u.last_name,
         u.role
-      FROM user_sessions us
-      LEFT JOIN users u ON us.user_id = u.id
-      WHERE us.is_active = 1
-      ORDER BY us.last_activity DESC
+      FROM sessions s
+      LEFT JOIN users u ON s.user_id = u.id
+      WHERE s.expires_at > datetime('now')
+      ORDER BY s.created_at DESC
+      LIMIT 50
     `).all()
 
     return c.html(`
