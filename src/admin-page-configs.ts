@@ -1277,27 +1277,26 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     icon: 'star',
     iconColor: 'yellow',
     description: 'Kundenbewertungen und Rezensionen verwalten',
-    dbQuery: `SELECT pr.*, 
-              p.name as product_name,
+    dbQuery: `SELECT r.*, 
+              'Product #' || r.product_id as product_name,
               u.email as user_email,
-              u.first_name || ' ' || u.last_name as user_name
-              FROM product_reviews pr
-              LEFT JOIN products p ON pr.product_id = p.id
-              LEFT JOIN users u ON pr.user_id = u.id
-              ORDER BY pr.created_at DESC
+              COALESCE(u.first_name || ' ' || u.last_name, u.email) as user_name
+              FROM reviews r
+              LEFT JOIN users u ON r.user_id = u.id
+              ORDER BY r.created_at DESC
               LIMIT 100`,
     statsCards: [
-      { label: 'Gesamt Bewertungen', query: 'SELECT COUNT(*) as count FROM product_reviews', color: 'text-yellow-600', icon: 'star' },
-      { label: 'Durchschn. Bewertung', query: 'SELECT ROUND(AVG(rating), 1) as avg FROM product_reviews WHERE is_approved = 1', color: 'text-green-600', icon: 'star-half-alt', format: 'text' },
-      { label: 'Wartend auf Freigabe', query: 'SELECT COUNT(*) as count FROM product_reviews WHERE is_approved = 0', color: 'text-orange-600', icon: 'clock' },
-      { label: '5-Sterne Bewertungen', query: 'SELECT COUNT(*) as count FROM product_reviews WHERE rating = 5 AND is_approved = 1', color: 'text-blue-600', icon: 'thumbs-up' }
+      { label: 'Gesamt Bewertungen', query: 'SELECT COUNT(*) as count FROM reviews', color: 'text-yellow-600', icon: 'star' },
+      { label: 'Durchschn. Bewertung', query: 'SELECT ROUND(AVG(rating), 1) as avg FROM reviews WHERE is_approved = 1', color: 'text-green-600', icon: 'star-half-alt', format: 'text' },
+      { label: 'Wartend auf Freigabe', query: 'SELECT COUNT(*) as count FROM reviews WHERE is_approved = 0', color: 'text-orange-600', icon: 'clock' },
+      { label: '5-Sterne Bewertungen', query: 'SELECT COUNT(*) as count FROM reviews WHERE rating = 5 AND is_approved = 1', color: 'text-blue-600', icon: 'thumbs-up' }
     ],
     tableColumns: [
       { key: 'product_name', label: 'Produkt' },
       { key: 'user_name', label: 'Kunde' },
       { key: 'rating', label: 'Bewertung' },
       { key: 'title', label: 'Titel' },
-      { key: 'comment', label: 'Kommentar' },
+      { key: 'content', label: 'Kommentar' },
       { key: 'is_approved', label: 'Status', format: 'badge' },
       { key: 'created_at', label: 'Datum', format: 'date' }
     ],

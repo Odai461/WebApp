@@ -18776,7 +18776,7 @@ app.get('/admin/*', async (c) => {
       const [statsResult, blockedIPsResult, rulesResult, threatPatternsResult, settingsResult] = await Promise.all([
         env.DB.prepare('SELECT COUNT(*) as activeRules FROM firewall_rules WHERE is_active = 1').first(),
         env.DB.prepare('SELECT COUNT(*) as blockedIPs FROM blocked_ips WHERE is_active = 1').first(),
-        env.DB.prepare('SELECT * FROM firewall_rules ORDER BY is_active DESC, priority DESC LIMIT 100').all(),
+        env.DB.prepare('SELECT * FROM firewall_rules ORDER BY is_active DESC, severity DESC LIMIT 100').all(),
         env.DB.prepare('SELECT * FROM threat_patterns WHERE is_active = 1 ORDER BY severity DESC').all(),
         env.DB.prepare('SELECT * FROM firewall_settings').all()
       ]);
