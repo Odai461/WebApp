@@ -200,23 +200,22 @@ export function HomepageSimple() {
             text-align: center;
         }
         
-        /* Main Header - Professional Layout */
+        /* Main Header - WHITE Background (Professional & Clean) */
         .header {
-            background: linear-gradient(135deg, #001f3f 0%, #002a54 100%);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            background: #ffffff;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
             position: sticky;
             top: 0;
             z-index: 1001;
-            color: white;
-            border-bottom: 2px solid rgba(255,193,7,0.15);
+            border-bottom: 1px solid #e8e8e8;
         }
         
         .header-content {
             display: grid;
-            grid-template-columns: 200px 1fr auto;
+            grid-template-columns: 220px 1fr auto;
             align-items: center;
-            padding: 18px 0;
-            gap: 50px;
+            padding: 20px 0;
+            gap: 60px;
         }
         
         .logo {
@@ -227,53 +226,67 @@ export function HomepageSimple() {
         }
         
         .logo:hover {
-            opacity: 0.9;
-            transform: scale(1.02);
+            opacity: 0.85;
+            transform: scale(1.03);
         }
         
-        /* Professional Search Bar */
+        .logo img {
+            height: 55px;
+            width: auto;
+        }
+        
+        /* Professional Search Bar - Prominent Design */
         .search-bar {
             display: flex;
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             position: relative;
         }
         
         .search-input {
             flex: 1;
-            padding: 16px 50px 16px 24px;
-            border: 2px solid rgba(255,193,7,0.2);
-            border-radius: 8px;
+            padding: 17px 110px 17px 26px;
+            border: 2px solid #d0d0d0;
+            border-radius: 6px;
             font-size: 0.95rem;
-            background: rgba(255,255,255,0.98);
+            background: #f9f9f9;
             transition: all 0.3s;
             outline: none;
+            color: #333;
+        }
+        
+        .search-input::placeholder {
+            color: #999;
         }
         
         .search-input:focus {
             border-color: var(--gold);
-            box-shadow: 0 0 0 4px rgba(255,193,7,0.1);
+            box-shadow: 0 0 0 3px rgba(255,193,7,0.12);
             background: white;
         }
         
         .search-btn {
             position: absolute;
-            right: 8px;
+            right: 6px;
             top: 50%;
             transform: translateY(-50%);
-            padding: 10px 16px;
+            padding: 12px 26px;
             background: var(--gold);
-            color: #001933;
+            color: var(--navy);
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: 700;
+            font-size: 0.9rem;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         
         .search-btn:hover {
-            background: #FFD54F;
-            transform: translateY(-50%) scale(1.05);
+            background: #FFB300;
+            transform: translateY(-50%) scale(1.02);
         }
         
         /* Header Actions - Professional Icons */
@@ -307,11 +320,11 @@ export function HomepageSimple() {
         }
         
         .cart-btn {
-            padding: 12px 24px;
+            padding: 14px 28px;
             background: var(--gold);
-            color: #001933;
+            color: var(--navy);
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -319,31 +332,37 @@ export function HomepageSimple() {
             font-weight: 700;
             text-decoration: none;
             transition: all 0.3s;
-            box-shadow: 0 2px 8px rgba(255,193,7,0.3);
+            box-shadow: 0 3px 10px rgba(255,193,7,0.25);
+            font-size: 0.95rem;
         }
         
         .cart-btn:hover {
-            background: #FFD54F;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255,193,7,0.4);
+            background: #FFB300;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(255,193,7,0.35);
+        }
+        
+        .cart-btn i {
+            font-size: 1.2rem;
         }
         
         .cart-count {
-            background: #001933;
-            color: var(--gold);
+            background: var(--navy);
+            color: white;
             border-radius: 50%;
-            padding: 4px 10px;
+            padding: 4px 11px;
             font-size: 0.85rem;
             font-weight: 800;
-            min-width: 26px;
+            min-width: 28px;
             text-align: center;
+            line-height: 1;
         }
         
-        /* Professional Mega Menu Navigation */
+        /* Professional Mega Menu Navigation - Subtle Background */
         .navigation {
-            background: linear-gradient(135deg, #001428 0%, #001d38 100%);
-            border-bottom: 3px solid rgba(255,193,7,0.25);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             position: relative;
             z-index: 1000;
         }
@@ -367,9 +386,9 @@ export function HomepageSimple() {
         }
         
         #main-navigation > li > a {
-            color: rgba(255,255,255,0.92);
+            color: var(--navy);
             text-decoration: none;
-            padding: 18px 26px;
+            padding: 17px 24px;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -377,13 +396,13 @@ export function HomepageSimple() {
             transition: all 0.3s;
             border-bottom: 3px solid transparent;
             font-size: 0.95rem;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
             white-space: nowrap;
         }
         
         #main-navigation > li > a:hover,
         #main-navigation > li.active > a {
-            background: linear-gradient(180deg, rgba(255,193,7,0.15) 0%, rgba(255,193,7,0.08) 100%);
+            background: white;
             color: var(--gold);
             border-bottom-color: var(--gold);
         }
@@ -909,9 +928,10 @@ export function HomepageSimple() {
                 </a>
                 
                 <div class="search-bar">
-                    <input type="text" id="search-input" class="search-input" placeholder="Software suchen...">
+                    <input type="text" id="search-input" class="search-input" placeholder="Software, Lizenzen, Betriebssysteme...">
                     <button id="search-btn" class="search-btn">
                         <i class="fas fa-search"></i>
+                        Suchen
                     </button>
                 </div>
                 
