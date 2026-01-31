@@ -424,8 +424,342 @@ function renderPriceComparison(section, config) {
   `;
 }
 
+// Flash Deals / Countdown Deals Section
+function renderCountdownDeals(section, config) {
+  const endTime = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 hours from now
+  
+  return `
+    <section class="countdown-deals" data-section-id="${section.id}" style="background:linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%); color:white; padding:60px 20px;">
+      <div style="max-width:1200px; margin:0 auto; text-align:center;">
+        <h2 style="font-size:2.5rem; margin-bottom:10px;">⚡ ${section.title || 'Flash Deals'}</h2>
+        <p style="font-size:1.2rem; margin-bottom:30px; opacity:0.9;">${section.subtitle || 'Zeitlich begrenzte Angebote - Nur heute!'}</p>
+        
+        <div class="countdown-timer" data-end-time="${endTime}" style="display:flex; justify-content:center; gap:20px; margin-bottom:40px;">
+          <div style="background:rgba(255,255,255,0.2); padding:20px; border-radius:10px; min-width:80px;">
+            <div class="hours" style="font-size:2rem; font-weight:bold;">00</div>
+            <div style="font-size:0.9rem; opacity:0.9;">Stunden</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.2); padding:20px; border-radius:10px; min-width:80px;">
+            <div class="minutes" style="font-size:2rem; font-weight:bold;">00</div>
+            <div style="font-size:0.9rem; opacity:0.9;">Minuten</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.2); padding:20px; border-radius:10px; min-width:80px;">
+            <div class="seconds" style="font-size:2rem; font-weight:bold;">00</div>
+            <div style="font-size:0.9rem; opacity:0.9;">Sekunden</div>
+          </div>
+        </div>
+        
+        <a href="/produkte?sale=true" style="display:inline-block; background:white; color:#FF5252; padding:15px 40px; border-radius:25px; text-decoration:none; font-weight:bold; font-size:1.1rem;">
+          <i class="fas fa-bolt"></i> Jetzt zugreifen
+        </a>
+      </div>
+    </section>
+  `;
+}
+
+// License Comparison Section
+function renderLicenseComparison(section, config) {
+  return `
+    <section class="license-comparison" data-section-id="${section.id}" style="padding:60px 20px; background:#f8f9fa;">
+      <div style="max-width:1200px; margin:0 auto;">
+        <h2 style="text-align:center; font-size:2.5rem; color:#001f3f; margin-bottom:40px;">${section.title || '📊 Lizenzvergleich'}</h2>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:30px;">
+          <div style="background:white; padding:30px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1); border-top:4px solid #FFC107;">
+            <h3 style="font-size:1.5rem; color:#001f3f; margin-bottom:20px;">OEM Lizenz</h3>
+            <ul style="list-style:none; padding:0; margin:0 0 20px 0;">
+              <li style="padding:10px 0; border-bottom:1px solid #eee;"><i class="fas fa-check" style="color:#00A859; margin-right:10px;"></i> Günstigster Preis</li>
+              <li style="padding:10px 0; border-bottom:1px solid #eee;"><i class="fas fa-check" style="color:#00A859; margin-right:10px;"></i> Gebunden an Hardware</li>
+              <li style="padding:10px 0; border-bottom:1px solid #eee;"><i class="fas fa-times" style="color:#FF5252; margin-right:10px;"></i> Nicht übertragbar</li>
+            </ul>
+            <div style="text-align:center; font-size:2rem; font-weight:bold; color:#FFC107; margin-bottom:15px;">ab €13.99</div>
+            <a href="/produkte" style="display:block; background:#001f3f; color:white; padding:12px; border-radius:8px; text-decoration:none; text-align:center;">Anzeigen</a>
+          </div>
+          
+          <div style="background:white; padding:30px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.15); border-top:4px solid #001f3f; transform:scale(1.05);">
+            <div style="background:#FFC107; color:#001f3f; padding:5px 15px; border-radius:20px; display:inline-block; font-size:0.9rem; font-weight:bold; margin-bottom:15px;">Beliebt</div>
+            <h3 style="font-size:1.5rem; color:#001f3f; margin-bottom:20px;">Retail Lizenz</h3>
+            <ul style="list-style:none; padding:0; margin:0 0 20px 0;">
+              <li style="padding:10px 0; border-bottom:1px solid #eee;"><i class="fas fa-check" style="color:#00A859; margin-right:10px;"></i> Übertragbar</li>
+              <li style="padding:10px 0; border-bottom:1px solid #eee;"><i class="fas fa-check" style="color:#00A859; margin-right:10px;"></i> Vollversion</li>
+              <li style="padding:10px 0; border-bottom:1px solid #eee;"><i class="fas fa-check" style="color:#00A859; margin-right:10px;"></i> Herstellersupport</li>
+            </ul>
+            <div style="text-align:center; font-size:2rem; font-weight:bold; color:#001f3f; margin-bottom:15px;">ab €39.90</div>
+            <a href="/produkte" style="display:block; background:#FFC107; color:#001f3f; padding:12px; border-radius:8px; text-decoration:none; text-align:center; font-weight:bold;">Jetzt kaufen</a>
+          </div>
+          
+          <div style="background:white; padding:30px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1); border-top:4px solid #003366;">
+            <h3 style="font-size:1.5rem; color:#001f3f; margin-bottom:20px;">Volumen Lizenz</h3>
+            <ul style="list-style:none; padding:0; margin:0 0 20px 0;">
+              <li style="padding:10px 0; border-bottom:1px solid #eee;"><i class="fas fa-check" style="color:#00A859; margin-right:10px;"></i> Für Unternehmen</li>
+              <li style="padding:10px 0; border-bottom:1px solid #eee;"><i class="fas fa-check" style="color:#00A859; margin-right:10px;"></i> Mengenrabatt</li>
+              <li style="padding:10px 0; border-bottom:1px solid #eee;"><i class="fas fa-check" style="color:#00A859; margin-right:10px;"></i> Zentrale Verwaltung</li>
+            </ul>
+            <div style="text-align:center; font-size:2rem; font-weight:bold; color:#003366; margin-bottom:15px;">Auf Anfrage</div>
+            <a href="/mengenrabatt" style="display:block; background:#003366; color:white; padding:12px; border-radius:8px; text-decoration:none; text-align:center;">Mehr erfahren</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// Bundle Deals Section (Homepage)
+function renderBundleDealsSection(section, config) {
+  return `
+    <section class="bundle-deals-section" data-section-id="${section.id}" style="padding:60px 20px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
+      <div style="max-width:1200px; margin:0 auto;">
+        <h2 style="text-align:center; font-size:2.5rem; margin-bottom:10px;">${section.title || '📦 Bundle-Angebote'}</h2>
+        <p style="text-align:center; font-size:1.2rem; margin-bottom:40px; opacity:0.9;">${section.subtitle || 'Sparen Sie mit unseren Paketen'}</p>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px;">
+          <div style="background:rgba(255,255,255,0.1); backdrop-filter:blur(10px); padding:30px; border-radius:15px; border:2px solid rgba(255,255,255,0.2);">
+            <div style="font-size:3rem; margin-bottom:15px;">🏠</div>
+            <h3 style="font-size:1.5rem; margin-bottom:15px;">Home Office Starter</h3>
+            <p style="opacity:0.9; margin-bottom:20px;">Windows 11 + Office 2024 + Antivirus</p>
+            <div style="font-size:2rem; font-weight:bold; color:#FFC107; margin-bottom:15px;">€189.90</div>
+            <div style="text-decoration:line-through; opacity:0.7; margin-bottom:15px;">€299.90</div>
+            <a href="/bundles" style="display:block; background:white; color:#667eea; padding:12px; border-radius:8px; text-decoration:none; text-align:center; font-weight:bold;">Details ansehen</a>
+          </div>
+          
+          <div style="background:rgba(255,255,255,0.1); backdrop-filter:blur(10px); padding:30px; border-radius:15px; border:2px solid rgba(255,255,255,0.2);">
+            <div style="font-size:3rem; margin-bottom:15px;">💼</div>
+            <h3 style="font-size:1.5rem; margin-bottom:15px;">Business Pro</h3>
+            <p style="opacity:0.9; margin-bottom:20px;">Windows Pro + Office Pro + Server</p>
+            <div style="font-size:2rem; font-weight:bold; color:#FFC107; margin-bottom:15px;">€649.90</div>
+            <div style="text-decoration:line-through; opacity:0.7; margin-bottom:15px;">€899.90</div>
+            <a href="/bundles" style="display:block; background:white; color:#667eea; padding:12px; border-radius:8px; text-decoration:none; text-align:center; font-weight:bold;">Details ansehen</a>
+          </div>
+        </div>
+        
+        <div style="text-align:center; margin-top:40px;">
+          <a href="/bundles" style="display:inline-block; background:white; color:#667eea; padding:15px 40px; border-radius:25px; text-decoration:none; font-weight:bold; font-size:1.1rem;">
+            Alle Bundles ansehen <i class="fas fa-arrow-right" style="margin-left:10px;"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// Installation Guide Section
+function renderInstallationGuide(section, config) {
+  return `
+    <section class="installation-guide" data-section-id="${section.id}" style="padding:60px 20px; background:white;">
+      <div style="max-width:1000px; margin:0 auto;">
+        <h2 style="text-align:center; font-size:2.5rem; color:#001f3f; margin-bottom:40px;">${section.title || '📖 Installations-Anleitung'}</h2>
+        
+        <div style="display:grid; gap:30px;">
+          <div style="display:flex; gap:20px; align-items:start;">
+            <div style="flex-shrink:0; width:60px; height:60px; background:#FFC107; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:#001f3f;">1</div>
+            <div>
+              <h3 style="font-size:1.3rem; color:#001f3f; margin-bottom:10px;">Bestellung aufgeben</h3>
+              <p style="color:#666; line-height:1.6;">Wählen Sie Ihr gewünschtes Produkt und legen Sie es in den Warenkorb. Schließen Sie die Bestellung ab.</p>
+            </div>
+          </div>
+          
+          <div style="display:flex; gap:20px; align-items:start;">
+            <div style="flex-shrink:0; width:60px; height:60px; background:#FFC107; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:#001f3f;">2</div>
+            <div>
+              <h3 style="font-size:1.3rem; color:#001f3f; margin-bottom:10px;">Lizenzschlüssel erhalten</h3>
+              <p style="color:#666; line-height:1.6;">Sie erhalten Ihren Lizenzschlüssel sofort per E-Mail. Prüfen Sie auch Ihren Spam-Ordner.</p>
+            </div>
+          </div>
+          
+          <div style="display:flex; gap:20px; align-items:start;">
+            <div style="flex-shrink:0; width:60px; height:60px; background:#FFC107; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:#001f3f;">3</div>
+            <div>
+              <h3 style="font-size:1.3rem; color:#001f3f; margin-bottom:10px;">Software herunterladen</h3>
+              <p style="color:#666; line-height:1.6;">Laden Sie die Software vom Hersteller herunter. Links finden Sie in Ihrer E-Mail.</p>
+            </div>
+          </div>
+          
+          <div style="display:flex; gap:20px; align-items:start;">
+            <div style="flex-shrink:0; width:60px; height:60px; background:#FFC107; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:#001f3f;">4</div>
+            <div>
+              <h3 style="font-size:1.3rem; color:#001f3f; margin-bottom:10px;">Aktivieren</h3>
+              <p style="color:#666; line-height:1.6;">Geben Sie Ihren Lizenzschlüssel während der Installation ein und aktivieren Sie die Software.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// Trust & Security Section
+function renderTrustSecurity(section, config) {
+  return `
+    <section class="trust-security" data-section-id="${section.id}" style="padding:60px 20px; background:linear-gradient(135deg, #00A859 0%, #00BF6F 100%); color:white;">
+      <div style="max-width:1200px; margin:0 auto;">
+        <h2 style="text-align:center; font-size:2.5rem; margin-bottom:10px;">${section.title || '🛡️ Vertrauen & Sicherheit'}</h2>
+        <p style="text-align:center; font-size:1.2rem; margin-bottom:40px; opacity:0.9;">${section.subtitle || 'Warum Sie uns vertrauen können'}</p>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:30px;">
+          <div style="text-align:center;">
+            <i class="fas fa-shield-alt" style="font-size:3rem; margin-bottom:15px; color:#FFC107;"></i>
+            <h3 style="font-size:1.3rem; margin-bottom:10px;">100% Original</h3>
+            <p style="opacity:0.9;">Nur authentische Lizenzen direkt von autorisierten Partnern</p>
+          </div>
+          
+          <div style="text-align:center;">
+            <i class="fas fa-lock" style="font-size:3rem; margin-bottom:15px; color:#FFC107;"></i>
+            <h3 style="font-size:1.3rem; margin-bottom:10px;">Sichere Zahlung</h3>
+            <p style="opacity:0.9;">SSL-verschlüsselt und PCI-DSS zertifiziert</p>
+          </div>
+          
+          <div style="text-align:center;">
+            <i class="fas fa-award" style="font-size:3rem; margin-bottom:15px; color:#FFC107;"></i>
+            <h3 style="font-size:1.3rem; margin-bottom:10px;">Geprüfte Qualität</h3>
+            <p style="opacity:0.9;">Über 50.000 zufriedene Kunden seit 2015</p>
+          </div>
+          
+          <div style="text-align:center;">
+            <i class="fas fa-headset" style="font-size:3rem; margin-bottom:15px; color:#FFC107;"></i>
+            <h3 style="font-size:1.3rem; margin-bottom:10px;">Deutscher Support</h3>
+            <p style="opacity:0.9;">Persönliche Betreuung Mo-Fr 9-18 Uhr</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// License Preview Section
+function renderLicensePreview(section, config) {
+  return `
+    <section class="license-preview" data-section-id="${section.id}" style="padding:60px 20px; background:#f8f9fa;">
+      <div style="max-width:800px; margin:0 auto; text-align:center;">
+        <h2 style="font-size:2.5rem; color:#001f3f; margin-bottom:20px;">${section.title || '📜 Was Sie erhalten'}</h2>
+        <p style="font-size:1.2rem; color:#666; margin-bottom:40px;">${section.subtitle || 'Vorschau auf Ihre Lizenz'}</p>
+        
+        <div style="background:white; padding:40px; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1); border:2px solid #FFC107;">
+          <div style="background:#001f3f; color:white; padding:20px; border-radius:10px; margin-bottom:30px;">
+            <h3 style="margin:0 0 10px 0;">Ihr Lizenzschlüssel</h3>
+            <div style="font-family:monospace; font-size:1.3rem; letter-spacing:2px; color:#FFC107;">XXXXX-XXXXX-XXXXX-XXXXX-XXXXX</div>
+          </div>
+          
+          <div style="text-align:left; color:#666; line-height:1.8;">
+            <p><strong>✓ Sofortiger Download-Link</strong></p>
+            <p><strong>✓ Ausführliche Installationsanleitung</strong></p>
+            <p><strong>✓ Rechnung mit ausgewiesener MwSt.</strong></p>
+            <p><strong>✓ Aktivierungshilfe bei Problemen</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// Volume Calculator Section (Homepage Widget)
+function renderVolumeCalculatorWidget(section, config) {
+  return `
+    <section class="volume-calculator-widget" data-section-id="${section.id}" style="padding:60px 20px; background:linear-gradient(135deg, #FF8C00 0%, #FFA500 100%); color:white;">
+      <div style="max-width:1000px; margin:0 auto; text-align:center;">
+        <h2 style="font-size:2.5rem; margin-bottom:10px;">${section.title || '💼 Volumen-Rechner'}</h2>
+        <p style="font-size:1.2rem; margin-bottom:40px; opacity:0.9;">${section.subtitle || 'B2B Mengenrabatte berechnen'}</p>
+        
+        <div style="background:rgba(255,255,255,0.1); backdrop-filter:blur(10px); padding:40px; border-radius:15px; border:2px solid rgba(255,255,255,0.2);">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px;">
+            <div style="background:rgba(255,255,255,0.2); padding:20px; border-radius:10px;">
+              <div style="font-size:2rem; font-weight:bold; margin-bottom:5px;">10%</div>
+              <div style="opacity:0.9;">ab 5 Lizenzen</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.2); padding:20px; border-radius:10px;">
+              <div style="font-size:2rem; font-weight:bold; margin-bottom:5px;">15%</div>
+              <div style="opacity:0.9;">ab 10 Lizenzen</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.2); padding:20px; border-radius:10px;">
+              <div style="font-size:2rem; font-weight:bold; margin-bottom:5px;">20%</div>
+              <div style="opacity:0.9;">ab 25 Lizenzen</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.2); padding:20px; border-radius:10px;">
+              <div style="font-size:2rem; font-weight:bold; margin-bottom:5px;">25%</div>
+              <div style="opacity:0.9;">ab 50 Lizenzen</div>
+            </div>
+          </div>
+          
+          <a href="/mengenrabatt" style="display:inline-block; background:white; color:#FF8C00; padding:15px 40px; border-radius:25px; text-decoration:none; font-weight:bold; font-size:1.1rem;">
+            <i class="fas fa-calculator"></i> Jetzt berechnen
+          </a>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// Recently Viewed Section
+function renderRecentlyViewed(section, config) {
+  return `
+    <section class="recently-viewed" data-section-id="${section.id}" style="padding:60px 20px; background:white;">
+      <div style="max-width:1200px; margin:0 auto;">
+        <h2 style="font-size:2.5rem; color:#001f3f; margin-bottom:40px;">${section.title || '🕐 Zuletzt angesehen'}</h2>
+        <div id="recently-viewed-products" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:20px;">
+          <div style="text-align:center; color:#999; padding:40px;">
+            <i class="fas fa-clock" style="font-size:3rem; margin-bottom:15px;"></i>
+            <p>Ihre kürzlich besuchten Produkte erscheinen hier</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// Customer Reviews Section (Homepage)
+function renderCustomerReviewsSection(section, config) {
+  return `
+    <section class="customer-reviews-section" data-section-id="${section.id}" style="padding:60px 20px; background:#f8f9fa;">
+      <div style="max-width:1200px; margin:0 auto;">
+        <h2 style="text-align:center; font-size:2.5rem; color:#001f3f; margin-bottom:40px;">${section.title || '⭐ Kundenbewertungen'}</h2>
+        
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px;">
+          <div style="background:white; padding:30px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            <div style="color:#FFC107; font-size:1.5rem; margin-bottom:15px;">★★★★★</div>
+            <p style="color:#666; line-height:1.6; margin-bottom:15px;">"Schnelle Lieferung und funktionierender Key. Immer wieder gerne!"</p>
+            <div style="font-weight:bold; color:#001f3f;">- Michael S.</div>
+          </div>
+          
+          <div style="background:white; padding:30px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            <div style="color:#FFC107; font-size:1.5rem; margin-bottom:15px;">★★★★★</div>
+            <p style="color:#666; line-height:1.6; margin-bottom:15px;">"Top Preis-Leistung! Lizenz wurde sofort nach Zahlung geliefert."</p>
+            <div style="font-weight:bold; color:#001f3f;">- Sarah K.</div>
+          </div>
+          
+          <div style="background:white; padding:30px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            <div style="color:#FFC107; font-size:1.5rem; margin-bottom:15px;">★★★★★</div>
+            <p style="color:#666; line-height:1.6; margin-bottom:15px;">"Sehr guter Support bei Fragen. Kann ich nur empfehlen!"</p>
+            <div style="font-weight:bold; color:#001f3f;">- Thomas M.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 // Placeholder renderers for remaining sections
 function renderFeatureSection(section, config) {
+  // Route specific feature sections
+  if (section.section_key === 'countdown_deals') {
+    return renderCountdownDeals(section, config);
+  } else if (section.section_key === 'license_comparison') {
+    return renderLicenseComparison(section, config);
+  } else if (section.section_key === 'bundle_deals') {
+    return renderBundleDealsSection(section, config);
+  } else if (section.section_key === 'installation_guide') {
+    return renderInstallationGuide(section, config);
+  } else if (section.section_key === 'trust_security') {
+    return renderTrustSecurity(section, config);
+  } else if (section.section_key === 'license_preview') {
+    return renderLicensePreview(section, config);
+  } else if (section.section_key === 'volume_calculator') {
+    return renderVolumeCalculatorWidget(section, config);
+  } else if (section.section_key === 'recently_viewed') {
+    return renderRecentlyViewed(section, config);
+  } else if (section.section_key === 'customer_reviews') {
+    return renderCustomerReviewsSection(section, config);
+  }
+  
+  // Default feature section
   return `
     <section class="feature-section" data-section-id="${section.id}" style="padding:60px 20px; background:#f8f9fa;">
       <div style="max-width:1200px; margin:0 auto; text-align:center;">
@@ -437,6 +771,170 @@ function renderFeatureSection(section, config) {
 }
 
 function renderStaticSection(section, config) {
+  // Route specific static sections
+  if (section.section_key === 'faq') {
+    return `
+      <section class="faq-section" data-section-id="${section.id}" style="padding:60px 20px; background:white;">
+        <div style="max-width:800px; margin:0 auto;">
+          <h2 style="text-align:center; font-size:2.5rem; color:#001f3f; margin-bottom:40px;">${section.title || '❓ Häufig gestellte Fragen'}</h2>
+          <div style="space-y:20px;">
+            <details style="background:#f8f9fa; padding:20px; border-radius:10px; margin-bottom:15px; cursor:pointer;">
+              <summary style="font-weight:bold; font-size:1.1rem; color:#001f3f;">Wie erhalte ich meinen Lizenzschlüssel?</summary>
+              <p style="margin-top:15px; color:#666;">Sie erhalten Ihren Lizenzschlüssel sofort nach erfolgreicher Zahlung per E-Mail.</p>
+            </details>
+            <details style="background:#f8f9fa; padding:20px; border-radius:10px; margin-bottom:15px; cursor:pointer;">
+              <summary style="font-weight:bold; font-size:1.1rem; color:#001f3f;">Sind die Lizenzen legal?</summary>
+              <p style="margin-top:15px; color:#666;">Ja, alle unsere Lizenzen sind 100% legal und stammen von autorisierten Händlern.</p>
+            </details>
+            <details style="background:#f8f9fa; padding:20px; border-radius:10px; margin-bottom:15px; cursor:pointer;">
+              <summary style="font-weight:bold; font-size:1.1rem; color:#001f3f;">Kann ich die Lizenz zurückgeben?</summary>
+              <p style="margin-top:15px; color:#666;">Ja, Sie haben ein 14-tägiges Widerrufsrecht gemäß deutschen Gesetzen.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+    `;
+  } else if (section.section_key === 'bekannt_aus') {
+    return `
+      <section class="bekannt-aus" data-section-id="${section.id}" style="padding:60px 20px; background:#f8f9fa;">
+        <div style="max-width:1200px; margin:0 auto; text-align:center;">
+          <h2 style="font-size:2rem; color:#001f3f; margin-bottom:40px;">${section.title || 'Bekannt aus'}</h2>
+          <div style="display:flex; justify-content:center; align-items:center; gap:40px; flex-wrap:wrap; opacity:0.6;">
+            <div style="font-size:1.5rem; font-weight:bold; color:#001f3f;">Chip.de</div>
+            <div style="font-size:1.5rem; font-weight:bold; color:#001f3f;">ComputerBild</div>
+            <div style="font-size:1.5rem; font-weight:bold; color:#001f3f;">PC-Welt</div>
+            <div style="font-size:1.5rem; font-weight:bold; color:#001f3f;">Heise</div>
+          </div>
+        </div>
+      </section>
+    `;
+  } else if (section.section_key === 'b2b') {
+    return `
+      <section class="b2b-section" data-section-id="${section.id}" style="padding:60px 20px; background:linear-gradient(135deg, #003366 0%, #001f3f 100%); color:white;">
+        <div style="max-width:1000px; margin:0 auto; text-align:center;">
+          <h2 style="font-size:2.5rem; margin-bottom:15px;">${section.title || '🏢 Attraktive Angebote für Firmen'}</h2>
+          <p style="font-size:1.2rem; margin-bottom:30px; opacity:0.9;">Großbestellungen, individuelle Konditionen, persönliche Betreuung</p>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px;">
+            <div><i class="fas fa-percentage" style="font-size:2rem; color:#FFC107; margin-bottom:10px;"></i><br/>Mengenrabatte</div>
+            <div><i class="fas fa-file-invoice" style="font-size:2rem; color:#FFC107; margin-bottom:10px;"></i><br/>Kauf auf Rechnung</div>
+            <div><i class="fas fa-user-tie" style="font-size:2rem; color:#FFC107; margin-bottom:10px;"></i><br/>Persönlicher Ansprechpartner</div>
+          </div>
+          <a href="/kontakt" style="display:inline-block; background:#FFC107; color:#001f3f; padding:15px 40px; border-radius:25px; text-decoration:none; font-weight:bold;">Jetzt anfragen</a>
+        </div>
+      </section>
+    `;
+  } else if (section.section_key === 'partners') {
+    return `
+      <section class="partners-section" data-section-id="${section.id}" style="padding:60px 20px; background:white;">
+        <div style="max-width:1200px; margin:0 auto; text-align:center;">
+          <h2 style="font-size:2.5rem; color:#001f3f; margin-bottom:40px;">${section.title || '🤝 Unsere Partner'}</h2>
+          <div style="display:flex; justify-content:center; align-items:center; gap:60px; flex-wrap:wrap;">
+            <div style="font-size:2rem; font-weight:bold; color:#003366;">Microsoft</div>
+            <div style="font-size:2rem; font-weight:bold; color:#003366;">Adobe</div>
+            <div style="font-size:2rem; font-weight:bold; color:#003366;">Kaspersky</div>
+            <div style="font-size:2rem; font-weight:bold; color:#003366;">Autodesk</div>
+          </div>
+        </div>
+      </section>
+    `;
+  } else if (section.section_key === 'process_steps') {
+    return `
+      <section class="process-steps" data-section-id="${section.id}" style="padding:60px 20px; background:#f8f9fa;">
+        <div style="max-width:1000px; margin:0 auto; text-align:center;">
+          <h2 style="font-size:2.5rem; color:#001f3f; margin-bottom:40px;">${section.title || '📋 So einfach geht\'s'}</h2>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:30px;">
+            <div>
+              <div style="width:80px; height:80px; background:#FFC107; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#001f3f;">1</div>
+              <h3 style="font-size:1.2rem; color:#001f3f; margin-bottom:10px;">Produkt wählen</h3>
+              <p style="color:#666;">Finden Sie die passende Software</p>
+            </div>
+            <div>
+              <div style="width:80px; height:80px; background:#FFC107; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#001f3f;">2</div>
+              <h3 style="font-size:1.2rem; color:#001f3f; margin-bottom:10px;">Bestellen</h3>
+              <p style="color:#666;">Sicher bezahlen</p>
+            </div>
+            <div>
+              <div style="width:80px; height:80px; background:#FFC107; border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#001f3f;">3</div>
+              <h3 style="font-size:1.2rem; color:#001f3f; margin-bottom:10px;">Sofort nutzen</h3>
+              <p style="color:#666;">Lizenz per E-Mail erhalten</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+  } else if (section.section_key === 'category_grid') {
+    return `
+      <section class="category-grid" data-section-id="${section.id}" style="padding:60px 20px; background:white;">
+        <div style="max-width:1200px; margin:0 auto;">
+          <h2 style="text-align:center; font-size:2.5rem; color:#001f3f; margin-bottom:40px;">${section.title || '📁 Beliebte Software-Kategorien'}</h2>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:20px;">
+            <a href="/produkte?category=windows" style="background:#f8f9fa; padding:30px; border-radius:10px; text-decoration:none; text-align:center; transition:transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fab fa-windows" style="font-size:3rem; color:#001f3f; margin-bottom:15px;"></i>
+              <h3 style="color:#001f3f;">Windows</h3>
+            </a>
+            <a href="/produkte?category=office" style="background:#f8f9fa; padding:30px; border-radius:10px; text-decoration:none; text-align:center; transition:transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-file-word" style="font-size:3rem; color:#001f3f; margin-bottom:15px;"></i>
+              <h3 style="color:#001f3f;">Office</h3>
+            </a>
+            <a href="/produkte?category=server" style="background:#f8f9fa; padding:30px; border-radius:10px; text-decoration:none; text-align:center; transition:transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-server" style="font-size:3rem; color:#001f3f; margin-bottom:15px;"></i>
+              <h3 style="color:#001f3f;">Server</h3>
+            </a>
+            <a href="/produkte?category=antivirus" style="background:#f8f9fa; padding:30px; border-radius:10px; text-decoration:none; text-align:center; transition:transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+              <i class="fas fa-shield-virus" style="font-size:3rem; color:#001f3f; margin-bottom:15px;"></i>
+              <h3 style="color:#001f3f;">Antivirus</h3>
+            </a>
+          </div>
+        </div>
+      </section>
+    `;
+  } else if (section.section_key === 'newsletter') {
+    return `
+      <section class="newsletter-section" data-section-id="${section.id}" style="padding:60px 20px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
+        <div style="max-width:800px; margin:0 auto; text-align:center;">
+          <h2 style="font-size:2.5rem; margin-bottom:15px;">${section.title || '📧 Newsletter abonnieren'}</h2>
+          <p style="font-size:1.2rem; margin-bottom:30px; opacity:0.9;">Erhalten Sie exklusive Angebote und Neuigkeiten direkt in Ihr Postfach</p>
+          <form style="display:flex; gap:10px; max-width:500px; margin:0 auto;">
+            <input type="email" placeholder="Ihre E-Mail-Adresse" style="flex:1; padding:15px; border:none; border-radius:25px; font-size:1rem;" required>
+            <button type="submit" style="background:#FFC107; color:#001f3f; padding:15px 30px; border:none; border-radius:25px; font-weight:bold; cursor:pointer; white-space:nowrap;">Anmelden</button>
+          </form>
+        </div>
+      </section>
+    `;
+  } else if (section.section_key === 'language_support') {
+    return `
+      <section class="language-support" data-section-id="${section.id}" style="padding:60px 20px; background:white;">
+        <div style="max-width:1000px; margin:0 auto; text-align:center;">
+          <h2 style="font-size:2.5rem; color:#001f3f; margin-bottom:40px;">${section.title || '🌍 Mehrsprachiger Support'}</h2>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:30px;">
+            <div><span style="font-size:3rem;">🇩🇪</span><br/><strong>Deutsch</strong></div>
+            <div><span style="font-size:3rem;">🇬🇧</span><br/><strong>English</strong></div>
+            <div><span style="font-size:3rem;">🇫🇷</span><br/><strong>Français</strong></div>
+            <div><span style="font-size:3rem;">🇪🇸</span><br/><strong>Español</strong></div>
+          </div>
+        </div>
+      </section>
+    `;
+  } else if (section.section_key === 'live_chat') {
+    return `
+      <section class="live-chat" data-section-id="${section.id}" style="padding:60px 20px; background:#f8f9fa;">
+        <div style="max-width:800px; margin:0 auto; text-align:center;">
+          <h2 style="font-size:2.5rem; color:#001f3f; margin-bottom:20px;">${section.title || '💬 Live Support'}</h2>
+          <p style="font-size:1.2rem; color:#666; margin-bottom:30px;">Haben Sie Fragen? Unser Team ist für Sie da!</p>
+          <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
+            <a href="/kontakt" style="display:inline-block; background:#00A859; color:white; padding:15px 40px; border-radius:25px; text-decoration:none; font-weight:bold;">
+              <i class="fas fa-comments"></i> Chat starten
+            </a>
+            <a href="tel:+49..." style="display:inline-block; background:#001f3f; color:white; padding:15px 40px; border-radius:25px; text-decoration:none; font-weight:bold;">
+              <i class="fas fa-phone"></i> Anrufen
+            </a>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+  
+  // Default static section
   return `
     <section class="static-section" data-section-id="${section.id}" style="padding:60px 20px;">
       <div style="max-width:1200px; margin:0 auto;">
@@ -532,10 +1030,39 @@ function animateCounters() {
   });
 }
 
+// Countdown timer for flash deals
+function updateCountdownTimers() {
+  const timers = document.querySelectorAll('.countdown-timer[data-end-time]');
+  
+  timers.forEach(timer => {
+    const endTime = parseInt(timer.getAttribute('data-end-time'));
+    const now = new Date().getTime();
+    const distance = endTime - now;
+    
+    if (distance > 0) {
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      
+      const hoursEl = timer.querySelector('.hours');
+      const minutesEl = timer.querySelector('.minutes');
+      const secondsEl = timer.querySelector('.seconds');
+      
+      if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+      if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+      if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+    }
+  });
+}
+
 // Initialize on load
 if (typeof window !== 'undefined') {
   window.addEventListener('DOMContentLoaded', () => {
     startAutoRotate();
     animateCounters();
+    updateCountdownTimers();
+    
+    // Update countdown every second
+    setInterval(updateCountdownTimers, 1000);
   });
 }
