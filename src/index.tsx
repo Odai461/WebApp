@@ -626,6 +626,10 @@ app.get('/bundle-angebote', (c) => {
   return c.html(BundleDealsPage())
 })
 
+app.get('/bundle-deals', (c) => {
+  return c.html(BundleDealsPage())
+})
+
 // Volume discount page
 app.get('/mengenrabatt', (c) => {
   return c.html(VolumeDiscountPage())
