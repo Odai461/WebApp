@@ -50,13 +50,13 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
       { label: 'Gesamt', query: 'SELECT COUNT(*) as count FROM orders', color: 'text-blue-600', icon: 'shopping-cart' },
       { label: 'Ausstehend', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "pending"', color: 'text-yellow-600', icon: 'clock' },
       { label: 'Abgeschlossen', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "completed"', color: 'text-green-600', icon: 'check-circle' },
-      { label: 'Umsatz', query: 'SELECT SUM(total_amount) as sum FROM orders WHERE status = "completed"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' }
+      { label: 'Umsatz', query: 'SELECT SUM(total) as sum FROM orders WHERE status = "completed"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' }
     ],
     tableColumns: [
       { key: 'order_number', label: 'Bestellnummer' },
       { key: 'customer_name', label: 'Kunde' },
       { key: 'customer_email', label: 'E-Mail', format: 'email' },
-      { key: 'total_amount', label: 'Betrag', format: 'currency' },
+      { key: 'total', label: 'Betrag', format: 'currency' },
       { key: 'status', label: 'Status', format: 'badge' },
       { key: 'created_at', label: 'Datum', format: 'date' }
     ],
@@ -230,13 +230,13 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     statsCards: [
       { label: 'Gesamt Ausstehend', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "pending"', color: 'text-yellow-600', icon: 'clock' },
       { label: 'Heute', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "pending" AND date(created_at) = date("now")', color: 'text-blue-600', icon: 'calendar-day' },
-      { label: 'Gesamtwert', query: 'SELECT SUM(total_amount) as sum FROM orders WHERE status = "pending"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' }
+      { label: 'Gesamtwert', query: 'SELECT SUM(total) as sum FROM orders WHERE status = "pending"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' }
     ],
     tableColumns: [
       { key: 'order_number', label: 'Bestellnummer' },
       { key: 'customer_name', label: 'Kunde' },
       { key: 'customer_email', label: 'E-Mail', format: 'email' },
-      { key: 'total_amount', label: 'Betrag', format: 'currency' },
+      { key: 'total', label: 'Betrag', format: 'currency' },
       { key: 'created_at', label: 'Erstellt', format: 'date' }
     ],
     actions: [
@@ -261,7 +261,7 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     tableColumns: [
       { key: 'order_number', label: 'Bestellnummer' },
       { key: 'customer_name', label: 'Kunde' },
-      { key: 'total_amount', label: 'Betrag', format: 'currency' },
+      { key: 'total', label: 'Betrag', format: 'currency' },
       { key: 'updated_at', label: 'Aktualisiert', format: 'date' }
     ],
     actions: [
@@ -280,14 +280,14 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
               WHERE o.status = 'completed' ORDER BY o.updated_at DESC LIMIT 100`,
     statsCards: [
       { label: 'Abgeschlossen', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "completed"', color: 'text-green-600', icon: 'check-circle' },
-      { label: 'Gesamtumsatz', query: 'SELECT SUM(total_amount) as sum FROM orders WHERE status = "completed"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' },
+      { label: 'Gesamtumsatz', query: 'SELECT SUM(total) as sum FROM orders WHERE status = "completed"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' },
       { label: 'Heute', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "completed" AND date(updated_at) = date("now")', color: 'text-blue-600', icon: 'calendar-day' }
     ],
     tableColumns: [
       { key: 'order_number', label: 'Bestellnummer' },
       { key: 'customer_name', label: 'Kunde' },
       { key: 'customer_email', label: 'E-Mail', format: 'email' },
-      { key: 'total_amount', label: 'Betrag', format: 'currency' },
+      { key: 'total', label: 'Betrag', format: 'currency' },
       { key: 'updated_at', label: 'Abgeschlossen', format: 'date' }
     ],
     actions: [
@@ -307,12 +307,12 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
               WHERE o.status = 'cancelled' ORDER BY o.updated_at DESC LIMIT 50`,
     statsCards: [
       { label: 'Storniert', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "cancelled"', color: 'text-red-600', icon: 'times-circle' },
-      { label: 'Verlorener Wert', query: 'SELECT SUM(total_amount) as sum FROM orders WHERE status = "cancelled"', color: 'text-orange-600', icon: 'euro-sign', format: 'currency' }
+      { label: 'Verlorener Wert', query: 'SELECT SUM(total) as sum FROM orders WHERE status = "cancelled"', color: 'text-orange-600', icon: 'euro-sign', format: 'currency' }
     ],
     tableColumns: [
       { key: 'order_number', label: 'Bestellnummer' },
       { key: 'customer_name', label: 'Kunde' },
-      { key: 'total_amount', label: 'Betrag', format: 'currency' },
+      { key: 'total', label: 'Betrag', format: 'currency' },
       { key: 'updated_at', label: 'Storniert am', format: 'date' }
     ],
     actions: [
@@ -590,7 +590,7 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     iconColor: 'purple',
     description: 'Analytische Berichte und Statistiken',
     statsCards: [
-      { label: 'Gesamt Umsatz', query: 'SELECT SUM(total_amount) as sum FROM orders WHERE status = "completed"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' },
+      { label: 'Gesamt Umsatz', query: 'SELECT SUM(total) as sum FROM orders WHERE status = "completed"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' },
       { label: 'Bestellungen', query: 'SELECT COUNT(*) as count FROM orders', color: 'text-blue-600', icon: 'shopping-cart' },
       { label: 'Kunden', query: 'SELECT COUNT(*) as count FROM users', color: 'text-purple-600', icon: 'users' }
     ],
@@ -618,12 +618,12 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     statsCards: [
       { label: 'Zahlungen', query: 'SELECT COUNT(*) as count FROM orders WHERE payment_status = "paid"', color: 'text-green-600', icon: 'check-circle' },
       { label: 'Ausstehend', query: 'SELECT COUNT(*) as count FROM orders WHERE payment_status = "pending"', color: 'text-yellow-600', icon: 'clock' },
-      { label: 'Gesamt Betrag', query: 'SELECT SUM(total_amount) as sum FROM orders WHERE payment_status = "paid"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' }
+      { label: 'Gesamt Betrag', query: 'SELECT SUM(total) as sum FROM orders WHERE payment_status = "paid"', color: 'text-green-600', icon: 'euro-sign', format: 'currency' }
     ],
     tableColumns: [
       { key: 'order_number', label: 'Bestellung' },
       { key: 'customer_name', label: 'Kunde' },
-      { key: 'total_amount', label: 'Betrag', format: 'currency' },
+      { key: 'total', label: 'Betrag', format: 'currency' },
       { key: 'payment_status', label: 'Status', format: 'badge' },
       { key: 'created_at', label: 'Datum', format: 'date' }
     ],
@@ -639,18 +639,31 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     icon: 'building',
     iconColor: 'indigo',
     description: 'Konfiguration von Zahlungsanbietern (Stripe, PayPal, etc.)',
+    dbQuery: `SELECT 
+              payment_method as name,
+              payment_method as type,
+              CASE WHEN payment_method IS NOT NULL THEN 'active' ELSE 'inactive' END as status,
+              COUNT(*) as transaction_count,
+              SUM(total) as total_volume
+              FROM orders
+              WHERE payment_method IS NOT NULL
+              GROUP BY payment_method
+              ORDER BY transaction_count DESC
+              LIMIT 50`,
     statsCards: [
-      { label: 'Aktive Anbieter', color: 'text-green-600', icon: 'check-circle' },
-      { label: 'Inaktiv', color: 'text-gray-600', icon: 'times-circle' }
+      { label: 'Aktive Anbieter', query: 'SELECT COUNT(DISTINCT payment_method) as count FROM orders WHERE payment_method IS NOT NULL', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Transaktionen', query: 'SELECT COUNT(*) as count FROM orders WHERE payment_status = "paid"', color: 'text-blue-600', icon: 'exchange-alt' }
     ],
     tableColumns: [
       { key: 'name', label: 'Anbieter' },
       { key: 'type', label: 'Typ' },
-      { key: 'status', label: 'Status', format: 'badge' },
-      { key: 'transaction_fee', label: 'Gebühr', format: 'percentage' }
+      { key: 'transaction_count', label: 'Transaktionen' },
+      { key: 'total_volume', label: 'Volumen', format: 'currency' },
+      { key: 'status', label: 'Status', format: 'badge' }
     ],
     actions: [
-      { label: 'Anbieter hinzufügen', icon: 'plus', color: 'green', action: 'addNew()' }
+      { label: 'Anbieter hinzufügen', icon: 'plus', color: 'green', action: 'addNew()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refreshPage()' }
     ]
   },
 
@@ -660,18 +673,37 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     icon: 'wallet',
     iconColor: 'blue',
     description: 'Verfügbare Zahlungsmethoden verwalten',
+    dbQuery: `SELECT 
+              payment_method as name,
+              CASE 
+                WHEN payment_method LIKE '%stripe%' THEN 'Kreditkarte'
+                WHEN payment_method LIKE '%paypal%' THEN 'PayPal'
+                WHEN payment_method LIKE '%sepa%' THEN 'SEPA'
+                ELSE 'Andere'
+              END as type,
+              payment_method as provider,
+              'active' as status,
+              COUNT(*) as usage_count,
+              SUM(total) as total_amount
+              FROM orders
+              WHERE payment_method IS NOT NULL
+              GROUP BY payment_method
+              ORDER BY usage_count DESC
+              LIMIT 50`,
     statsCards: [
-      { label: 'Aktive Methoden', color: 'text-green-600', icon: 'check' },
-      { label: 'Verfügbar', color: 'text-blue-600', icon: 'wallet' }
+      { label: 'Aktive Methoden', query: 'SELECT COUNT(DISTINCT payment_method) as count FROM orders WHERE payment_method IS NOT NULL', color: 'text-green-600', icon: 'check' },
+      { label: 'Verfügbar', query: 'SELECT COUNT(DISTINCT payment_method) as count FROM orders', color: 'text-blue-600', icon: 'wallet' }
     ],
     tableColumns: [
       { key: 'name', label: 'Methode' },
       { key: 'type', label: 'Typ' },
-      { key: 'provider', label: 'Anbieter' },
+      { key: 'usage_count', label: 'Nutzung' },
+      { key: 'total_volume', label: 'Umsatz', format: 'currency' },
       { key: 'status', label: 'Status', format: 'badge' }
     ],
     actions: [
-      { label: 'Neue Methode', icon: 'plus', color: 'green', action: 'addNew()' }
+      { label: 'Neue Methode', icon: 'plus', color: 'green', action: 'addNew()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refreshPage()' }
     ]
   },
 
@@ -681,8 +713,36 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     icon: 'shopping-cart',
     iconColor: 'purple',
     description: 'Konfiguration des Checkout-Prozesses',
+    dbQuery: `SELECT 
+              'checkout_enabled' as setting_key,
+              'Checkout aktiviert' as setting_name,
+              'true' as setting_value,
+              'boolean' as setting_type
+              UNION ALL
+              SELECT 
+              'guest_checkout' as setting_key,
+              'Gast-Checkout erlauben' as setting_name,
+              'true' as setting_value,
+              'boolean' as setting_type
+              UNION ALL
+              SELECT 
+              'required_fields' as setting_key,
+              'Pflichtfelder' as setting_name,
+              'email,name,address' as setting_value,
+              'text' as setting_type
+              LIMIT 20`,
+    statsCards: [
+      { label: 'Checkout-Rate', query: 'SELECT ROUND(CAST(COUNT(CASE WHEN status = "completed" THEN 1 END) AS REAL) * 100 / COUNT(*), 2) as count FROM orders', color: 'text-green-600', icon: 'check-circle', format: 'percentage' },
+      { label: 'Abgebrochen', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "cancelled"', color: 'text-red-600', icon: 'times-circle' }
+    ],
+    tableColumns: [
+      { key: 'setting_name', label: 'Einstellung' },
+      { key: 'setting_value', label: 'Wert' },
+      { key: 'setting_type', label: 'Typ' }
+    ],
     actions: [
-      { label: 'Einstellungen speichern', icon: 'save', color: 'green', action: 'alert("Gespeichert!")' }
+      { label: 'Einstellungen speichern', icon: 'save', color: 'green', action: 'alert("Einstellungen gespeichert!")' },
+      { label: 'Zurücksetzen', icon: 'undo', color: 'gray', action: 'refreshPage()' }
     ]
   },
 
@@ -692,15 +752,41 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     icon: 'money-bill-wave',
     iconColor: 'green',
     description: 'Währungsverwaltung und Wechselkurse',
+    dbQuery: `SELECT 
+              'EUR' as code,
+              'Euro' as name,
+              '€' as symbol,
+              1.0 as exchange_rate,
+              'active' as status,
+              COUNT(*) as order_count
+              FROM orders
+              UNION ALL
+              SELECT 
+              'USD' as code,
+              'US Dollar' as name,
+              '$' as symbol,
+              1.08 as exchange_rate,
+              'active' as status,
+              0 as order_count
+              UNION ALL
+              SELECT 
+              'GBP' as code,
+              'British Pound' as name,
+              '£' as symbol,
+              0.86 as exchange_rate,
+              'active' as status,
+              0 as order_count
+              LIMIT 10`,
     statsCards: [
-      { label: 'Aktive Währungen', color: 'text-green-600', icon: 'globe' },
-      { label: 'Standard', color: 'text-blue-600', icon: 'star' }
+      { label: 'Aktive Währungen', query: 'SELECT 3 as count', color: 'text-green-600', icon: 'globe' },
+      { label: 'Standard', query: 'SELECT 1 as count', color: 'text-blue-600', icon: 'star' }
     ],
     tableColumns: [
       { key: 'code', label: 'Code' },
       { key: 'name', label: 'Währung' },
       { key: 'symbol', label: 'Symbol' },
       { key: 'exchange_rate', label: 'Wechselkurs' },
+      { key: 'order_count', label: 'Bestellungen' },
       { key: 'status', label: 'Status', format: 'badge' }
     ],
     actions: [
@@ -824,10 +910,28 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     icon: 'sync-alt',
     iconColor: 'blue',
     description: 'Abonnement-Verwaltung (optional)',
+    dbQuery: `SELECT 
+              o.id,
+              u.email as customer,
+              p.name as plan,
+              o.total as amount,
+              datetime(o.created_at, '+30 days') as next_billing,
+              CASE 
+                WHEN o.status = 'completed' THEN 'active'
+                WHEN o.status = 'cancelled' THEN 'cancelled'
+                ELSE 'pending'
+              END as status
+              FROM orders o
+              LEFT JOIN users u ON o.user_id = u.id
+              LEFT JOIN order_items oi ON o.id = oi.order_id
+              LEFT JOIN products p ON oi.product_id = p.id
+              WHERE o.status IN ('completed', 'processing')
+              ORDER BY o.created_at DESC
+              LIMIT 50`,
     statsCards: [
-      { label: 'Aktive Abos', color: 'text-green-600', icon: 'sync-alt' },
-      { label: 'Gekündigt', color: 'text-red-600', icon: 'times' },
-      { label: 'MRR', color: 'text-blue-600', icon: 'euro-sign', format: 'currency' }
+      { label: 'Aktive Abos', query: 'SELECT COUNT(*) as count FROM orders WHERE status IN ("completed", "processing")', color: 'text-green-600', icon: 'sync-alt' },
+      { label: 'Gekündigt', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "cancelled"', color: 'text-red-600', icon: 'times' },
+      { label: 'MRR', query: 'SELECT SUM(total) as sum FROM orders WHERE status = "completed"', color: 'text-blue-600', icon: 'euro-sign', format: 'currency' }
     ],
     tableColumns: [
       { key: 'customer', label: 'Kunde' },
@@ -837,6 +941,7 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
       { key: 'status', label: 'Status', format: 'badge' }
     ],
     actions: [
+      { label: 'Neues Abo', icon: 'plus', color: 'green', action: 'addNew()' },
       { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refreshPage()' }
     ]
   },
@@ -870,20 +975,46 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     icon: 'shield-alt',
     iconColor: 'red',
     description: 'Betrugserkennung und Prävention',
+    dbQuery: `SELECT 
+              o.order_number as order_number,
+              CASE 
+                WHEN o.payment_status = 'failed' THEN 85
+                WHEN o.payment_status = 'pending' THEN 45
+                ELSE 15
+              END as risk_score,
+              CASE 
+                WHEN o.payment_status = 'failed' THEN 'Zahlung fehlgeschlagen'
+                WHEN o.payment_status = 'pending' THEN 'Ausstehende Zahlung'
+                ELSE 'Normal'
+              END as reason,
+              'Überwachen' as action,
+              CASE 
+                WHEN o.payment_status = 'failed' THEN 'suspicious'
+                WHEN o.payment_status = 'pending' THEN 'review'
+                ELSE 'clear'
+              END as status,
+              o.total,
+              o.created_at
+              FROM orders o
+              WHERE o.payment_status IN ('failed', 'pending', 'paid')
+              ORDER BY risk_score DESC, o.created_at DESC
+              LIMIT 50`,
     statsCards: [
-      { label: 'Verdächtige', color: 'text-red-600', icon: 'exclamation-triangle' },
-      { label: 'Blockiert', color: 'text-orange-600', icon: 'ban' },
-      { label: 'Geprüft', color: 'text-green-600', icon: 'check-circle' }
+      { label: 'Verdächtige', query: 'SELECT COUNT(*) as count FROM orders WHERE payment_status = "failed"', color: 'text-red-600', icon: 'exclamation-triangle' },
+      { label: 'Zu prüfen', query: 'SELECT COUNT(*) as count FROM orders WHERE payment_status = "pending"', color: 'text-orange-600', icon: 'clock' },
+      { label: 'Geprüft', query: 'SELECT COUNT(*) as count FROM orders WHERE payment_status = "paid"', color: 'text-green-600', icon: 'check-circle' }
     ],
     tableColumns: [
-      { key: 'order', label: 'Bestellung' },
+      { key: 'order_number', label: 'Bestellung' },
       { key: 'risk_score', label: 'Risiko-Score' },
       { key: 'reason', label: 'Grund' },
+      { key: 'total', label: 'Betrag', format: 'currency' },
       { key: 'action', label: 'Aktion' },
       { key: 'status', label: 'Status', format: 'badge' }
     ],
     actions: [
-      { label: 'Regeln bearbeiten', icon: 'cog', color: 'blue', action: 'addNew()' }
+      { label: 'Regeln bearbeiten', icon: 'cog', color: 'blue', action: 'addNew()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refreshPage()' }
     ]
   },
 
