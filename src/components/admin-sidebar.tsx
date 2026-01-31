@@ -1,6 +1,6 @@
-import { AdminSidebarWorking } from './admin-sidebar-working'
+import { AdminSidebarMerged } from './admin-sidebar-merged'
 
-// Now points to the working sidebar (15 functional pages only)
+// MERGED SIDEBAR: All sections with working pages marked (✅ = functional, 🔨 = placeholder)
 export function AdminSidebar(currentPath: string = '/admin') {
-  return AdminSidebarWorking(currentPath);
+  return AdminSidebarMerged(currentPath);
 }
