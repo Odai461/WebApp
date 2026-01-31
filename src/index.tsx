@@ -590,6 +590,304 @@ app.get('/preview/homepages', (c) => {
   `)
 })
 
+// ============================================
+// PRODUCT PAGES PREVIEW - Individual Previews
+// ============================================
+
+// 1. Products Page (Classic)
+app.get('/preview/products-page', (c) => {
+  return c.html(<ProductsPage />)
+})
+
+// 2. Products Page Modern
+app.get('/preview/products-page-modern', (c) => {
+  return c.html(<ProductsPageModern />)
+})
+
+// ============================================
+// PRODUCT PAGES PREVIEW GALLERY
+// ============================================
+app.get('/preview/products', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Product Pages Preview Gallery - SOFTWAREKING24</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+      <style>
+        .preview-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+        .preview-card {
+          transition: all 0.3s ease;
+        }
+      </style>
+    </head>
+    <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen py-8">
+      <div class="container mx-auto px-4">
+        
+        <!-- Header -->
+        <div class="text-center mb-12">
+          <h1 class="text-4xl font-bold text-gray-900 mb-4">
+            <i class="fas fa-box-open mr-3 text-blue-600"></i>Product Pages Preview Gallery
+          </h1>
+          <p class="text-gray-600 text-lg">Choose your preferred product listing design</p>
+          <div class="mt-4 inline-flex items-center gap-2 bg-green-50 border border-green-200 px-4 py-2 rounded-lg">
+            <i class="fas fa-check-circle text-green-600"></i>
+            <span class="text-green-800">Currently active: <strong>Products Page Modern</strong></span>
+          </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <div class="text-3xl font-bold text-blue-600">2</div>
+              <div class="text-sm text-gray-600">Total Designs</div>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-green-600">1</div>
+              <div class="text-sm text-gray-600">Active</div>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-purple-600">105 KB</div>
+              <div class="text-sm text-gray-600">Total Size</div>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-orange-600">100%</div>
+              <div class="text-sm text-gray-600">Success Rate</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Page Previews -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          
+          <!-- 1. Products Page Modern (ACTIVE) -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden border-4 border-green-500">
+            <div class="bg-green-600 text-white px-4 py-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold flex items-center gap-2">
+                  <i class="fas fa-check-circle"></i>
+                  Products Page Modern
+                </span>
+                <span class="bg-green-800 text-xs px-2 py-1 rounded">46KB</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="mb-4">
+                <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mb-2">
+                  <i class="fas fa-star"></i> CURRENTLY ACTIVE
+                </span>
+              </div>
+              
+              <h3 class="text-xl font-bold mb-3 text-gray-900">Modern Product Listing</h3>
+              <p class="text-gray-600 mb-4 text-sm">
+                Enhanced modern design with advanced filtering, sorting, and dynamic product cards
+              </p>
+              
+              <div class="mb-4">
+                <h4 class="font-semibold text-sm mb-2 text-gray-700">Features:</h4>
+                <ul class="space-y-1 text-sm text-gray-600">
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-green-600 text-xs"></i>
+                    <span>Advanced filters & search</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-green-600 text-xs"></i>
+                    <span>Grid & list view toggle</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-green-600 text-xs"></i>
+                    <span>Product quick view</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-green-600 text-xs"></i>
+                    <span>Dynamic pricing display</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-green-600 text-xs"></i>
+                    <span>Cart integration</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-green-600 text-xs"></i>
+                    <span>Responsive design</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div class="flex gap-2 mb-3">
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">46KB</span>
+                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Modern</span>
+                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">E-commerce</span>
+              </div>
+              
+              <a href="/preview/products-page-modern" target="_blank" 
+                 class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview (Active)
+              </a>
+            </div>
+          </div>
+
+          <!-- 2. Products Page (Classic) -->
+          <div class="preview-card bg-white rounded-xl shadow-lg overflow-hidden border-2 border-gray-300">
+            <div class="bg-blue-600 text-white px-4 py-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold">Products Page (Classic)</span>
+                <span class="bg-blue-800 text-xs px-2 py-1 rounded">20KB</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-3 text-gray-900">Classic Product Listing</h3>
+              <p class="text-gray-600 mb-4 text-sm">
+                Simple, clean product listing with essential features and lightweight design
+              </p>
+              
+              <div class="mb-4">
+                <h4 class="font-semibold text-sm mb-2 text-gray-700">Features:</h4>
+                <ul class="space-y-1 text-sm text-gray-600">
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
+                    <span>Basic product grid</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
+                    <span>Category filtering</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
+                    <span>Simple sorting</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
+                    <span>Lightweight & fast</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
+                    <span>Mobile responsive</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div class="flex gap-2 mb-3">
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">20KB</span>
+                <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">Classic</span>
+                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Lightweight</span>
+              </div>
+              
+              <a href="/preview/products-page" target="_blank" 
+                 class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-eye mr-2"></i>Preview
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <h2 class="text-2xl font-bold mb-6">
+            <i class="fas fa-balance-scale mr-2 text-purple-600"></i>Feature Comparison
+          </h2>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b-2 border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Feature</th>
+                  <th class="text-center py-3 px-4 font-semibold text-green-700">Products Page Modern</th>
+                  <th class="text-center py-3 px-4 font-semibold text-blue-700">Products Page Classic</th>
+                </tr>
+              </thead>
+              <tbody class="text-sm">
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4">File Size</td>
+                  <td class="text-center py-3 px-4 text-green-600 font-semibold">46KB</td>
+                  <td class="text-center py-3 px-4 text-blue-600 font-semibold">20KB</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4">Advanced Filters</td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-check-circle text-green-600"></i></td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-minus-circle text-gray-400"></i></td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4">Quick View</td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-check-circle text-green-600"></i></td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-minus-circle text-gray-400"></i></td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4">Grid/List Toggle</td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-check-circle text-green-600"></i></td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-minus-circle text-gray-400"></i></td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4">Dynamic Pricing</td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-check-circle text-green-600"></i></td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-check-circle text-blue-600"></i></td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4">Responsive Design</td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-check-circle text-green-600"></i></td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-check-circle text-blue-600"></i></td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4">Load Speed</td>
+                  <td class="text-center py-3 px-4 text-yellow-600">Good</td>
+                  <td class="text-center py-3 px-4 text-green-600">Excellent</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4">Cart Integration</td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-check-circle text-green-600"></i></td>
+                  <td class="text-center py-3 px-4"><i class="fas fa-check-circle text-blue-600"></i></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Current Status -->
+        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl shadow-lg p-8 border-2 border-green-200">
+          <h2 class="text-2xl font-bold mb-4">
+            <i class="fas fa-info-circle mr-2 text-green-600"></i>Current Status
+          </h2>
+          
+          <p class="text-gray-700 mb-4">
+            <i class="fas fa-info-circle mr-2 text-blue-600"></i>
+            <strong>Currently Active:</strong> Products Page Modern is now live at <a href="/produkte" class="text-blue-600 underline">/produkte</a> and <a href="/products" class="text-blue-600 underline">/products</a>
+          </p>
+          
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <h3 class="font-bold text-blue-900 mb-2">
+              <i class="fas fa-lightbulb mr-2"></i>Recommendation
+            </h3>
+            <p class="text-blue-800 text-sm">
+              <strong>Products Page Modern</strong> is recommended for most e-commerce use cases due to its advanced features, better user experience, and professional appearance. The slight increase in file size (46KB vs 20KB) is worth the enhanced functionality.
+            </p>
+          </div>
+
+          <div class="mt-6 flex gap-4">
+            <a href="/produkte" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-lg font-semibold transition">
+              <i class="fas fa-box-open mr-2"></i>View Live Products Page (Modern)
+            </a>
+            <a href="/preview/homepages" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-center py-3 rounded-lg font-semibold transition">
+              <i class="fas fa-home mr-2"></i>View Homepage Gallery
+            </a>
+            <a href="/admin" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-3 rounded-lg font-semibold transition">
+              <i class="fas fa-cog mr-2"></i>Admin Panel
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `)
+})
+
 // Modern 3D Preview Page
 app.get('/modern-preview', (c) => {
   return c.html(ModernPreviewPage())
