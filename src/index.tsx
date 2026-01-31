@@ -19007,7 +19007,7 @@ app.get('/admin/*', async (c) => {
                    COUNT(l.id) as license_count
             FROM orders o
             LEFT JOIN users u ON o.user_id = u.id
-            LEFT JOIN licenses l ON l.order_id = o.id
+            LEFT JOIN license_keys l ON l.assigned_to_order_id = o.id
             WHERE o.status IN ('completed', 'processing')
             GROUP BY o.id
             ORDER BY o.updated_at DESC
@@ -19022,8 +19022,9 @@ app.get('/admin/*', async (c) => {
                    l.created_at as assigned_at,
                    u.email as assigned_to,
                    p.name as product_name
-            FROM licenses l
-            LEFT JOIN users u ON l.user_id = u.id
+            FROM license_keys l
+            LEFT JOIN orders o ON l.assigned_to_order_id = o.id
+            LEFT JOIN users u ON o.user_id = u.id
             LEFT JOIN products p ON l.product_id = p.id
             ORDER BY l.created_at DESC
             LIMIT 50

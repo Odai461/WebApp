@@ -73,21 +73,21 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     iconColor: 'purple',
     description: 'Verwaltung aller Lizenzschlüssel',
     dbQuery: `SELECT l.*, p.name as product_name, o.order_number
-              FROM licenses l
+              FROM license_keys l
               LEFT JOIN products p ON l.product_id = p.id
-              LEFT JOIN orders o ON l.order_id = o.id
+              LEFT JOIN orders o ON l.assigned_to_order_id = o.id
               ORDER BY l.created_at DESC
               LIMIT 100`,
     statsCards: [
-      { label: 'Gesamt Lizenzen', query: 'SELECT COUNT(*) as count FROM licenses', color: 'text-purple-600', icon: 'key' },
-      { label: 'Aktiv', query: 'SELECT COUNT(*) as count FROM licenses WHERE is_active = 1', color: 'text-green-600', icon: 'check-circle' },
-      { label: 'Inaktiv', query: 'SELECT COUNT(*) as count FROM licenses WHERE is_active = 0', color: 'text-gray-600', icon: 'times-circle' }
+      { label: 'Gesamt Lizenzen', query: 'SELECT COUNT(*) as count FROM license_keys', color: 'text-purple-600', icon: 'key' },
+      { label: 'Aktiv', query: "SELECT COUNT(*) as count FROM license_keys WHERE status = 'available'", color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Inaktiv', query: "SELECT COUNT(*) as count FROM license_keys WHERE status != 'available'", color: 'text-gray-600', icon: 'times-circle' }
     ],
     tableColumns: [
       { key: 'license_key', label: 'Lizenzschlüssel' },
       { key: 'product_name', label: 'Produkt' },
       { key: 'order_number', label: 'Bestellung' },
-      { key: 'is_active', label: 'Status', format: 'badge' },
+      { key: 'status', label: 'Status', format: 'badge' },
       { key: 'created_at', label: 'Erstellt', format: 'date' }
     ],
     actions: [
@@ -331,13 +331,13 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
               COUNT(l.id) as license_count
               FROM orders o
               LEFT JOIN users u ON o.user_id = u.id
-              LEFT JOIN licenses l ON l.order_id = o.id
+              LEFT JOIN license_keys l ON l.assigned_to_order_id = o.id
               WHERE o.status IN ('completed','processing')
               GROUP BY o.id
               ORDER BY o.updated_at DESC
               LIMIT 50`,
     statsCards: [
-      { label: 'Lizenzen versandt', query: 'SELECT COUNT(*) as count FROM licenses WHERE is_active = 1', color: 'text-green-600', icon: 'envelope' },
+      { label: 'Lizenzen versandt', query: "SELECT COUNT(*) as count FROM license_keys WHERE status = 'available'", color: 'text-green-600', icon: 'envelope' },
       { label: 'Ausstehend', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "processing"', color: 'text-yellow-600', icon: 'clock' }
     ],
     tableColumns: [
@@ -362,20 +362,20 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     iconColor: 'purple',
     description: 'Verwaltung der Lizenzzuweisungen zu Produkten',
     dbQuery: `SELECT l.*, p.name as product_name, o.order_number
-              FROM licenses l
+              FROM license_keys l
               LEFT JOIN products p ON l.product_id = p.id
-              LEFT JOIN orders o ON l.order_id = o.id
+              LEFT JOIN orders o ON l.assigned_to_order_id = o.id
               ORDER BY l.created_at DESC
               LIMIT 100`,
     statsCards: [
-      { label: 'Zugewiesene Lizenzen', query: 'SELECT COUNT(*) as count FROM licenses WHERE is_active = 1', color: 'text-green-600', icon: 'check' },
-      { label: 'Nicht zugewiesen', query: 'SELECT COUNT(*) as count FROM licenses WHERE is_active = 0', color: 'text-yellow-600', icon: 'clock' }
+      { label: 'Zugewiesene Lizenzen', query: "SELECT COUNT(*) as count FROM license_keys WHERE status = 'available'", color: 'text-green-600', icon: 'check' },
+      { label: 'Nicht zugewiesen', query: "SELECT COUNT(*) as count FROM license_keys WHERE status != 'available'", color: 'text-yellow-600', icon: 'clock' }
     ],
     tableColumns: [
       { key: 'license_key', label: 'Lizenzschlüssel' },
       { key: 'product_name', label: 'Produkt' },
       { key: 'order_number', label: 'Bestellung' },
-      { key: 'is_active', label: 'Status', format: 'badge' },
+      { key: 'status', label: 'Status', format: 'badge' },
       { key: 'created_at', label: 'Erstellt', format: 'date' }
     ],
     actions: [
