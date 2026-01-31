@@ -1,6 +1,8 @@
 // Universal Admin Placeholder Page
 // Handles all unimplemented admin routes with a professional "Coming Soon" interface
 
+import { AdminSidebarAdvanced } from './admin-sidebar-advanced'
+
 export function AdminPlaceholder(routePath: string, pageTitle: string) {
   // Extract category and feature from path
   const pathParts = routePath.split('/').filter(Boolean);
@@ -268,12 +270,7 @@ export function AdminPlaceholder(routePath: string, pageTitle: string) {
       </style>
     </head>
     <body>
-      <script>
-        // Import and render sidebar
-        const sidebarScript = document.createElement('script');
-        sidebarScript.src = '/static/admin-sidebar.js';
-        document.head.appendChild(sidebarScript);
-      </script>
+      ${AdminSidebarAdvanced(routePath)}
       
       <div class="admin-content">
         <div class="placeholder-container">
