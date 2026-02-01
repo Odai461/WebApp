@@ -46,6 +46,7 @@ import { AdminCustomCSSPreview } from './components/admin-custom-css-preview'
 import { AdminCustomJS } from './components/admin-custom-js'
 import { AdminCustomJSPreview } from './components/admin-custom-js-preview'
 import { AdminLiveChat } from './components/admin-live-chat'
+import { AdminPageTemplates } from './components/admin-page-templates'
 import { AdminSidebarWorking } from './components/admin-sidebar-working'
 import { 
   formatPrice, 
@@ -2074,6 +2075,241 @@ app.post('/api/admin/chat/close', async (c) => {
     return c.json({ success: true })
   } catch (error) {
     return c.json({ success: false }, 500)
+  }
+})
+
+// ===== PAGE TEMPLATES ADMIN API =====
+
+// Admin: Get all page templates
+app.get('/api/admin/page-templates', async (c) => {
+  try {
+    const templates = await c.env.DB.prepare(`
+      SELECT * FROM page_templates ORDER BY created_at DESC
+    `).all()
+
+    return c.json({ success: true, templates: templates.results })
+  } catch (error) {
+    console.error('Error fetching templates:', error)
+    return c.json({ success: false, error: 'Failed to fetch templates' }, 500)
+  }
+})
+
+// Admin: Get single template with variables
+app.get('/api/admin/page-templates/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    
+    const template = await c.env.DB.prepare(`
+      SELECT * FROM page_templates WHERE id = ?
+    `).bind(id).first()
+
+    if (!template) {
+      return c.json({ success: false, error: 'Template not found' }, 404)
+    }
+
+    const variables = await c.env.DB.prepare(`
+      SELECT * FROM template_variables WHERE template_id = ?
+    `).bind(id).all()
+
+    return c.json({ 
+      success: true, 
+      template,
+      variables: variables.results 
+    })
+  } catch (error) {
+    console.error('Error fetching template:', error)
+    return c.json({ success: false, error: 'Failed to fetch template' }, 500)
+  }
+})
+
+// Admin: Create new template
+app.post('/api/admin/page-templates', async (c) => {
+  try {
+    const data = await c.req.json()
+    
+    // Insert template
+    const result = await c.env.DB.prepare(`
+      INSERT INTO page_templates (
+        name, slug, description, category, template_type, content,
+        is_active, meta_title, meta_keywords, meta_description
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      data.name,
+      data.slug,
+      data.description || null,
+      data.category || 'custom',
+      data.template_type || 'html',
+      data.content,
+      data.is_active !== undefined ? data.is_active : 1,
+      data.meta_title || null,
+      data.meta_keywords || null,
+      data.meta_description || null
+    ).run()
+
+    const templateId = result.meta.last_row_id
+
+    // Insert variables
+    if (data.variables && data.variables.length > 0) {
+      for (const variable of data.variables) {
+        await c.env.DB.prepare(`
+          INSERT INTO template_variables (
+            template_id, variable_name, variable_type, default_value, is_required
+          ) VALUES (?, ?, ?, ?, ?)
+        `).bind(
+          templateId,
+          variable.variable_name,
+          variable.variable_type || 'text',
+          variable.default_value || null,
+          variable.is_required || 0
+        ).run()
+      }
+    }
+
+    return c.json({ success: true, id: templateId })
+  } catch (error) {
+    console.error('Error creating template:', error)
+    return c.json({ success: false, error: 'Failed to create template' }, 500)
+  }
+})
+
+// Admin: Update template
+app.put('/api/admin/page-templates/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const data = await c.req.json()
+
+    // Update template
+    await c.env.DB.prepare(`
+      UPDATE page_templates SET
+        name = ?, slug = ?, description = ?, category = ?,
+        template_type = ?, content = ?, is_active = ?,
+        meta_title = ?, meta_keywords = ?, meta_description = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      data.name,
+      data.slug,
+      data.description || null,
+      data.category || 'custom',
+      data.template_type || 'html',
+      data.content,
+      data.is_active !== undefined ? data.is_active : 1,
+      data.meta_title || null,
+      data.meta_keywords || null,
+      data.meta_description || null,
+      id
+    ).run()
+
+    // Delete old variables
+    await c.env.DB.prepare(`
+      DELETE FROM template_variables WHERE template_id = ?
+    `).bind(id).run()
+
+    // Insert new variables
+    if (data.variables && data.variables.length > 0) {
+      for (const variable of data.variables) {
+        await c.env.DB.prepare(`
+          INSERT INTO template_variables (
+            template_id, variable_name, variable_type, default_value, is_required
+          ) VALUES (?, ?, ?, ?, ?)
+        `).bind(
+          id,
+          variable.variable_name,
+          variable.variable_type || 'text',
+          variable.default_value || null,
+          variable.is_required || 0
+        ).run()
+      }
+    }
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error updating template:', error)
+    return c.json({ success: false, error: 'Failed to update template' }, 500)
+  }
+})
+
+// Admin: Delete template
+app.delete('/api/admin/page-templates/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+
+    // Delete variables first
+    await c.env.DB.prepare(`
+      DELETE FROM template_variables WHERE template_id = ?
+    `).bind(id).run()
+
+    // Delete template
+    await c.env.DB.prepare(`
+      DELETE FROM page_templates WHERE id = ?
+    `).bind(id).run()
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting template:', error)
+    return c.json({ success: false, error: 'Failed to delete template' }, 500)
+  }
+})
+
+// Admin: Duplicate template
+app.post('/api/admin/page-templates/:id/duplicate', async (c) => {
+  try {
+    const id = c.req.param('id')
+    
+    // Get original template
+    const original = await c.env.DB.prepare(`
+      SELECT * FROM page_templates WHERE id = ?
+    `).bind(id).first()
+
+    if (!original) {
+      return c.json({ success: false, error: 'Template not found' }, 404)
+    }
+
+    // Get original variables
+    const variables = await c.env.DB.prepare(`
+      SELECT * FROM template_variables WHERE template_id = ?
+    `).bind(id).all()
+
+    // Create duplicate
+    const result = await c.env.DB.prepare(`
+      INSERT INTO page_templates (
+        name, slug, description, category, template_type, content,
+        is_active, meta_title, meta_keywords, meta_description
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      original.name + ' (Kopie)',
+      original.slug + '-kopie-' + Date.now(),
+      original.description,
+      original.category,
+      original.template_type,
+      original.content,
+      0, // Set inactive by default
+      original.meta_title,
+      original.meta_keywords,
+      original.meta_description
+    ).run()
+
+    const newId = result.meta.last_row_id
+
+    // Duplicate variables
+    for (const variable of variables.results) {
+      await c.env.DB.prepare(`
+        INSERT INTO template_variables (
+          template_id, variable_name, variable_type, default_value, is_required
+        ) VALUES (?, ?, ?, ?, ?)
+      `).bind(
+        newId,
+        variable.variable_name,
+        variable.variable_type,
+        variable.default_value,
+        variable.is_required
+      ).run()
+    }
+
+    return c.json({ success: true, id: newId })
+  } catch (error) {
+    console.error('Error duplicating template:', error)
+    return c.json({ success: false, error: 'Failed to duplicate template' }, 500)
   }
 })
 
@@ -8056,6 +8292,22 @@ app.get('/admin/custom-js/preview/:id', async (c) => {
 app.get('/admin/live-chat', async (c) => {
   const html = AdminLiveChat()
   return c.html(html)
+})
+
+// Admin: Page Templates Management
+app.get('/admin/page-templates', async (c) => {
+  try {
+    const templates = await c.env.DB.prepare(`
+      SELECT * FROM page_templates ORDER BY created_at DESC
+    `).all()
+
+    const html = AdminPageTemplates({ templates: templates.results })
+    return c.html(html)
+  } catch (error) {
+    console.error('Error loading page templates:', error)
+    const html = AdminPageTemplates({ templates: [] })
+    return c.html(html)
+  }
 })
 
 // Orders Management
