@@ -2628,6 +2628,368 @@ app.post('/api/admin/cms-pages/:id/publish', async (c) => {
   }
 })
 
+// ===== SEO & SITEMAP APIs =====
+
+// Generate sitemap.xml
+app.get('/sitemap.xml', async (c) => {
+  try {
+    const urls = await c.env.DB.prepare(`
+      SELECT url, priority, changefreq, lastmod 
+      FROM seo_sitemap 
+      WHERE is_active = 1
+      ORDER BY priority DESC
+    `).all()
+
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.results.map(url => `  <url>
+    <loc>https://softwareking24.com${url.url}</loc>
+    <lastmod>${new Date(url.lastmod).toISOString().split('T')[0]}</lastmod>
+    <changefreq>${url.changefreq}</changefreq>
+    <priority>${url.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`
+
+    return c.text(sitemap, 200, {
+      'Content-Type': 'application/xml'
+    })
+  } catch (error) {
+    console.error('Error generating sitemap:', error)
+    return c.text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>', 200, {
+      'Content-Type': 'application/xml'
+    })
+  }
+})
+
+// Generate robots.txt
+app.get('/robots.txt', async (c) => {
+  const robots = `User-agent: *
+Allow: /
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /api/admin/
+
+# Disallow checkout process
+Disallow: /checkout
+Disallow: /cart
+
+# Sitemap
+Sitemap: https://softwareking24.com/sitemap.xml`
+
+  return c.text(robots, 200, {
+    'Content-Type': 'text/plain'
+  })
+})
+
+// Get SEO data for a page
+app.get('/api/seo/:path', async (c) => {
+  try {
+    const path = c.req.param('path')
+    const pageUrl = path === 'home' ? '/' : '/' + path
+
+    const seoData = await c.env.DB.prepare(`
+      SELECT * FROM seo_pages WHERE page_url = ? AND is_active = 1
+    `).bind(pageUrl).first()
+
+    if (!seoData) {
+      return c.json({ success: false, error: 'SEO data not found' }, 404)
+    }
+
+    return c.json({ success: true, seo: seoData })
+  } catch (error) {
+    console.error('Error fetching SEO data:', error)
+    return c.json({ success: false, error: 'Failed to fetch SEO data' }, 500)
+  }
+})
+
+// ===== ANALYTICS TRACKING APIs =====
+
+// Track page views, events, conversions
+app.post('/api/analytics/track', async (c) => {
+  try {
+    const data = await c.req.json()
+    const type = data.type
+
+    if (type === 'pageview') {
+      // Track page view
+      await c.env.DB.prepare(`
+        INSERT INTO analytics_page_views (
+          visitor_id, session_id, page_url, page_title, referrer,
+          utm_source, utm_medium, utm_campaign, utm_term, utm_content,
+          device_type, browser, os, country, ip_address, user_agent,
+          screen_width, screen_height, viewport_width, viewport_height,
+          language, timezone
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        data.visitor_id, data.session_id, data.page_url, data.page_title, data.referrer || null,
+        data.utm_source || null, data.utm_medium || null, data.utm_campaign || null,
+        data.utm_term || null, data.utm_content || null,
+        data.device_type, data.browser, data.os, data.country || null,
+        data.ip_address || null, data.user_agent || null,
+        data.screen_width, data.screen_height, data.viewport_width, data.viewport_height,
+        data.language, data.timezone
+      ).run()
+
+      // Update or create visitor
+      const visitor = await c.env.DB.prepare(`
+        SELECT * FROM analytics_visitors WHERE visitor_id = ?
+      `).bind(data.visitor_id).first()
+
+      if (visitor) {
+        await c.env.DB.prepare(`
+          UPDATE analytics_visitors 
+          SET last_seen = CURRENT_TIMESTAMP, total_page_views = total_page_views + 1
+          WHERE visitor_id = ?
+        `).bind(data.visitor_id).run()
+      } else {
+        await c.env.DB.prepare(`
+          INSERT INTO analytics_visitors (
+            visitor_id, device_type, browser, os, country,
+            referrer_first, utm_source_first, utm_campaign_first
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          data.visitor_id, data.device_type, data.browser, data.os, data.country || null,
+          data.referrer || null, data.utm_source || null, data.utm_campaign || null
+        ).run()
+      }
+
+      // Update realtime
+      await c.env.DB.prepare(`
+        INSERT OR REPLACE INTO analytics_realtime (visitor_id, session_id, page_url, page_title, last_ping)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `).bind(data.visitor_id, data.session_id, data.page_url, data.page_title).run()
+
+    } else if (type === 'event') {
+      // Track event
+      await c.env.DB.prepare(`
+        INSERT INTO analytics_events (
+          visitor_id, session_id, event_category, event_action, event_label, event_value, page_url
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        data.visitor_id, data.session_id, data.event_category, data.event_action,
+        data.event_label || null, data.event_value || null, data.page_url
+      ).run()
+
+    } else if (type === 'conversion') {
+      // Track conversion
+      await c.env.DB.prepare(`
+        INSERT INTO analytics_conversions (
+          visitor_id, session_id, conversion_type, order_id, product_name, revenue
+        ) VALUES (?, ?, ?, ?, ?, ?)
+      `).bind(
+        data.visitor_id, data.session_id, data.conversion_type,
+        data.order_id || null, data.product_name || null, data.revenue || 0
+      ).run()
+
+    } else if (type === 'duration') {
+      // Update page view duration
+      await c.env.DB.prepare(`
+        UPDATE analytics_page_views 
+        SET duration_seconds = ?
+        WHERE visitor_id = ? AND session_id = ? AND page_url = ?
+        ORDER BY created_at DESC LIMIT 1
+      `).bind(data.duration_seconds, data.visitor_id, data.session_id, data.page_url).run()
+    }
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error tracking analytics:', error)
+    return c.json({ success: false, error: 'Failed to track' }, 500)
+  }
+})
+
+// ===== ANALYTICS DASHBOARD APIs =====
+
+// Overview Dashboard
+app.get('/api/analytics/overview', async (c) => {
+  try {
+    // Get date range (default: today)
+    const today = new Date().toISOString().split('T')[0]
+
+    // Total visitors today
+    const visitorsToday = await c.env.DB.prepare(`
+      SELECT COUNT(DISTINCT visitor_id) as count
+      FROM analytics_page_views
+      WHERE DATE(created_at) = ?
+    `).bind(today).first()
+
+    // Total page views today
+    const pageViewsToday = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count
+      FROM analytics_page_views
+      WHERE DATE(created_at) = ?
+    `).bind(today).first()
+
+    // Total revenue today
+    const revenueToday = await c.env.DB.prepare(`
+      SELECT SUM(revenue) as total
+      FROM analytics_conversions
+      WHERE DATE(created_at) = ? AND conversion_type = 'purchase'
+    `).bind(today).first()
+
+    // Total conversions today
+    const conversionsToday = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count
+      FROM analytics_conversions
+      WHERE DATE(created_at) = ?
+    `).bind(today).first()
+
+    // Real-time active users
+    const activeUsers = await c.env.DB.prepare(`
+      SELECT COUNT(DISTINCT visitor_id) as count
+      FROM analytics_realtime
+      WHERE datetime(last_ping) > datetime('now', '-5 minutes')
+    `).first()
+
+    // Top pages today
+    const topPages = await c.env.DB.prepare(`
+      SELECT page_url, page_title, COUNT(*) as views
+      FROM analytics_page_views
+      WHERE DATE(created_at) = ?
+      GROUP BY page_url, page_title
+      ORDER BY views DESC
+      LIMIT 10
+    `).bind(today).all()
+
+    // Conversion rate
+    const conversionRate = visitorsToday.count > 0 
+      ? ((conversionsToday.count / visitorsToday.count) * 100).toFixed(2)
+      : 0
+
+    return c.json({
+      success: true,
+      data: {
+        visitors: visitorsToday.count || 0,
+        pageViews: pageViewsToday.count || 0,
+        revenue: revenueToday.total || 0,
+        conversions: conversionsToday.count || 0,
+        conversionRate: parseFloat(conversionRate),
+        activeUsers: activeUsers.count || 0,
+        topPages: topPages.results
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching overview:', error)
+    return c.json({ success: false, error: 'Failed to fetch overview' }, 500)
+  }
+})
+
+// Visitors & Traffic Analytics
+app.get('/api/analytics/visitors', async (c) => {
+  try {
+    const days = parseInt(c.req.query('days') || '30')
+    
+    // Visitors over time
+    const visitorsOverTime = await c.env.DB.prepare(`
+      SELECT DATE(created_at) as date, COUNT(DISTINCT visitor_id) as visitors
+      FROM analytics_page_views
+      WHERE DATE(created_at) >= DATE('now', '-${days} days')
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
+    `).all()
+
+    // Traffic sources
+    const trafficSources = await c.env.DB.prepare(`
+      SELECT 
+        CASE 
+          WHEN referrer IS NULL OR referrer = '' THEN 'Direct'
+          WHEN referrer LIKE '%google%' THEN 'Google'
+          WHEN referrer LIKE '%bing%' THEN 'Bing'
+          WHEN referrer LIKE '%facebook%' THEN 'Facebook'
+          ELSE 'Other'
+        END as source,
+        COUNT(DISTINCT visitor_id) as visitors
+      FROM analytics_page_views
+      WHERE DATE(created_at) >= DATE('now', '-${days} days')
+      GROUP BY source
+      ORDER BY visitors DESC
+    `).all()
+
+    // Geographic distribution
+    const geoDistribution = await c.env.DB.prepare(`
+      SELECT country, COUNT(DISTINCT visitor_id) as visitors
+      FROM analytics_page_views
+      WHERE country IS NOT NULL AND DATE(created_at) >= DATE('now', '-${days} days')
+      GROUP BY country
+      ORDER BY visitors DESC
+      LIMIT 10
+    `).all()
+
+    return c.json({
+      success: true,
+      data: {
+        visitorsOverTime: visitorsOverTime.results,
+        trafficSources: trafficSources.results,
+        geoDistribution: geoDistribution.results
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching visitors data:', error)
+    return c.json({ success: false, error: 'Failed to fetch visitors data' }, 500)
+  }
+})
+
+// Products Performance Analytics
+app.get('/api/analytics/products', async (c) => {
+  try {
+    const days = parseInt(c.req.query('days') || '30')
+    
+    const products = await c.env.DB.prepare(`
+      SELECT 
+        product_id, product_name, category,
+        SUM(views) as total_views,
+        SUM(add_to_cart) as total_add_to_cart,
+        SUM(purchases) as total_purchases,
+        SUM(revenue) as total_revenue
+      FROM analytics_products
+      WHERE DATE(date) >= DATE('now', '-${days} days')
+      GROUP BY product_id, product_name, category
+      ORDER BY total_revenue DESC
+    `).all()
+
+    return c.json({
+      success: true,
+      data: {
+        products: products.results
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching products data:', error)
+    return c.json({ success: false, error: 'Failed to fetch products data' }, 500)
+  }
+})
+
+// Devices Analytics
+app.get('/api/analytics/devices', async (c) => {
+  try {
+    const days = parseInt(c.req.query('days') || '30')
+    
+    const devices = await c.env.DB.prepare(`
+      SELECT 
+        device_type, browser, os,
+        SUM(visitors) as total_visitors,
+        SUM(page_views) as total_page_views,
+        AVG(bounce_rate) as avg_bounce_rate,
+        AVG(avg_duration) as avg_duration
+      FROM analytics_devices
+      WHERE DATE(date) >= DATE('now', '-${days} days')
+      GROUP BY device_type, browser, os
+      ORDER BY total_visitors DESC
+    `).all()
+
+    return c.json({
+      success: true,
+      data: {
+        devices: devices.results
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching devices data:', error)
+    return c.json({ success: false, error: 'Failed to fetch devices data' }, 500)
+  }
+})
+
 // Admin: Convert chat to ticket
 app.post('/api/admin/chat/convert-to-ticket', async (c) => {
   try {

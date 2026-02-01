@@ -2521,6 +2521,9 @@ export const HomepagePrestaShopEnhanced = () => {
         <script src="/static/cookie-consent.js"></script>
         <script src="/static/promo-popup.js"></script>
         <script src="/static/auth.js"></script>
+        
+        <!-- Analytics Tracker - Real-time tracking -->
+        <script src="/static/analytics-tracker.js"></script>
     </body>
     </html>
   `;
