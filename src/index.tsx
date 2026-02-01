@@ -1877,6 +1877,22 @@ app.post('/api/admin/homepage/sections/:id/toggle', async (c) => {
 })
 
 // ============================================
+// PUBLIC API: Homepage Sliders (for frontend)
+// ============================================
+
+// Get active sliders for homepage
+app.get('/api/homepage/sliders', async (c) => {
+  try {
+    const query = `SELECT * FROM homepage_sliders WHERE is_active = 1 ORDER BY sort_order ASC`
+    const result = await c.env.DB.prepare(query).all()
+    return c.json({ success: true, data: result.results || [] })
+  } catch (error) {
+    console.error('Error fetching sliders:', error)
+    return c.json({ success: false, error: 'Failed to fetch sliders', data: [] }, 500)
+  }
+})
+
+// ============================================
 // ADMIN API: Homepage Slider Management
 // ============================================
 

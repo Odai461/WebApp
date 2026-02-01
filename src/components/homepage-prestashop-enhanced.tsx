@@ -14,7 +14,9 @@ export const HomepagePrestaShopEnhanced = () => {
         <script src="/static/cart-manager-enhanced.js"></script>
         <link href="/static/search-autocomplete.css" rel="stylesheet" />
         <link href="/static/auth_colors.css" rel="stylesheet" />
+        <link href="/static/quick-wins-bundle.css" rel="stylesheet" />
         <script src="/static/search-autocomplete.js" defer></script>
+        <script src="/static/quick-wins-bundle.js" defer></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
             
@@ -545,7 +547,7 @@ export const HomepagePrestaShopEnhanced = () => {
                 <div class="flex items-center justify-between">
                     <!-- Logo -->
                     <a href="/" class="flex items-center hover-scale">
-                        <img src="/static/logo-footer.png" alt="SOFTWAREKING24 - Das Original Einfach günstig gut" class="h-20" />
+                        <img src="/static/logo-footer.png" alt="SOFTWAREKING24 - Das Original Einfach günstig gut" class="h-20" loading="lazy" />
                     </a>
 
                     <!-- Search Bar with Autocomplete -->
@@ -620,7 +622,7 @@ export const HomepagePrestaShopEnhanced = () => {
                         
                         <div class="flex items-center space-x-2">
                             <button class="w-8 h-8 rounded-full overflow-hidden border-2 border-gold">
-                                <img src="https://flagcdn.com/w40/de.png" alt="Deutsch" class="w-full h-full object-cover" />
+                                <img src="https://flagcdn.com/w40/de.png" alt="Deutsch" class="w-full h-full object-cover" loading="lazy" />
                             </button>
                         </div>
                     </div>
@@ -885,8 +887,11 @@ export const HomepagePrestaShopEnhanced = () => {
             </nav>
         </header>
 
-        <!-- Hero Section -->
-        <section class="gradient-hero text-white py-24 relative overflow-hidden">
+        <!-- Dynamic Hero Slider (Quick Win 1) -->
+        <div id="dynamic-slider-container"></div>
+
+        <!-- Hero Section (Fallback if no dynamic slides) -->
+        <section class="gradient-hero text-white py-24 relative overflow-hidden" id="hero-fallback">
             <!-- Animated Background Shapes -->
             <div class="absolute inset-0 overflow-hidden pointer-events-none">
                 <div class="absolute w-96 h-96 bg-gold opacity-10 rounded-full blur-3xl -top-20 -left-20 animate-float"></div>
@@ -949,9 +954,9 @@ export const HomepagePrestaShopEnhanced = () => {
                         <div class="flex items-center gap-6 text-sm animate-fadeIn" style="animation-delay: 0.8s;">
                             <div class="flex items-center gap-2">
                                 <div class="flex -space-x-2">
-                                    <img src="https://i.pravatar.cc/40?img=1" alt="Customer" class="w-10 h-10 rounded-full border-2 border-white" />
-                                    <img src="https://i.pravatar.cc/40?img=2" alt="Customer" class="w-10 h-10 rounded-full border-2 border-white" />
-                                    <img src="https://i.pravatar.cc/40?img=3" alt="Customer" class="w-10 h-10 rounded-full border-2 border-white" />
+                                    <img src="https://i.pravatar.cc/40?img=1" alt="Customer" class="w-10 h-10 rounded-full border-2 border-white" loading="lazy" />
+                                    <img src="https://i.pravatar.cc/40?img=2" alt="Customer" class="w-10 h-10 rounded-full border-2 border-white" loading="lazy" />
+                                    <img src="https://i.pravatar.cc/40?img=3" alt="Customer" class="w-10 h-10 rounded-full border-2 border-white" loading="lazy" />
                                     <div class="w-10 h-10 rounded-full border-2 border-white bg-gold text-white flex items-center justify-center font-bold text-xs">50k+</div>
                                 </div>
                                 <div>
