@@ -22,6 +22,7 @@ export function ShopHomepagePremium() {
         }
       </script>
       <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+      <link href="/static/cart.css" rel="stylesheet">
       <style>
         * {
           margin: 0;
@@ -899,12 +900,10 @@ export function ShopHomepagePremium() {
               </button>
 
               <!-- Cart -->
-              <button class="relative p-2 hover:bg-gray-100 rounded-full transition-all">
+              <a href="/cart" class="relative p-2 hover:bg-gray-100 rounded-full transition-all">
                 <i class="fas fa-shopping-cart text-gray-700 text-xl"></i>
-                <span class="absolute -top-1 -right-1 bg-brand-gold text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                  3
-                </span>
-              </button>
+                <span class="cart-badge" data-cart-count>0</span>
+              </a>
 
               <!-- User -->
               <button class="hidden lg:flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-full transition-all">
@@ -2098,6 +2097,8 @@ export function ShopHomepagePremium() {
         </div>
       </footer>
 
+      <!-- Cart System Script -->
+      <script src="/static/cart.js"></script>
     </body>
     </html>
   `;
