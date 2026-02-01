@@ -50,6 +50,9 @@ import { AdminPageTemplates } from './components/admin-page-templates'
 import { AdminAnalytics } from './components/admin-analytics'
 import { AdminFAQ } from './components/admin-faq'
 import { AdminSidebarWorking } from './components/admin-sidebar-working'
+import { ShopHomepagePremium } from './components/shop-homepage-premium'
+import { AdminLicenseAnalytics } from './components/admin-license-analytics'
+import { AdminAutomations } from './components/admin-automations'
 import { 
   formatPrice, 
   generateOrderNumber, 
@@ -264,13 +267,13 @@ setupReviewRoutes(app)
 // HOMEPAGE ROUTE
 // ============================================
 
-// Homepage - PrestaShop Enhanced with VIP Luxury Styling (ACTIVE)
+// Homepage - Premium Modern Design (NEW STUNNING UI)
 app.get('/', (c) => {
-  return c.html(HomepagePrestaShopEnhanced())
+  return c.html(ShopHomepagePremium())
 })
 
 app.get('/de', (c) => {
-  return c.html(HomepagePrestaShopEnhanced())
+  return c.html(ShopHomepagePremium())
 })
 
 // ============================================
@@ -9228,6 +9231,18 @@ app.get('/admin/live-chat', async (c) => {
 // Admin: Analytics Dashboard
 app.get('/admin/analytics', async (c) => {
   const html = AdminAnalytics()
+  return c.html(html)
+})
+
+// Admin: License Analytics Page
+app.get('/admin/analytics/licenses', async (c) => {
+  const html = AdminLicenseAnalytics()
+  return c.html(html)
+})
+
+// Admin: Automations Page
+app.get('/admin/automations', async (c) => {
+  const html = AdminAutomations()
   return c.html(html)
 })
 
