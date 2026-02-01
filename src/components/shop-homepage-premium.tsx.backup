@@ -7,20 +7,6 @@ export function ShopHomepagePremium() {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>SOFTWAREKING24 - Premium Software Lizenzshop</title>
       <script src="https://cdn.tailwindcss.com"></script>
-      <script>
-        tailwind.config = {
-          theme: {
-            extend: {
-              colors: {
-                'brand-navy': '#0a1628',
-                'brand-navy-light': '#1a2332',
-                'brand-gold': '#f5a623',
-                'brand-gold-light': '#f7be5f',
-              }
-            }
-          }
-        }
-      </script>
       <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
       <style>
         * {
@@ -31,7 +17,7 @@ export function ShopHomepagePremium() {
 
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          background: linear-gradient(135deg, #0a1628 0%, #1a2332 100%);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           min-height: 100vh;
           overflow-x: hidden;
         }
@@ -59,8 +45,8 @@ export function ShopHomepagePremium() {
         }
 
         @keyframes glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(245, 166, 35, 0.5); }
-          50% { box-shadow: 0 0 40px rgba(245, 166, 35, 0.8); }
+          0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+          50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8); }
         }
 
         @keyframes slideInUp {
@@ -107,7 +93,7 @@ export function ShopHomepagePremium() {
 
         /* Button Effects */
         .btn-primary {
-          background: linear-gradient(135deg, #0a1628 0%, #1a2332 100%);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           padding: 1rem 2rem;
           border-radius: 12px;
@@ -115,12 +101,12 @@ export function ShopHomepagePremium() {
           transition: all 0.3s ease;
           border: none;
           cursor: pointer;
-          box-shadow: 0 4px 15px rgba(10, 22, 40, 0.4);
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         .btn-primary:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 25px rgba(245, 166, 35, 0.6);
+          box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
         }
 
         .btn-secondary {
@@ -154,8 +140,7 @@ export function ShopHomepagePremium() {
 
         .category-pill:hover, .category-pill.active {
           background: rgba(255, 255, 255, 0.95);
-          color: #0a1628;
-          border: 2px solid #f5a623;
+          color: #667eea;
           transform: scale(1.05);
         }
 
@@ -203,7 +188,7 @@ export function ShopHomepagePremium() {
         .price-display {
           font-size: 2rem;
           font-weight: 700;
-          background: linear-gradient(135deg, #0a1628 0%, #1a2332 100%);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -258,9 +243,15 @@ export function ShopHomepagePremium() {
           <div class="flex items-center justify-between h-20">
             
             <!-- Logo -->
-            <a href="/" class="flex items-center">
-              <img src="/static/logo.png" alt="SOFTWAREKING24 - Premium Software Lizenzen" class="h-12" />
-            </a>
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center glow-animation">
+                <i class="fas fa-crown text-white text-xl"></i>
+              </div>
+              <div>
+                <h1 class="text-xl font-bold text-gray-900">SOFTWAREKING24</h1>
+                <p class="text-xs text-gray-600">Premium Software Lizenzen</p>
+              </div>
+            </div>
 
             <!-- Search Bar -->
             <div class="hidden md:flex flex-1 max-w-2xl mx-8">
@@ -268,10 +259,10 @@ export function ShopHomepagePremium() {
                 <input 
                   type="text" 
                   placeholder="Suche nach Software, Lizenzen..." 
-                  class="w-full px-6 py-3 pl-12 rounded-full border-2 border-gray-200 focus:border-blue-800 focus:outline-none transition-all"
+                  class="w-full px-6 py-3 pl-12 rounded-full border-2 border-gray-200 focus:border-purple-500 focus:outline-none transition-all"
                 />
                 <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <button class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-900 to-yellow-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all">
+                <button class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all">
                   Suchen
                 </button>
               </div>
@@ -279,14 +270,14 @@ export function ShopHomepagePremium() {
 
             <!-- Nav Links -->
             <div class="flex items-center space-x-6">
-              <a href="/products" class="text-gray-700 hover:text-blue-900 font-medium transition-colors">Produkte</a>
-              <a href="/categories" class="text-gray-700 hover:text-blue-900 font-medium transition-colors">Kategorien</a>
+              <a href="/products" class="text-gray-700 hover:text-purple-600 font-medium transition-colors">Produkte</a>
+              <a href="/categories" class="text-gray-700 hover:text-purple-600 font-medium transition-colors">Kategorien</a>
               
               <!-- Cart -->
               <div class="relative">
                 <button class="relative p-3 hover:bg-gray-100 rounded-full transition-all">
                   <i class="fas fa-shopping-cart text-gray-700 text-xl"></i>
-                  <span class="absolute -top-1 -right-1 bg-gradient-to-r from-#f5a623 to-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  <span class="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
                     3
                   </span>
                 </button>
@@ -294,7 +285,7 @@ export function ShopHomepagePremium() {
 
               <!-- User -->
               <button class="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-full transition-all">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-900 to-yellow-500 rounded-full flex items-center justify-center">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
                   <i class="fas fa-user text-white"></i>
                 </div>
               </button>
@@ -404,7 +395,7 @@ export function ShopHomepagePremium() {
                         <div class="text-gray-400 line-through text-sm">€259,00</div>
                         <div class="price-display">€89,99</div>
                       </div>
-                      <button class="bg-gradient-to-r from-blue-900 to-yellow-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all">
+                      <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all">
                         <i class="fas fa-cart-plus mr-2"></i>
                         Kaufen
                       </button>
@@ -422,7 +413,7 @@ export function ShopHomepagePremium() {
                       <p class="text-xs font-bold text-gray-900">Sofort</p>
                     </div>
                     <div class="bg-white rounded-xl p-4 text-center">
-                      <i class="fas fa-infinity text-#1a2332 text-2xl mb-2"></i>
+                      <i class="fas fa-infinity text-purple-500 text-2xl mb-2"></i>
                       <p class="text-xs font-bold text-gray-900">Lebenslang</p>
                     </div>
                   </div>
@@ -506,9 +497,9 @@ export function ShopHomepagePremium() {
                 <div class="flex items-center justify-between pt-3 border-t border-gray-200">
                   <div>
                     <div class="text-gray-400 line-through text-sm">€259,00</div>
-                    <div class="text-2xl font-bold text-blue-900">€89,99</div>
+                    <div class="text-2xl font-bold text-purple-600">€89,99</div>
                   </div>
-                  <button class="bg-gradient-to-r from-blue-900 to-yellow-500 text-white p-3 rounded-xl hover:shadow-lg transition-all">
+                  <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-xl hover:shadow-lg transition-all">
                     <i class="fas fa-shopping-cart"></i>
                   </button>
                 </div>
@@ -549,9 +540,9 @@ export function ShopHomepagePremium() {
                 <div class="flex items-center justify-between pt-3 border-t border-gray-200">
                   <div>
                     <div class="text-gray-400 line-through text-sm">€449,00</div>
-                    <div class="text-2xl font-bold text-blue-900">€149,99</div>
+                    <div class="text-2xl font-bold text-purple-600">€149,99</div>
                   </div>
-                  <button class="bg-gradient-to-r from-blue-900 to-yellow-500 text-white p-3 rounded-xl hover:shadow-lg transition-all">
+                  <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-xl hover:shadow-lg transition-all">
                     <i class="fas fa-shopping-cart"></i>
                   </button>
                 </div>
@@ -592,9 +583,9 @@ export function ShopHomepagePremium() {
                 <div class="flex items-center justify-between pt-3 border-t border-gray-200">
                   <div>
                     <div class="text-gray-400 line-through text-sm">€89,00</div>
-                    <div class="text-2xl font-bold text-blue-900">€39,99</div>
+                    <div class="text-2xl font-bold text-purple-600">€39,99</div>
                   </div>
-                  <button class="bg-gradient-to-r from-blue-900 to-yellow-500 text-white p-3 rounded-xl hover:shadow-lg transition-all">
+                  <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-xl hover:shadow-lg transition-all">
                     <i class="fas fa-shopping-cart"></i>
                   </button>
                 </div>
@@ -612,7 +603,7 @@ export function ShopHomepagePremium() {
                     <i class="far fa-heart text-gray-600 hover:text-red-500"></i>
                   </button>
                 </div>
-                <div class="product-image w-full h-48 bg-gradient-to-br from-#1a2332 to-yellow-500 rounded-xl flex items-center justify-center">
+                <div class="product-image w-full h-48 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                   <i class="fab fa-adobe text-white text-6xl"></i>
                 </div>
               </div>
@@ -635,9 +626,9 @@ export function ShopHomepagePremium() {
                 <div class="flex items-center justify-between pt-3 border-t border-gray-200">
                   <div>
                     <div class="text-gray-400 line-through text-sm">€599,00</div>
-                    <div class="text-2xl font-bold text-blue-900">€239,99</div>
+                    <div class="text-2xl font-bold text-purple-600">€239,99</div>
                   </div>
-                  <button class="bg-gradient-to-r from-blue-900 to-yellow-500 text-white p-3 rounded-xl hover:shadow-lg transition-all">
+                  <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-xl hover:shadow-lg transition-all">
                     <i class="fas fa-shopping-cart"></i>
                   </button>
                 </div>
@@ -679,7 +670,7 @@ export function ShopHomepagePremium() {
             </div>
 
             <div class="glass-strong rounded-2xl p-8 text-center hover:transform hover:scale-105 transition-all">
-              <div class="w-16 h-16 bg-gradient-to-br from-#1a2332 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-headset text-white text-2xl"></i>
               </div>
               <h3 class="text-xl font-bold text-gray-900 mb-2">24/7 Support</h3>
@@ -703,7 +694,7 @@ export function ShopHomepagePremium() {
         <div class="max-w-7xl mx-auto">
           <div class="glass-strong rounded-3xl p-12">
             <div class="text-center mb-12">
-              <div class="inline-block bg-gradient-to-r from-red-500 to-yellow-500 text-white px-6 py-2 rounded-full font-bold mb-4 animate-pulse">
+              <div class="inline-block bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-full font-bold mb-4 animate-pulse">
                 <i class="fas fa-fire mr-2"></i>
                 FLASH SALE - NUR HEUTE!
               </div>
@@ -713,15 +704,15 @@ export function ShopHomepagePremium() {
               <!-- Countdown Timer -->
               <div class="flex justify-center gap-4 mt-8">
                 <div class="bg-white rounded-xl p-4 shadow-lg min-w-[80px]">
-                  <div class="text-3xl font-bold text-blue-900">08</div>
+                  <div class="text-3xl font-bold text-purple-600">08</div>
                   <div class="text-sm text-gray-600">Stunden</div>
                 </div>
                 <div class="bg-white rounded-xl p-4 shadow-lg min-w-[80px]">
-                  <div class="text-3xl font-bold text-blue-900">45</div>
+                  <div class="text-3xl font-bold text-purple-600">45</div>
                   <div class="text-sm text-gray-600">Minuten</div>
                 </div>
                 <div class="bg-white rounded-xl p-4 shadow-lg min-w-[80px]">
-                  <div class="text-3xl font-bold text-blue-900">23</div>
+                  <div class="text-3xl font-bold text-purple-600">23</div>
                   <div class="text-sm text-gray-600">Sekunden</div>
                 </div>
               </div>
@@ -749,7 +740,7 @@ export function ShopHomepagePremium() {
                       Nur noch 7 auf Lager!
                     </p>
                   </div>
-                  <button class="w-full bg-gradient-to-r from-red-600 to-yellow-500 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all">
+                  <button class="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all">
                     <i class="fas fa-bolt mr-2"></i>
                     Jetzt sichern!
                   </button>
@@ -777,7 +768,7 @@ export function ShopHomepagePremium() {
                       Nur noch 12 auf Lager!
                     </p>
                   </div>
-                  <button class="w-full bg-gradient-to-r from-red-600 to-yellow-500 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all">
+                  <button class="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all">
                     <i class="fas fa-bolt mr-2"></i>
                     Jetzt sichern!
                   </button>
@@ -790,7 +781,7 @@ export function ShopHomepagePremium() {
                   -80%
                 </div>
                 <div class="text-center mb-4">
-                  <div class="w-24 h-24 bg-gradient-to-br from-#1a2332 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-layer-group text-white text-4xl"></i>
                   </div>
                   <h3 class="font-bold text-xl text-gray-900 mb-2">Software Bundle</h3>
@@ -805,7 +796,7 @@ export function ShopHomepagePremium() {
                       Spare €719!
                     </p>
                   </div>
-                  <button class="w-full bg-gradient-to-r from-red-600 to-yellow-500 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all">
+                  <button class="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all">
                     <i class="fas fa-bolt mr-2"></i>
                     Jetzt sichern!
                   </button>
@@ -839,7 +830,7 @@ export function ShopHomepagePremium() {
             <!-- Testimonial 1 -->
             <div class="glass-strong rounded-2xl p-8">
               <div class="flex items-center mb-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-#1a2332 to-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
                   MK
                 </div>
                 <div>
@@ -969,7 +960,7 @@ export function ShopHomepagePremium() {
             <!-- Testimonial 6 -->
             <div class="glass-strong rounded-2xl p-8">
               <div class="flex items-center mb-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-#f5a623 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
+                <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
                   AH
                 </div>
                 <div>
@@ -1010,10 +1001,10 @@ export function ShopHomepagePremium() {
 
             <!-- Step 1 -->
             <div class="glass-strong rounded-2xl p-8 text-center relative">
-              <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-900 to-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+              <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
                 1
               </div>
-              <div class="w-24 h-24 bg-gradient-to-br from-#1a2332 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-6 mt-4">
+              <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 mt-4">
                 <i class="fas fa-mouse-pointer text-white text-4xl"></i>
               </div>
               <h3 class="text-2xl font-bold text-gray-900 mb-4">Produkt auswählen</h3>
@@ -1127,7 +1118,7 @@ export function ShopHomepagePremium() {
             <div class="glass-strong rounded-2xl p-6">
               <button class="w-full flex items-center justify-between text-left">
                 <h3 class="font-bold text-gray-900 text-lg">Sind die Lizenzen original?</h3>
-                <i class="fas fa-chevron-down text-blue-900"></i>
+                <i class="fas fa-chevron-down text-purple-600"></i>
               </button>
               <div class="mt-4 text-gray-600">
                 Ja! Alle unsere Lizenzen sind 100% original und legal. Wir sind autorisierter Händler und alle Keys sind direkt vom Hersteller.
@@ -1138,7 +1129,7 @@ export function ShopHomepagePremium() {
             <div class="glass-strong rounded-2xl p-6">
               <button class="w-full flex items-center justify-between text-left">
                 <h3 class="font-bold text-gray-900 text-lg">Wie schnell erhalte ich meinen Key?</h3>
-                <i class="fas fa-chevron-down text-blue-900"></i>
+                <i class="fas fa-chevron-down text-purple-600"></i>
               </button>
               <div class="mt-4 text-gray-600">
                 Sofort! Nach erfolgreicher Zahlung erhältst du deinen Lizenzschlüssel innerhalb von 5-10 Minuten per E-Mail.
@@ -1149,7 +1140,7 @@ export function ShopHomepagePremium() {
             <div class="glass-strong rounded-2xl p-6">
               <button class="w-full flex items-center justify-between text-left">
                 <h3 class="font-bold text-gray-900 text-lg">Welche Zahlungsmethoden akzeptiert ihr?</h3>
-                <i class="fas fa-chevron-down text-blue-900"></i>
+                <i class="fas fa-chevron-down text-purple-600"></i>
               </button>
               <div class="mt-4 text-gray-600">
                 Wir akzeptieren PayPal, Kreditkarte (Visa, Mastercard), SOFORT Überweisung, Klarna und viele mehr.
@@ -1160,7 +1151,7 @@ export function ShopHomepagePremium() {
             <div class="glass-strong rounded-2xl p-6">
               <button class="w-full flex items-center justify-between text-left">
                 <h3 class="font-bold text-gray-900 text-lg">Kann ich eine Rechnung erhalten?</h3>
-                <i class="fas fa-chevron-down text-blue-900"></i>
+                <i class="fas fa-chevron-down text-purple-600"></i>
               </button>
               <div class="mt-4 text-gray-600">
                 Selbstverständlich! Du erhältst automatisch eine ordnungsgemäße Rechnung per E-Mail, die du für deine Unterlagen nutzen kannst.
@@ -1171,7 +1162,7 @@ export function ShopHomepagePremium() {
             <div class="glass-strong rounded-2xl p-6">
               <button class="w-full flex items-center justify-between text-left">
                 <h3 class="font-bold text-gray-900 text-lg">Was ist, wenn der Key nicht funktioniert?</h3>
-                <i class="fas fa-chevron-down text-blue-900"></i>
+                <i class="fas fa-chevron-down text-purple-600"></i>
               </button>
               <div class="mt-4 text-gray-600">
                 Das kommt sehr selten vor, aber falls doch: Unser Support hilft dir sofort weiter und ersetzt den Key kostenlos.
@@ -1182,7 +1173,7 @@ export function ShopHomepagePremium() {
             <div class="glass-strong rounded-2xl p-6">
               <button class="w-full flex items-center justify-between text-left">
                 <h3 class="font-bold text-gray-900 text-lg">Bietet ihr auch Mengenrabatte an?</h3>
-                <i class="fas fa-chevron-down text-blue-900"></i>
+                <i class="fas fa-chevron-down text-purple-600"></i>
               </button>
               <div class="mt-4 text-gray-600">
                 Ja! Für Unternehmen und größere Bestellungen bieten wir attraktive Mengenrabatte. Kontaktiere uns für ein individuelles Angebot.
@@ -1210,10 +1201,10 @@ export function ShopHomepagePremium() {
 
             <div class="grid md:grid-cols-4 gap-8">
               <div class="text-center">
-                <div class="w-20 h-20 bg-gradient-to-br from-#1a2332 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <i class="fas fa-users text-white text-3xl"></i>
                 </div>
-                <div class="text-4xl font-bold text-blue-900 mb-2">50,000+</div>
+                <div class="text-4xl font-bold text-purple-600 mb-2">50,000+</div>
                 <div class="text-gray-600 font-medium">Zufriedene Kunden</div>
               </div>
 
@@ -1245,7 +1236,7 @@ export function ShopHomepagePremium() {
             <div class="mt-12 pt-12 border-t border-gray-200">
               <div class="grid md:grid-cols-3 gap-8 text-center">
                 <div>
-                  <i class="fas fa-trophy text-blue-900 text-3xl mb-3"></i>
+                  <i class="fas fa-trophy text-purple-600 text-3xl mb-3"></i>
                   <h4 class="font-bold text-gray-900 mb-2">Top-Händler 2025</h4>
                   <p class="text-gray-600">Ausgezeichnet für exzellenten Service</p>
                 </div>
@@ -1269,7 +1260,7 @@ export function ShopHomepagePremium() {
       <section class="py-16 px-4">
         <div class="max-w-4xl mx-auto">
           <div class="glass-strong rounded-3xl p-12 text-center">
-            <div class="w-20 h-20 bg-gradient-to-br from-blue-900 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <i class="fas fa-envelope text-white text-3xl"></i>
             </div>
             <h2 class="text-3xl font-bold text-gray-900 mb-4">Exklusive Angebote erhalten</h2>
@@ -1279,7 +1270,7 @@ export function ShopHomepagePremium() {
               <input 
                 type="email" 
                 placeholder="Deine E-Mail Adresse" 
-                class="flex-1 px-6 py-4 rounded-xl border-2 border-gray-200 focus:border-blue-800 focus:outline-none"
+                class="flex-1 px-6 py-4 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none"
               />
               <button class="btn-primary whitespace-nowrap">
                 <i class="fas fa-paper-plane mr-2"></i>
@@ -1296,16 +1287,16 @@ export function ShopHomepagePremium() {
           <div class="grid md:grid-cols-4 gap-8 mb-8">
             
             <div>
-              <img src="/static/logo-footer.png" alt="SOFTWAREKING24" class="h-10 mb-4">
+              <h3 class="font-bold text-gray-900 text-lg mb-4">SOFTWAREKING24</h3>
               <p class="text-gray-600 mb-4">Premium Software Lizenzen zum Bestpreis. Original. Sicher. Schnell.</p>
               <div class="flex space-x-3">
-                <a href="#" class="w-10 h-10 bg-brand-navy rounded-full flex items-center justify-center hover:bg-brand-gold transition-all">
+                <a href="#" class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-700 transition-all">
                   <i class="fab fa-facebook-f text-white"></i>
                 </a>
-                <a href="#" class="w-10 h-10 bg-brand-navy rounded-full flex items-center justify-center hover:bg-brand-gold transition-all">
+                <a href="#" class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-700 transition-all">
                   <i class="fab fa-twitter text-white"></i>
                 </a>
-                <a href="#" class="w-10 h-10 bg-brand-navy rounded-full flex items-center justify-center hover:bg-brand-gold transition-all">
+                <a href="#" class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-700 transition-all">
                   <i class="fab fa-instagram text-white"></i>
                 </a>
               </div>
@@ -1314,30 +1305,30 @@ export function ShopHomepagePremium() {
             <div>
               <h4 class="font-bold text-gray-900 mb-4">Produkte</h4>
               <ul class="space-y-2">
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Windows</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Office</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Antivirus</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Design Software</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Windows</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Office</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Antivirus</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Design Software</a></li>
               </ul>
             </div>
 
             <div>
               <h4 class="font-bold text-gray-900 mb-4">Unternehmen</h4>
               <ul class="space-y-2">
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Über uns</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Kontakt</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Blog</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Karriere</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Über uns</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Kontakt</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Blog</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Karriere</a></li>
               </ul>
             </div>
 
             <div>
               <h4 class="font-bold text-gray-900 mb-4">Support</h4>
               <ul class="space-y-2">
-                <li><a href="/admin/faq" class="text-gray-600 hover:text-blue-900 transition-colors">FAQ</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Versand</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">Rückgabe</a></li>
-                <li><a href="#" class="text-gray-600 hover:text-blue-900 transition-colors">AGB</a></li>
+                <li><a href="/admin/faq" class="text-gray-600 hover:text-purple-600 transition-colors">FAQ</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Versand</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Rückgabe</a></li>
+                <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">AGB</a></li>
               </ul>
             </div>
 
