@@ -1892,6 +1892,51 @@ app.get('/api/homepage/sliders', async (c) => {
   }
 })
 
+// Get featured products for homepage
+app.get('/api/homepage/products', async (c) => {
+  try {
+    const section = c.req.query('section') || 'all' // bestsellers, featured, new, or all
+    
+    let query = `
+      SELECT 
+        p.id, p.sku, p.slug, p.base_price, p.discount_price, p.discount_percentage,
+        p.is_featured, p.is_new, p.is_bestseller, p.rating, p.review_count,
+        pt.name, pt.short_description,
+        pi.image_url,
+        b.name as brand_name
+      FROM products p
+      LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.language = 'de'
+      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+      LEFT JOIN brands b ON p.brand_id = b.id
+      WHERE p.is_active = 1
+    `
+    
+    const params = []
+    
+    if (section === 'bestsellers') {
+      query += ` AND p.is_bestseller = 1 ORDER BY p.sale_count DESC LIMIT 8`
+    } else if (section === 'featured') {
+      query += ` AND p.is_featured = 1 ORDER BY p.view_count DESC LIMIT 8`
+    } else if (section === 'new') {
+      query += ` AND p.is_new = 1 ORDER BY p.created_at DESC LIMIT 8`
+    } else {
+      // Return all sections
+      query += ` ORDER BY p.sale_count DESC LIMIT 24`
+    }
+    
+    const result = await c.env.DB.prepare(query).all()
+    
+    return c.json({ 
+      success: true, 
+      section: section,
+      data: result.results || [] 
+    })
+  } catch (error) {
+    console.error('Error fetching homepage products:', error)
+    return c.json({ success: false, error: 'Failed to fetch products', data: [] }, 500)
+  }
+})
+
 // ============================================
 // ADMIN API: Homepage Slider Management
 // ============================================

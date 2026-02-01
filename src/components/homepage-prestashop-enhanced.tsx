@@ -17,6 +17,7 @@ export const HomepagePrestaShopEnhanced = () => {
         <link href="/static/quick-wins-bundle.css" rel="stylesheet" />
         <script src="/static/search-autocomplete.js" defer></script>
         <script src="/static/quick-wins-bundle.js" defer></script>
+        <script src="/static/homepage-products-loader.js" defer></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
             
@@ -1181,8 +1182,12 @@ export const HomepagePrestaShopEnhanced = () => {
                         Alle Bestseller <i class="fas fa-arrow-right ml-2"></i>
                     </a>
                 </div>
-                <div class="product-slider" id="bestseller-slider">
-                    <!-- Products will be loaded here -->
+                <div class="product-slider grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="bestsellers-container">
+                    <!-- Bestseller products will be loaded here dynamically -->
+                    <div class="text-center col-span-full text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                        <p>Lade Bestseller...</p>
+                    </div>
                 </div>
                 <div class="slider-controls">
                     <button class="slider-btn" onclick="scrollSlider('bestseller-slider', -300)">
@@ -1341,7 +1346,13 @@ export const HomepagePrestaShopEnhanced = () => {
                         Alle Angebote <i class="fas fa-arrow-right ml-2"></i>
                     </a>
                 </div>
-                <div id="flash-deals" class="grid-products"></div>
+                <div id="featured-products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Featured products will be loaded here dynamically -->
+                    <div class="text-center col-span-full text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                        <p>Lade Featured Products...</p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1917,7 +1928,13 @@ export const HomepagePrestaShopEnhanced = () => {
                         <p class="text-gray-400">Die neuesten Produkte in unserem Sortiment</p>
                     </div>
                 </div>
-                <div id="new-arrivals" class="grid-products"></div>
+                <div id="new-products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- New products will be loaded here dynamically -->
+                    <div class="text-center col-span-full text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                        <p>Lade neue Produkte...</p>
+                    </div>
+                </div>
             </div>
         </section>
 
