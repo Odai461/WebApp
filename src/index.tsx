@@ -2313,6 +2313,321 @@ app.post('/api/admin/page-templates/:id/duplicate', async (c) => {
   }
 })
 
+// Admin: Export template as JSON
+app.get('/api/admin/page-templates/:id/export', async (c) => {
+  try {
+    const id = c.req.param('id')
+    
+    const template = await c.env.DB.prepare(`
+      SELECT * FROM page_templates WHERE id = ?
+    `).bind(id).first()
+
+    if (!template) {
+      return c.json({ success: false, error: 'Template not found' }, 404)
+    }
+
+    const variables = await c.env.DB.prepare(`
+      SELECT * FROM template_variables WHERE template_id = ?
+    `).bind(id).all()
+
+    const exportData = {
+      template: {
+        name: template.name,
+        slug: template.slug,
+        description: template.description,
+        category: template.category,
+        template_type: template.template_type,
+        content: template.content,
+        meta_title: template.meta_title,
+        meta_keywords: template.meta_keywords,
+        meta_description: template.meta_description,
+        tags: template.tags
+      },
+      variables: variables.results.map(v => ({
+        variable_name: v.variable_name,
+        variable_type: v.variable_type,
+        default_value: v.default_value,
+        is_required: v.is_required
+      })),
+      exported_at: new Date().toISOString(),
+      exported_by: 'Admin'
+    }
+
+    return c.json(exportData)
+  } catch (error) {
+    console.error('Error exporting template:', error)
+    return c.json({ success: false, error: 'Failed to export template' }, 500)
+  }
+})
+
+// Admin: Import template from JSON
+app.post('/api/admin/page-templates/import', async (c) => {
+  try {
+    const importData = await c.req.json()
+    
+    if (!importData.template || !importData.template.name) {
+      return c.json({ success: false, error: 'Invalid import data' }, 400)
+    }
+
+    const template = importData.template
+    
+    // Insert template
+    const result = await c.env.DB.prepare(`
+      INSERT INTO page_templates (
+        name, slug, description, category, template_type, content,
+        is_active, meta_title, meta_keywords, meta_description, tags, author
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      template.name + ' (Imported)',
+      template.slug + '-imported-' + Date.now(),
+      template.description || null,
+      template.category || 'custom',
+      template.template_type || 'html',
+      template.content,
+      0, // Inactive by default
+      template.meta_title || null,
+      template.meta_keywords || null,
+      template.meta_description || null,
+      template.tags || null,
+      'Admin'
+    ).run()
+
+    const templateId = result.meta.last_row_id
+
+    // Import variables
+    if (importData.variables && importData.variables.length > 0) {
+      for (const variable of importData.variables) {
+        await c.env.DB.prepare(`
+          INSERT INTO template_variables (
+            template_id, variable_name, variable_type, default_value, is_required
+          ) VALUES (?, ?, ?, ?, ?)
+        `).bind(
+          templateId,
+          variable.variable_name,
+          variable.variable_type || 'text',
+          variable.default_value || null,
+          variable.is_required || 0
+        ).run()
+      }
+    }
+
+    return c.json({ success: true, id: templateId })
+  } catch (error) {
+    console.error('Error importing template:', error)
+    return c.json({ success: false, error: 'Failed to import template' }, 500)
+  }
+})
+
+// Admin: Get template usage analytics
+app.get('/api/admin/page-templates/:id/analytics', async (c) => {
+  try {
+    const id = c.req.param('id')
+    
+    const template = await c.env.DB.prepare(`
+      SELECT usage_count, last_used_at FROM page_templates WHERE id = ?
+    `).bind(id).first()
+
+    if (!template) {
+      return c.json({ success: false, error: 'Template not found' }, 404)
+    }
+
+    const usage = await c.env.DB.prepare(`
+      SELECT * FROM template_usage WHERE template_id = ? ORDER BY created_at DESC LIMIT 50
+    `).bind(id).all()
+
+    const pages = await c.env.DB.prepare(`
+      SELECT * FROM cms_pages WHERE template_id = ?
+    `).bind(id).all()
+
+    return c.json({
+      success: true,
+      analytics: {
+        usage_count: template.usage_count || 0,
+        last_used_at: template.last_used_at,
+        recent_usage: usage.results,
+        pages_using: pages.results
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching analytics:', error)
+    return c.json({ success: false, error: 'Failed to fetch analytics' }, 500)
+  }
+})
+
+// Admin: Get template version history
+app.get('/api/admin/page-templates/:id/history', async (c) => {
+  try {
+    const id = c.req.param('id')
+    
+    const history = await c.env.DB.prepare(`
+      SELECT * FROM template_history WHERE template_id = ? ORDER BY created_at DESC
+    `).bind(id).all()
+
+    return c.json({ success: true, history: history.results })
+  } catch (error) {
+    console.error('Error fetching history:', error)
+    return c.json({ success: false, error: 'Failed to fetch history' }, 500)
+  }
+})
+
+// ===== CMS PAGES API (Real page management) =====
+
+// Get all CMS pages
+app.get('/api/admin/cms-pages', async (c) => {
+  try {
+    const pages = await c.env.DB.prepare(`
+      SELECT 
+        p.*,
+        t.name as template_name
+      FROM cms_pages p
+      LEFT JOIN page_templates t ON p.template_id = t.id
+      ORDER BY p.created_at DESC
+    `).all()
+
+    return c.json({ success: true, pages: pages.results })
+  } catch (error) {
+    console.error('Error fetching CMS pages:', error)
+    return c.json({ success: false, error: 'Failed to fetch pages' }, 500)
+  }
+})
+
+// Get single CMS page
+app.get('/api/admin/cms-pages/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    
+    const page = await c.env.DB.prepare(`
+      SELECT 
+        p.*,
+        t.name as template_name,
+        t.content as template_content
+      FROM cms_pages p
+      LEFT JOIN page_templates t ON p.template_id = t.id
+      WHERE p.id = ?
+    `).bind(id).first()
+
+    if (!page) {
+      return c.json({ success: false, error: 'Page not found' }, 404)
+    }
+
+    return c.json({ success: true, page })
+  } catch (error) {
+    console.error('Error fetching CMS page:', error)
+    return c.json({ success: false, error: 'Failed to fetch page' }, 500)
+  }
+})
+
+// Create CMS page from template
+app.post('/api/admin/cms-pages', async (c) => {
+  try {
+    const data = await c.req.json()
+    
+    const result = await c.env.DB.prepare(`
+      INSERT INTO cms_pages (
+        template_id, page_title, page_slug, variables_data,
+        author, status, meta_title, meta_description, meta_keywords
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      data.template_id,
+      data.page_title,
+      data.page_slug,
+      JSON.stringify(data.variables_data || {}),
+      data.author || 'Admin',
+      data.status || 'draft',
+      data.meta_title || null,
+      data.meta_description || null,
+      data.meta_keywords || null
+    ).run()
+
+    // Update template usage
+    await c.env.DB.prepare(`
+      UPDATE page_templates 
+      SET usage_count = usage_count + 1, last_used_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(data.template_id).run()
+
+    // Log usage
+    await c.env.DB.prepare(`
+      INSERT INTO template_usage (template_id, page_url, used_by, variables_used)
+      VALUES (?, ?, ?, ?)
+    `).bind(
+      data.template_id,
+      '/pages/' + data.page_slug,
+      data.author || 'Admin',
+      JSON.stringify(data.variables_data || {})
+    ).run()
+
+    return c.json({ success: true, id: result.meta.last_row_id })
+  } catch (error) {
+    console.error('Error creating CMS page:', error)
+    return c.json({ success: false, error: 'Failed to create page' }, 500)
+  }
+})
+
+// Update CMS page
+app.put('/api/admin/cms-pages/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const data = await c.req.json()
+
+    await c.env.DB.prepare(`
+      UPDATE cms_pages SET
+        page_title = ?, page_slug = ?, variables_data = ?,
+        status = ?, meta_title = ?, meta_description = ?, meta_keywords = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      data.page_title,
+      data.page_slug,
+      JSON.stringify(data.variables_data || {}),
+      data.status || 'draft',
+      data.meta_title || null,
+      data.meta_description || null,
+      data.meta_keywords || null,
+      id
+    ).run()
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error updating CMS page:', error)
+    return c.json({ success: false, error: 'Failed to update page' }, 500)
+  }
+})
+
+// Delete CMS page
+app.delete('/api/admin/cms-pages/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+
+    await c.env.DB.prepare(`
+      DELETE FROM cms_pages WHERE id = ?
+    `).bind(id).run()
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting CMS page:', error)
+    return c.json({ success: false, error: 'Failed to delete page' }, 500)
+  }
+})
+
+// Publish CMS page
+app.post('/api/admin/cms-pages/:id/publish', async (c) => {
+  try {
+    const id = c.req.param('id')
+
+    await c.env.DB.prepare(`
+      UPDATE cms_pages 
+      SET status = 'published', published_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(id).run()
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Error publishing page:', error)
+    return c.json({ success: false, error: 'Failed to publish page' }, 500)
+  }
+})
+
 // Admin: Convert chat to ticket
 app.post('/api/admin/chat/convert-to-ticket', async (c) => {
   try {
