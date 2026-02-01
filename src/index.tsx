@@ -40,6 +40,7 @@ import { AdminOrdersAdvanced } from './components/admin-orders-advanced'
 import { AdminCustomersAdvanced } from './components/admin-customers-advanced'
 import { AdminNotificationsAdvanced } from './components/admin-notifications-advanced'
 import { AdminHomepageManager } from './components/admin-homepage-manager'
+import { AdminHomepageSlider } from './components/admin-homepage-slider'
 import { AdminSidebarWorking } from './components/admin-sidebar-working'
 import { 
   formatPrice, 
@@ -1872,6 +1873,130 @@ app.post('/api/admin/homepage/sections/:id/toggle', async (c) => {
     return c.json({ success: true, message: 'Section visibility toggled' })
   } catch (error) {
     return c.json({ success: false, error: 'Failed to toggle section' }, 500)
+  }
+})
+
+// ============================================
+// ADMIN API: Homepage Slider Management
+// ============================================
+
+// Get all sliders
+app.get('/api/admin/homepage/slider', async (c) => {
+  try {
+    const query = `SELECT * FROM homepage_sliders ORDER BY sort_order ASC`
+    const result = await c.env.DB.prepare(query).all()
+    return c.json({ success: true, data: result.results })
+  } catch (error) {
+    return c.json({ success: false, error: 'Failed to fetch sliders' }, 500)
+  }
+})
+
+// Get single slider
+app.get('/api/admin/homepage/slider/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const query = `SELECT * FROM homepage_sliders WHERE id = ?`
+    const result = await c.env.DB.prepare(query).bind(id).first()
+    if (!result) {
+      return c.json({ success: false, error: 'Slider not found' }, 404)
+    }
+    return c.json(result)
+  } catch (error) {
+    return c.json({ success: false, error: 'Failed to fetch slider' }, 500)
+  }
+})
+
+// Create new slider
+app.post('/api/admin/homepage/slider', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { 
+      title, subtitle, description, button_text, button_link,
+      background_image, background_color, text_color, 
+      is_active, sort_order 
+    } = body
+    
+    const query = `
+      INSERT INTO homepage_sliders (
+        title, subtitle, description, button_text, button_link,
+        background_image, background_color, text_color,
+        is_active, sort_order
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `
+    
+    await c.env.DB.prepare(query).bind(
+      title, subtitle || '', description, button_text || '', button_link || '',
+      background_image || '', background_color || '#1a2a4e', text_color || '#ffffff',
+      is_active ? 1 : 0, sort_order || 999
+    ).run()
+    
+    return c.json({ success: true, message: 'Slider created successfully' })
+  } catch (error) {
+    console.error('Error creating slider:', error)
+    return c.json({ success: false, error: 'Failed to create slider' }, 500)
+  }
+})
+
+// Update slider
+app.put('/api/admin/homepage/slider/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const body = await c.req.json()
+    const { 
+      title, subtitle, description, button_text, button_link,
+      background_image, background_color, text_color, 
+      is_active, sort_order 
+    } = body
+    
+    const query = `
+      UPDATE homepage_sliders SET
+        title = ?, subtitle = ?, description = ?, 
+        button_text = ?, button_link = ?,
+        background_image = ?, background_color = ?, text_color = ?,
+        is_active = ?, sort_order = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `
+    
+    await c.env.DB.prepare(query).bind(
+      title, subtitle || '', description, button_text || '', button_link || '',
+      background_image || '', background_color || '#1a2a4e', text_color || '#ffffff',
+      is_active ? 1 : 0, sort_order || 999, id
+    ).run()
+    
+    return c.json({ success: true, message: 'Slider updated successfully' })
+  } catch (error) {
+    console.error('Error updating slider:', error)
+    return c.json({ success: false, error: 'Failed to update slider' }, 500)
+  }
+})
+
+// Toggle slider status
+app.patch('/api/admin/homepage/slider/:id/toggle', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const body = await c.req.json()
+    const { is_active } = body
+    
+    const query = `UPDATE homepage_sliders SET is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+    await c.env.DB.prepare(query).bind(is_active ? 1 : 0, id).run()
+    
+    return c.json({ success: true, message: 'Slider status updated' })
+  } catch (error) {
+    return c.json({ success: false, error: 'Failed to toggle slider' }, 500)
+  }
+})
+
+// Delete slider
+app.delete('/api/admin/homepage/slider/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const query = `DELETE FROM homepage_sliders WHERE id = ?`
+    await c.env.DB.prepare(query).bind(id).run()
+    
+    return c.json({ success: true, message: 'Slider deleted successfully' })
+  } catch (error) {
+    return c.json({ success: false, error: 'Failed to delete slider' }, 500)
   }
 })
 
@@ -7250,6 +7375,20 @@ import { OrdersCompletedPage, OrdersCancelledPage, ShippingStatusPage, LicenseAs
 app.get('/admin', (c) => {
   const html = AdminDashboardAdvanced()
   return c.html(html)
+})
+
+// Homepage Slider Management
+app.get('/admin/homepage/slider', async (c) => {
+  try {
+    const query = `SELECT * FROM homepage_sliders ORDER BY sort_order ASC`
+    const result = await c.env.DB.prepare(query).all()
+    const html = AdminHomepageSlider(result.results || [])
+    return c.html(html)
+  } catch (error) {
+    console.error('Error loading sliders:', error)
+    const html = AdminHomepageSlider([])
+    return c.html(html)
+  }
 })
 
 // Orders Management
