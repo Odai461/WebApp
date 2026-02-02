@@ -493,39 +493,301 @@ app.get('/cart', (c) => {
       <title>Warenkorb - SoftwareKing24</title>
       <script src="https://cdn.tailwindcss.com"></script>
       <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+      <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                'brand-navy': '#132C46',
+                'brand-gold': '#D9A50B',
+              }
+            }
+          }
+        }
+      </script>
     </head>
     <body class="bg-gray-50">
       <div class="min-h-screen">
+        <!-- Header -->
         <header class="bg-white shadow-sm">
           <div class="container mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
               <a href="/" class="flex items-center">
-                <img src="/static/logo.png" alt="SoftwareKing24" class="h-10">
+                <span class="text-2xl font-bold text-brand-navy">SoftwareKing24</span>
               </a>
-              <a href="/" class="text-gray-600 hover:text-blue-600">
-                <i class="fas fa-arrow-left mr-2"></i>Zurück zum Shop
-              </a>
+              <div class="flex items-center gap-4">
+                <a href="/wishlist" class="text-gray-600 hover:text-brand-navy relative">
+                  <i class="fas fa-heart text-xl"></i>
+                  <span id="wishlistBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                </a>
+                <a href="/" class="text-gray-600 hover:text-brand-navy">
+                  <i class="fas fa-arrow-left mr-2"></i>Zurück zum Shop
+                </a>
+              </div>
             </div>
           </div>
         </header>
 
+        <!-- Main Content -->
         <div class="container mx-auto px-4 py-12">
-          <div class="max-w-4xl mx-auto">
-            <h1 class="text-4xl font-bold text-gray-900 mb-8">
-              <i class="fas fa-shopping-cart text-blue-600 mr-3"></i>Warenkorb
-            </h1>
+          <div class="max-w-6xl mx-auto">
+            <div class="flex items-center justify-between mb-8">
+              <h1 class="text-4xl font-bold text-gray-900">
+                <i class="fas fa-shopping-cart text-brand-navy mr-3"></i>Warenkorb
+                <span id="cartCount" class="text-2xl text-gray-500 ml-2">(0 Artikel)</span>
+              </h1>
+              <button onclick="clearCart()" class="text-red-600 hover:text-red-700 text-sm font-semibold">
+                <i class="fas fa-trash mr-2"></i>Warenkorb leeren
+              </button>
+            </div>
 
-            <div class="bg-white rounded-lg shadow-md p-8 text-center">
+            <!-- Empty State -->
+            <div id="emptyState" class="bg-white rounded-lg shadow-md p-12 text-center">
               <i class="fas fa-shopping-cart text-gray-300 text-6xl mb-4"></i>
               <h2 class="text-2xl font-semibold text-gray-700 mb-2">Ihr Warenkorb ist leer</h2>
               <p class="text-gray-500 mb-6">Fügen Sie Produkte hinzu, um mit dem Einkauf zu beginnen.</p>
-              <a href="/" class="inline-block bg-blue-600 text-white px-8 py-3 rounded-full hover:bg-blue-700 transition">
+              <a href="/" class="inline-block bg-brand-navy text-white px-8 py-3 rounded-full hover:bg-brand-navy/90 transition">
                 Jetzt einkaufen
               </a>
+            </div>
+
+            <!-- Cart Content -->
+            <div id="cartContent" class="grid lg:grid-cols-3 gap-8 hidden">
+              <!-- Cart Items (Left Side) -->
+              <div class="lg:col-span-2 space-y-4" id="cartItems">
+                <!-- Items will be loaded here -->
+              </div>
+
+              <!-- Order Summary (Right Side) -->
+              <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-4">
+                  <h3 class="text-xl font-bold text-gray-900 mb-4">Bestellübersicht</h3>
+                  
+                  <div class="space-y-3 mb-4 pb-4 border-b">
+                    <div class="flex justify-between text-gray-600">
+                      <span>Zwischensumme:</span>
+                      <span id="subtotal">€0.00</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                      <span>MwSt (19%):</span>
+                      <span id="tax">€0.00</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                      <span>Versand:</span>
+                      <span class="text-green-600 font-semibold">KOSTENLOS</span>
+                    </div>
+                  </div>
+                  
+                  <div class="flex justify-between text-xl font-bold text-gray-900 mb-6">
+                    <span>Gesamt:</span>
+                    <span id="total" class="text-brand-navy">€0.00</span>
+                  </div>
+
+                  <!-- Coupon Code -->
+                  <div class="mb-4">
+                    <div class="flex gap-2">
+                      <input 
+                        type="text" 
+                        id="couponCode" 
+                        placeholder="Gutscheincode"
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-navy text-sm"
+                      >
+                      <button onclick="applyCoupon()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition text-sm font-semibold">
+                        Anwenden
+                      </button>
+                    </div>
+                    <div id="couponMessage" class="hidden mt-2 text-sm"></div>
+                  </div>
+
+                  <button onclick="proceedToCheckout()" class="w-full bg-brand-gold hover:bg-brand-gold/90 text-white py-4 rounded-lg font-bold text-lg transition shadow-lg">
+                    <i class="fas fa-lock mr-2"></i>Zur Kasse
+                  </button>
+
+                  <div class="mt-4 text-center text-sm text-gray-500">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    Sichere SSL-Verschlüsselung
+                  </div>
+
+                  <!-- Trust Badges -->
+                  <div class="mt-6 pt-6 border-t">
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <i class="fas fa-truck text-brand-navy text-2xl mb-1"></i>
+                        <div class="text-xs text-gray-600">Sofort-<br/>lieferung</div>
+                      </div>
+                      <div>
+                        <i class="fas fa-lock text-brand-navy text-2xl mb-1"></i>
+                        <div class="text-xs text-gray-600">100%<br/>Sicher</div>
+                      </div>
+                      <div>
+                        <i class="fas fa-certificate text-brand-navy text-2xl mb-1"></i>
+                        <div class="text-xs text-gray-600">Original<br/>Lizenzen</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <script>
+        const TAX_RATE = 0.19; // 19% MwSt
+        
+        // Load cart from localStorage
+        function loadCart() {
+          const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+          
+          document.getElementById('cartCount').textContent = '(' + cart.length + ' Artikel)';
+          document.getElementById('wishlistBadge').textContent = wishlist.length;
+          
+          if (cart.length === 0) {
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('cartContent').classList.add('hidden');
+            return;
+          }
+          
+          document.getElementById('emptyState').classList.add('hidden');
+          document.getElementById('cartContent').classList.remove('hidden');
+          
+          // Get product IDs from cart
+          const productIds = cart.map(item => item.id);
+          
+          // Fetch product details from API
+          fetch('/api/products/by-ids', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: productIds })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              // Merge cart quantities with product data
+              const cartWithDetails = cart.map(cartItem => {
+                const product = data.products.find(p => p.id === cartItem.id);
+                return { ...product, quantity: cartItem.quantity };
+              });
+              renderCart(cartWithDetails);
+              calculateTotals(cartWithDetails);
+            }
+          })
+          .catch(err => console.error('Error loading cart:', err));
+        }
+        
+        function renderCart(items) {
+          const container = document.getElementById('cartItems');
+          container.innerHTML = items.map(item => \`
+            <div class="bg-white rounded-xl shadow-md p-6 flex gap-4">
+              <img src="\${item.image_url || '/static/placeholder.jpg'}" alt="\${item.name}" class="w-24 h-24 object-cover rounded-lg">
+              
+              <div class="flex-1">
+                <h3 class="font-bold text-lg text-gray-900 mb-1">\${item.name}</h3>
+                <p class="text-sm text-gray-500 mb-2">\${item.sku || ''}</p>
+                <div class="flex items-center gap-4">
+                  <div class="text-xl font-bold text-brand-navy">€\${item.price.toFixed(2)}</div>
+                  \${item.discount_price ? \`<div class="text-sm text-gray-500 line-through">€\${item.discount_price.toFixed(2)}</div>\` : ''}
+                </div>
+              </div>
+              
+              <div class="flex flex-col items-end justify-between">
+                <button onclick="removeFromCart(\${item.id})" class="text-red-600 hover:text-red-700 p-2">
+                  <i class="fas fa-trash"></i>
+                </button>
+                
+                <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-2 py-1">
+                  <button onclick="updateQuantity(\${item.id}, -1)" class="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded transition">
+                    <i class="fas fa-minus text-xs"></i>
+                  </button>
+                  <span class="w-8 text-center font-semibold">\${item.quantity}</span>
+                  <button onclick="updateQuantity(\${item.id}, 1)" class="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded transition">
+                    <i class="fas fa-plus text-xs"></i>
+                  </button>
+                </div>
+                
+                <div class="text-lg font-bold text-gray-900">
+                  €\${(item.price * item.quantity).toFixed(2)}
+                </div>
+              </div>
+            </div>
+          \`).join('');
+        }
+        
+        function calculateTotals(items) {
+          const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          const tax = subtotal * TAX_RATE;
+          const total = subtotal + tax;
+          
+          document.getElementById('subtotal').textContent = '€' + subtotal.toFixed(2);
+          document.getElementById('tax').textContent = '€' + tax.toFixed(2);
+          document.getElementById('total').textContent = '€' + total.toFixed(2);
+        }
+        
+        function updateQuantity(productId, change) {
+          let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          const item = cart.find(item => item.id === productId);
+          
+          if (item) {
+            item.quantity = Math.max(1, item.quantity + change);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            loadCart();
+          }
+        }
+        
+        function removeFromCart(productId) {
+          let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          cart = cart.filter(item => item.id !== productId);
+          localStorage.setItem('cart', JSON.stringify(cart));
+          loadCart();
+        }
+        
+        function clearCart() {
+          if (confirm('Möchten Sie wirklich alle Artikel aus dem Warenkorb entfernen?')) {
+            localStorage.setItem('cart', JSON.stringify([]));
+            loadCart();
+          }
+        }
+        
+        function applyCoupon() {
+          const code = document.getElementById('couponCode').value.trim();
+          const message = document.getElementById('couponMessage');
+          
+          if (!code) {
+            message.className = 'mt-2 text-sm text-red-600';
+            message.textContent = 'Bitte geben Sie einen Gutscheincode ein.';
+            message.classList.remove('hidden');
+            return;
+          }
+          
+          // TODO: Implement real coupon validation via API
+          message.className = 'mt-2 text-sm text-red-600';
+          message.textContent = 'Ungültiger Gutscheincode.';
+          message.classList.remove('hidden');
+          
+          // Example for valid coupon:
+          // message.className = 'mt-2 text-sm text-green-600';
+          // message.textContent = '10% Rabatt angewendet!';
+        }
+        
+        function proceedToCheckout() {
+          const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          
+          if (cart.length === 0) {
+            alert('Ihr Warenkorb ist leer!');
+            return;
+          }
+          
+          // TODO: Implement real checkout flow
+          alert('Zur Kasse: Diese Funktion wird mit einem echten Payment-Gateway (Stripe/PayPal) integriert.\\n\\nIhr Warenkorb enthält ' + cart.length + ' Artikel.');
+          
+          // In production, redirect to checkout page:
+          // window.location.href = '/checkout';
+        }
+        
+        // Load on page load
+        loadCart();
+      </script>
     </body>
     </html>
   `)
