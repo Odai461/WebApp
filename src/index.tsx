@@ -11222,6 +11222,7 @@ import { AdminMarketing } from './components/admin-marketing'
 import { AdminCoupons } from './components/admin-coupons'
 import { AdminCategories } from './components/admin-categories'
 import { AdminSupportStaff } from './components/admin-support-staff'
+import { AdminCustomerRoles } from './components/admin-customer-roles'
 import { FrontendPlaceholder } from './components/frontend-placeholder'
 import { AdminProducts, AdminProductForm } from './components/admin-products'
 import { AdminProductImport } from './components/admin-product-import'
@@ -11312,6 +11313,12 @@ app.get('/admin/coupons', async (c) => {
 // Admin Support Staff Management  
 app.get('/admin/support-staff', async (c) => {
   const html = AdminSupportStaff()
+  return c.html(html)
+})
+
+// Admin Customer Roles Management
+app.get('/admin/customer-roles', async (c) => {
+  const html = AdminCustomerRoles()
   return c.html(html)
 })
 
