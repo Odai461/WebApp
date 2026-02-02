@@ -37,7 +37,9 @@ import { AdminDashboardAdvanced } from './components/admin-dashboard-advanced'
 import { AdminLicensesAdvanced } from './components/admin-licenses-advanced'
 import { AdminProductsAdvanced } from './components/admin-products-advanced'
 import { AdminOrdersAdvanced } from './components/admin-orders-advanced'
+import { AdminOrdersFunctional } from './components/admin-orders-functional'
 import { AdminCustomersAdvanced } from './components/admin-customers-advanced'
+import { AdminCustomersFunctional } from './components/admin-customers-functional'
 import { AdminNotificationsAdvanced } from './components/admin-notifications-advanced'
 import { AdminHomepageManager } from './components/admin-homepage-manager'
 import { AdminHomepageSlider } from './components/admin-homepage-slider'
@@ -9248,13 +9250,13 @@ app.get('/admin/page-templates', async (c) => {
 
 /*
 app.get('/admin/orders', (c) => {
-  const html = AdminOrdersAdvanced()
+  const html = AdminOrdersFunctional()
   return c.html(html)
 })
 
 // Customers Management
 app.get('/admin/customers', (c) => {
-  const html = AdminCustomersAdvanced()
+  const html = AdminCustomersFunctional()
   return c.html(html)
 })
 
@@ -9737,13 +9739,13 @@ app.post('/api/admin/import/woocommerce', async (c) => {
 /*
 // Orders Management
 app.get('/admin/orders', (c) => {
-  const html = AdminOrdersAdvanced()
+  const html = AdminOrdersFunctional()
   return c.html(html)
 })
 
 // Customers Management
 app.get('/admin/customers', (c) => {
-  const html = AdminCustomersAdvanced()
+  const html = AdminCustomersFunctional()
   return c.html(html)
 })
 
