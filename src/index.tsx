@@ -6480,6 +6480,38 @@ app.post('/api/admin/customers', async (c) => {
   }
 })
 
+// READ: Get all customers
+app.get('/api/admin/customers', async (c) => {
+  try {
+    const { env } = c;
+    
+    const result = await env.DB.prepare(`
+      SELECT 
+        u.id,
+        u.email,
+        u.first_name,
+        u.last_name,
+        u.role,
+        u.is_active,
+        u.email_verified,
+        u.created_at,
+        COUNT(DISTINCT o.id) as order_count,
+        COALESCE(SUM(o.total), 0) as total_spent
+      FROM users u
+      LEFT JOIN orders o ON o.user_id = u.id
+      WHERE u.role = 'customer' OR u.role IS NULL
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+      LIMIT 100
+    `).all();
+
+    return c.json({ success: true, customers: result.results || [] });
+  } catch (error: any) {
+    console.error('Error fetching customers:', error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
 // READ: Get single customer
 app.get('/api/admin/customers/:id', async (c) => {
   try {
@@ -6776,15 +6808,16 @@ app.get('/api/admin/users', async (c) => {
     const result = await env.DB.prepare(`
       SELECT 
         au.id,
-        au.username,
-        au.email,
-        au.first_name,
-        au.last_name,
+        au.user_id,
         au.role,
         au.is_active,
-        au.last_login,
-        au.created_at
+        au.last_login_at as last_login,
+        au.created_at,
+        u.email,
+        u.first_name,
+        u.last_name
       FROM admin_users au
+      LEFT JOIN users u ON au.user_id = u.id
       ORDER BY au.created_at DESC
     `).all();
 
