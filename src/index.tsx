@@ -6632,7 +6632,8 @@ app.get('/api/admin/customers/:id/gdpr-export', async (c) => {
 // ============================================
 
 // Get dashboard statistics
-app.get('/api/admin/dashboard/stats', async (c) => {
+// DISABLED: Duplicate dashboard stats endpoint - using the one at line 13655 instead
+/* app.get('/api/admin/dashboard/stats', async (c) => {
   try {
     const db = c.get('db') as DatabaseHelper
 
@@ -6682,7 +6683,7 @@ app.get('/api/admin/dashboard/stats', async (c) => {
     console.error('Error fetching dashboard stats:', error)
     return c.json({ success: false, error: error.message || 'Failed to fetch stats' }, 500)
   }
-})
+}) */
 
 // Get revenue chart data
 app.get('/api/admin/dashboard/revenue-chart', async (c) => {
