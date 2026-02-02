@@ -3736,55 +3736,39 @@ app.get('/api/admin/products', async (c) => {
     const offset = (page - 1) * limit
     const search = c.req.query('search') || ''
     const category = c.req.query('category') || ''
-    const brand = c.req.query('brand') || ''
     const status = c.req.query('status') || ''
-    const type = c.req.query('type') || ''
 
+    // Simplified query matching our actual schema
     let query = `
       SELECT 
         p.id,
+        p.name,
         p.sku,
-        p.category_id,
-        p.brand_id,
         p.slug,
-        p.base_price,
-        p.discount_price,
-        p.discount_percentage,
+        p.category,
+        p.price,
+        p.sale_price,
+        p.stock,
         p.is_featured,
-        p.is_new,
-        p.is_bestseller,
         p.is_active,
-        p.available_licenses,
-        p.stock_type,
+        p.image_url,
+        p.short_description,
         p.created_at,
-        pt.name,
-        pt.short_description,
-        ct.name as category_name,
-        b.name as brand_name,
-        (SELECT COUNT(*) FROM product_images WHERE product_id = p.id) as image_count
+        p.updated_at
       FROM products p
-      
-      LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = 'de'
-      LEFT JOIN brands b ON p.brand_id = b.id
       WHERE 1=1
     `
     
     const params: any[] = []
 
     if (search) {
-      query += ` AND (pt.name LIKE ? OR p.sku LIKE ?)`
+      query += ` AND (p.name LIKE ? OR p.sku LIKE ?)`
       params.push(`%${search}%`, `%${search}%`)
     }
 
     if (category) {
-      query += ` AND p.category_id = ?`
-      params.push(parseInt(category))
-    }
-
-    if (brand) {
-      query += ` AND p.brand_id = ?`
-      params.push(parseInt(brand))
+      query += ` AND p.category = ?`
+      params.push(category)
     }
 
     if (status === 'active') {
@@ -3793,34 +3777,22 @@ app.get('/api/admin/products', async (c) => {
       query += ` AND p.is_active = 0`
     }
 
-    if (type === 'featured') {
-      query += ` AND p.is_featured = 1`
-    } else if (type === 'bestseller') {
-      query += ` AND p.is_bestseller = 1`
-    } else if (type === 'new') {
-      query += ` AND p.is_new = 1`
-    }
-
     query += ` ORDER BY p.created_at DESC LIMIT ? OFFSET ?`
     params.push(limit, offset)
 
     const products = await db.db.prepare(query).bind(...params).all()
 
     // Get total count
-    let countQuery = 'SELECT COUNT(DISTINCT p.id) as total FROM products p '
+    let countQuery = 'SELECT COUNT(*) as total FROM products p WHERE 1=1'
     const countParams: any[] = []
     
     if (search) {
-      countQuery += ` AND (pt.name LIKE ? OR p.sku LIKE ?)`
+      countQuery += ` AND (p.name LIKE ? OR p.sku LIKE ?)`
       countParams.push(`%${search}%`, `%${search}%`)
     }
     if (category) {
-      countQuery += ` AND p.category_id = ?`
-      countParams.push(parseInt(category))
-    }
-    if (brand) {
-      countQuery += ` AND p.brand_id = ?`
-      countParams.push(parseInt(brand))
+      countQuery += ` AND p.category = ?`
+      countParams.push(category)
     }
     if (status === 'active') {
       countQuery += ` AND p.is_active = 1`
