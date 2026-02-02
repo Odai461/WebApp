@@ -11220,6 +11220,8 @@ import { AdminAnalyticsDevices } from './components/admin-analytics-devices'
 import { AdminUsers } from './components/admin-users'
 import { AdminMarketing } from './components/admin-marketing'
 import { AdminCoupons } from './components/admin-coupons'
+import { AdminCategories } from './components/admin-categories'
+import { AdminSupportStaff } from './components/admin-support-staff'
 import { FrontendPlaceholder } from './components/frontend-placeholder'
 import { AdminProducts, AdminProductForm } from './components/admin-products'
 import { AdminProductImport } from './components/admin-product-import'
@@ -11304,6 +11306,12 @@ app.get('/admin/marketing', async (c) => {
 // Admin Coupons Management
 app.get('/admin/coupons', async (c) => {
   const html = AdminCoupons()
+  return c.html(html)
+})
+
+// Admin Support Staff Management  
+app.get('/admin/support-staff', async (c) => {
+  const html = AdminSupportStaff()
   return c.html(html)
 })
 
@@ -11770,8 +11778,9 @@ app.get('/admin/products/import', (c) => {
 
 // 1. CATEGORIES
 app.get('/admin/categories', async (c) => {
-  const { env } = c;
-  const categories = await env.DB.prepare(`SELECT c.*, COUNT(DISTINCT p.id) as product_count FROM categories c LEFT JOIN products p ON p.category_id = c.id GROUP BY c.id ORDER BY c.sort_order ASC`).all();
+  const html = AdminCategories()
+  return c.html(html);
+  // OLD CODE DISABLED:
   return c.html(<html lang="de"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Kategorien - Admin</title><script src="https://cdn.tailwindcss.com"></script><link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet"/></head><body class="bg-gray-50"><div dangerouslySetInnerHTML={{__html: AdminSidebarAdvanced('/admin/categories')}} /><div style="margin-left: 280px; padding: 2rem;"><div class="mb-6 flex justify-between items-center"><div><h1 class="text-3xl font-bold text-gray-800 mb-2"><i class="fas fa-folder-open mr-3 text-blue-600"></i>Kategorien</h1><p class="text-gray-600">Produktkategorien verwalten</p></div><button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg"><i class="fas fa-plus mr-2"></i>Neue Kategorie</button></div><div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6"><div class="bg-white rounded-lg shadow p-6"><p class="text-gray-500 text-sm">Gesamt</p><p class="text-2xl font-bold">{categories.results?.length || 0}</p></div><div class="bg-white rounded-lg shadow p-6"><p class="text-gray-500 text-sm">Aktiv</p><p class="text-2xl font-bold text-green-600">{categories.results?.filter((c: any) => c.is_active === 1).length || 0}</p></div><div class="bg-white rounded-lg shadow p-6"><p class="text-gray-500 text-sm">Produkte</p><p class="text-2xl font-bold text-purple-600">{categories.results?.reduce((sum: number, c: any) => sum + (c.product_count || 0), 0) || 0}</p></div><div class="bg-white rounded-lg shadow p-6"><p class="text-gray-500 text-sm">Ø Produkte</p><p class="text-2xl font-bold text-orange-600">{categories.results?.length > 0 ? Math.round(categories.results.reduce((sum: number, c: any) => sum + (c.product_count || 0), 0) / categories.results.length) : 0}</p></div></div><div class="bg-white rounded-lg shadow"><div class="p-6 border-b"><h2 class="text-xl font-semibold">Alle Kategorien</h2></div><table class="w-full"><thead class="bg-gray-50 border-b"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produkte</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th></tr></thead><tbody>{categories.results && categories.results.length > 0 ? categories.results.map((cat: any) => (<tr class="hover:bg-gray-50 border-b"><td class="px-6 py-4"><div class="flex items-center"><i class="fas fa-folder text-blue-500 mr-3"></i><div><div class="font-medium">{cat.name}</div><div class="text-sm text-gray-500">{cat.slug}</div></div></div></td><td class="px-6 py-4"><span class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">{cat.product_count || 0}</span></td><td class="px-6 py-4">{cat.is_active === 1 ? <span class="px-3 py-1 text-xs bg-green-100 text-green-800 rounded-full">Aktiv</span> : <span class="px-3 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">Inaktiv</span>}</td><td class="px-6 py-4"><button class="text-blue-600 mr-3"><i class="fas fa-edit"></i></button><button class="text-red-600"><i class="fas fa-trash"></i></button></td></tr>)) : (<tr><td colspan="4" class="px-6 py-12 text-center text-gray-500"><i class="fas fa-folder-open text-6xl mb-4 text-gray-300"></i><p class="text-lg mb-4">Keine Kategorien gefunden</p><button class="bg-blue-600 text-white px-6 py-2 rounded-lg">Erste Kategorie erstellen</button></td></tr>)}</tbody></table></div></div></body></html>);
 });
 
