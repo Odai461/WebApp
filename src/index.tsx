@@ -11220,6 +11220,7 @@ import { AdminSidebarAdvanced } from './components/admin-sidebar-advanced'
 import { AdminPlaceholder } from './components/admin-placeholder'
 import { AdminTickets } from './components/admin-tickets'
 import AdminSupportHistory from './components/admin-support-history'
+import AdminLanguages from './components/admin-languages'
 import { AdminAnalyticsTraffic } from './components/admin-analytics-traffic'
 import { AdminAnalyticsBehavior } from './components/admin-analytics-behavior'
 import { AdminAnalyticsDevices } from './components/admin-analytics-devices'
@@ -11292,6 +11293,179 @@ app.get('/admin/tickets', async (c) => {
 app.get('/admin/support-history', async (c) => {
   const html = AdminSupportHistory()
   return c.html(html)
+})
+
+// Admin Languages Management
+app.get('/admin/pages/languages', async (c) => {
+  const html = AdminLanguages()
+  return c.html(html)
+})
+
+// API: Get all languages with translations count
+app.get('/api/admin/languages', async (c) => {
+  try {
+    const { env } = c;
+    
+    if (!env.DB) {
+      return c.json({ error: 'Database not available' }, 500);
+    }
+    
+    const languages = await env.DB.prepare(`
+      SELECT * FROM languages ORDER BY sort_order ASC, code ASC
+    `).all();
+    
+    const translations = await env.DB.prepare(`
+      SELECT COUNT(*) as count, language_code 
+      FROM translations 
+      GROUP BY language_code
+    `).all();
+    
+    return c.json({
+      languages: languages.results || [],
+      translations: translations.results || []
+    });
+  } catch (error) {
+    console.error('Error fetching languages:', error);
+    return c.json({ error: error.message }, 500);
+  }
+})
+
+// API: Create new language
+app.post('/api/admin/languages', async (c) => {
+  try {
+    const { env } = c;
+    const data = await c.req.json();
+    
+    if (!env.DB) {
+      return c.json({ error: 'Database not available' }, 500);
+    }
+    
+    // If setting as default, unset other defaults first
+    if (data.is_default === 1) {
+      await env.DB.prepare(`
+        UPDATE languages SET is_default = 0
+      `).run();
+    }
+    
+    const result = await env.DB.prepare(`
+      INSERT INTO languages (code, name, native_name, flag_emoji, is_active, is_default, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, COALESCE((SELECT MAX(sort_order) FROM languages), 0) + 1)
+    `).bind(
+      data.code,
+      data.name,
+      data.native_name,
+      data.flag_emoji || null,
+      data.is_active,
+      data.is_default
+    ).run();
+    
+    return c.json({ success: true, id: result.meta.last_row_id });
+  } catch (error) {
+    console.error('Error creating language:', error);
+    return c.json({ error: error.message }, 500);
+  }
+})
+
+// API: Update language
+app.put('/api/admin/languages/:id', async (c) => {
+  try {
+    const { env } = c;
+    const id = c.req.param('id');
+    const data = await c.req.json();
+    
+    if (!env.DB) {
+      return c.json({ error: 'Database not available' }, 500);
+    }
+    
+    // If setting as default, unset other defaults first
+    if (data.is_default === 1) {
+      await env.DB.prepare(`
+        UPDATE languages SET is_default = 0 WHERE id != ?
+      `).bind(id).run();
+    }
+    
+    await env.DB.prepare(`
+      UPDATE languages 
+      SET name = ?, native_name = ?, flag_emoji = ?, is_active = ?, is_default = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      data.name,
+      data.native_name,
+      data.flag_emoji || null,
+      data.is_active,
+      data.is_default,
+      id
+    ).run();
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Error updating language:', error);
+    return c.json({ error: error.message }, 500);
+  }
+})
+
+// API: Delete language
+app.delete('/api/admin/languages/:id', async (c) => {
+  try {
+    const { env } = c;
+    const id = c.req.param('id');
+    
+    if (!env.DB) {
+      return c.json({ error: 'Database not available' }, 500);
+    }
+    
+    // Check if it's the default language
+    const lang = await env.DB.prepare(`
+      SELECT is_default FROM languages WHERE id = ?
+    `).bind(id).first();
+    
+    if (lang && lang.is_default === 1) {
+      return c.json({ error: 'Cannot delete default language' }, 400);
+    }
+    
+    await env.DB.prepare(`DELETE FROM languages WHERE id = ?`).bind(id).run();
+    
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting language:', error);
+    return c.json({ error: error.message }, 500);
+  }
+})
+
+// API: Get translations for frontend
+app.get('/api/translations/:lang', async (c) => {
+  try {
+    const { env } = c;
+    const lang = c.req.param('lang');
+    
+    if (!env.DB) {
+      // Return default German translations
+      return c.json({
+        'nav.home': 'Startseite',
+        'nav.products': 'Produkte',
+        'nav.about': 'Über uns',
+        'nav.contact': 'Kontakt',
+        'nav.cart': 'Warenkorb',
+        'nav.account': 'Mein Konto'
+      });
+    }
+    
+    const translations = await env.DB.prepare(`
+      SELECT translation_key, translated_text 
+      FROM translations 
+      WHERE language_code = ?
+    `).bind(lang).all();
+    
+    const result = {};
+    (translations.results || []).forEach(t => {
+      result[t.translation_key] = t.translated_text;
+    });
+    
+    return c.json(result);
+  } catch (error) {
+    console.error('Error fetching translations:', error);
+    return c.json({}, 500);
+  }
 })
 
 // Admin Analytics - Traffic
