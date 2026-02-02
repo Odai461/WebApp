@@ -1442,6 +1442,213 @@ export function HomepageModernEcommerce() {
         </div>
       </section>
 
+      <!-- Live Support & Contact Section -->
+      <section class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">
+              <i class="fas fa-headset text-brand-gold mr-3"></i>
+              Brauchen Sie Hilfe? Wir sind für Sie da!
+            </h2>
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+              Unser Support-Team steht Ihnen jederzeit zur Verfügung. Erstellen Sie ein Support-Ticket 
+              oder chatten Sie direkt mit uns.
+            </p>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            
+            <!-- Create Support Ticket Form -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100">
+              <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-brand-navy/10 rounded-full flex items-center justify-center mr-4">
+                  <i class="fas fa-ticket-alt text-brand-navy text-xl"></i>
+                </div>
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-900">Support-Ticket erstellen</h3>
+                  <p class="text-gray-600 text-sm">Wir antworten innerhalb von 24 Stunden</p>
+                </div>
+              </div>
+
+              <form id="ticketForm" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Name <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="ticket_name"
+                    required
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition"
+                    placeholder="Ihr vollständiger Name"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    E-Mail <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    id="ticket_email"
+                    required
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition"
+                    placeholder="ihre@email.de"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Betreff <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="ticket_subject"
+                    required
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition"
+                    placeholder="Kurze Beschreibung Ihres Problems"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Kategorie <span class="text-red-500">*</span>
+                  </label>
+                  <select 
+                    id="ticket_category"
+                    required
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition"
+                  >
+                    <option value="">Bitte wählen...</option>
+                    <option value="general">Allgemeine Frage</option>
+                    <option value="technical">Technisches Problem</option>
+                    <option value="billing">Rechnung / Zahlung</option>
+                    <option value="license">Lizenzschlüssel Problem</option>
+                    <option value="other">Sonstiges</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Bestellnummer (optional)
+                  </label>
+                  <input 
+                    type="text" 
+                    id="ticket_order_id"
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition"
+                    placeholder="z.B. #12345"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Nachricht <span class="text-red-500">*</span>
+                  </label>
+                  <textarea 
+                    id="ticket_message"
+                    required
+                    rows="5"
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition resize-none"
+                    placeholder="Bitte beschreiben Sie Ihr Anliegen so detailliert wie möglich..."
+                  ></textarea>
+                </div>
+
+                <button 
+                  type="submit" 
+                  class="w-full bg-brand-navy hover:bg-brand-navy/90 text-white py-4 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                >
+                  <i class="fas fa-paper-plane"></i>
+                  Ticket absenden
+                </button>
+
+                <div id="ticketStatus" class="hidden mt-4 p-4 rounded-lg"></div>
+              </form>
+            </div>
+
+            <!-- Quick Contact & Live Chat -->
+            <div class="space-y-6">
+              
+              <!-- Live Chat Card -->
+              <div class="bg-gradient-to-br from-brand-navy to-brand-navy/90 rounded-2xl shadow-xl p-8 text-white">
+                <div class="flex items-center mb-6">
+                  <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+                    <i class="fas fa-comments text-white text-xl"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-2xl font-bold">Live Chat</h3>
+                    <p class="text-white/80 text-sm">Sofortige Antworten auf Ihre Fragen</p>
+                  </div>
+                </div>
+
+                <div class="bg-white/10 rounded-xl p-6 mb-6 backdrop-blur-sm">
+                  <div class="flex items-center gap-3 mb-4">
+                    <div class="relative">
+                      <img src="https://ui-avatars.com/api/?name=Support+Team&background=D9A50B&color=fff" 
+                           alt="Support" 
+                           class="w-12 h-12 rounded-full border-2 border-white/20">
+                      <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></span>
+                    </div>
+                    <div>
+                      <div class="font-semibold">Support-Team</div>
+                      <div class="text-xs text-white/60">● Online</div>
+                    </div>
+                  </div>
+                  <p class="text-white/90 text-sm leading-relaxed">
+                    Hallo! 👋 Haben Sie Fragen zu unseren Produkten oder benötigen Sie Hilfe bei einer Bestellung? 
+                    Unser Team ist bereit, Ihnen zu helfen!
+                  </p>
+                </div>
+
+                <button 
+                  onclick="openLiveChat()" 
+                  class="w-full bg-brand-gold hover:bg-brand-gold-dark text-white py-4 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                >
+                  <i class="fas fa-comment-dots"></i>
+                  Chat starten
+                </button>
+              </div>
+
+              <!-- Contact Methods -->
+              <div class="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 mb-6">Weitere Kontaktmöglichkeiten</h3>
+                
+                <div class="space-y-4">
+                  <a href="tel:+4930123456789" class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-brand-navy/5 transition group">
+                    <div class="w-12 h-12 bg-brand-navy/10 rounded-full flex items-center justify-center group-hover:bg-brand-navy group-hover:text-white transition">
+                      <i class="fas fa-phone text-brand-navy group-hover:text-white"></i>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-gray-900">Telefon</div>
+                      <div class="text-brand-navy">+49 30 123 456 789</div>
+                    </div>
+                  </a>
+
+                  <a href="mailto:support@softwareking24.de" class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-brand-navy/5 transition group">
+                    <div class="w-12 h-12 bg-brand-navy/10 rounded-full flex items-center justify-center group-hover:bg-brand-navy group-hover:text-white transition">
+                      <i class="fas fa-envelope text-brand-navy group-hover:text-white"></i>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-gray-900">E-Mail</div>
+                      <div class="text-brand-navy">support@softwareking24.de</div>
+                    </div>
+                  </a>
+
+                  <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                    <div class="w-12 h-12 bg-brand-gold/10 rounded-full flex items-center justify-center">
+                      <i class="fas fa-clock text-brand-gold"></i>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-gray-900">Öffnungszeiten</div>
+                      <div class="text-gray-600 text-sm">Mo-Fr: 9:00-18:00 Uhr</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Newsletter Section -->
       <section class="py-16 bg-gradient-to-br from-brand-navy to-brand-navy/90 text-white">
         <div class="container mx-auto px-4 text-center">
@@ -1609,6 +1816,117 @@ export function HomepageModernEcommerce() {
         }
         
         updateCountdown();
+
+        // ============================================
+        // SUPPORT TICKET FORM HANDLER
+        // ============================================
+        const ticketForm = document.getElementById('ticketForm');
+        const ticketStatus = document.getElementById('ticketStatus');
+        
+        if (ticketForm) {
+          ticketForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitButton = ticketForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Wird gesendet...';
+            
+            const formData = {
+              name: document.getElementById('ticket_name').value,
+              email: document.getElementById('ticket_email').value,
+              subject: document.getElementById('ticket_subject').value,
+              category: document.getElementById('ticket_category').value,
+              order_id: document.getElementById('ticket_order_id').value || null,
+              message: document.getElementById('ticket_message').value
+            };
+            
+            try {
+              const response = await fetch('/api/support/ticket', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+              });
+              
+              const result = await response.json();
+              
+              if (response.ok) {
+                ticketStatus.className = 'mt-4 p-4 rounded-lg bg-green-50 border-2 border-green-200';
+                ticketStatus.innerHTML = \`
+                  <div class="flex items-start gap-3">
+                    <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    <div>
+                      <div class="font-bold text-green-900 mb-1">Ticket erfolgreich erstellt!</div>
+                      <div class="text-green-800 text-sm mb-2">
+                        Ihre Ticket-Nummer: <strong>\${result.ticket_number}</strong>
+                      </div>
+                      <div class="text-green-700 text-sm">
+                        Wir haben Ihnen eine Bestätigungs-E-Mail gesendet und werden uns innerhalb von 24 Stunden bei Ihnen melden.
+                      </div>
+                    </div>
+                  </div>
+                \`;
+                ticketStatus.classList.remove('hidden');
+                ticketForm.reset();
+                
+                // Scroll to status message
+                ticketStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              } else {
+                throw new Error(result.error || 'Fehler beim Erstellen des Tickets');
+              }
+            } catch (error) {
+              ticketStatus.className = 'mt-4 p-4 rounded-lg bg-red-50 border-2 border-red-200';
+              ticketStatus.innerHTML = \`
+                <div class="flex items-start gap-3">
+                  <i class="fas fa-exclamation-circle text-red-600 text-2xl"></i>
+                  <div>
+                    <div class="font-bold text-red-900 mb-1">Fehler</div>
+                    <div class="text-red-800 text-sm">\${error.message}</div>
+                  </div>
+                </div>
+              \`;
+              ticketStatus.classList.remove('hidden');
+            } finally {
+              submitButton.disabled = false;
+              submitButton.innerHTML = originalButtonText;
+            }
+          });
+        }
+        
+        // ============================================
+        // LIVE CHAT HANDLER
+        // ============================================
+        window.openLiveChat = function() {
+          // Show chat widget
+          alert('Live Chat wird geöffnet...\\n\\nHinweis: Dies ist eine Basis-Integration. Sie können hier später ein echtes Live-Chat-System wie Tawk.to, Intercom, oder LiveChat integrieren.');
+          
+          // In production, you would integrate a real chat service like:
+          // - Tawk.to (free)
+          // - Intercom
+          // - LiveChat
+          // - Zendesk Chat
+          // - Tidio
+          
+          // Example for Tawk.to integration (you'll need to register and get your widget code):
+          /*
+          if (!window.Tawk_API) {
+            var Tawk_API = Tawk_API || {};
+            var Tawk_LoadStart = new Date();
+            (function(){
+              var s1 = document.createElement("script");
+              var s0 = document.getElementsByTagName("script")[0];
+              s1.async = true;
+              s1.src = 'https://embed.tawk.to/YOUR_PROPERTY_ID/YOUR_WIDGET_ID';
+              s1.charset = 'UTF-8';
+              s1.setAttribute('crossorigin','*');
+              s0.parentNode.insertBefore(s1,s0);
+            })();
+          }
+          Tawk_API.maximize();
+          */
+        };
 
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {

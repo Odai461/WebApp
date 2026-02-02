@@ -193,8 +193,8 @@ app.use('/api/*', async (c, next) => {
     return next()
   }
   
-  // Skip CSRF for all admin API endpoints
-  if (c.req.path.startsWith('/api/admin/')) {
+  // Skip CSRF for all admin API endpoints and public support endpoints
+  if (c.req.path.startsWith('/api/admin/') || c.req.path.startsWith('/api/support/')) {
     return next()
   }
   
@@ -3848,6 +3848,154 @@ app.get('/api/analytics/devices', async (c) => {
   } catch (error) {
     console.error('Error fetching devices data:', error)
     return c.json({ success: false, error: 'Failed to fetch devices data' }, 500)
+  }
+})
+
+// ============================================================================
+// PUBLIC SUPPORT TICKET API
+// ============================================================================
+
+// Create a new support ticket (public endpoint)
+app.post('/api/support/ticket', async (c) => {
+  try {
+    const { name, email, subject, category, order_id, message } = await c.req.json()
+    
+    // Validate required fields
+    if (!name || !email || !subject || !category || !message) {
+      return c.json({ 
+        success: false, 
+        error: 'Alle Pflichtfelder müssen ausgefüllt werden' 
+      }, 400)
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return c.json({ 
+        success: false, 
+        error: 'Ungültige E-Mail-Adresse' 
+      }, 400)
+    }
+    
+    // Generate unique ticket number
+    const ticketNumber = 'TKT-' + new Date().getFullYear() + '-' + 
+                         String(Date.now()).slice(-6) + '-' + 
+                         Math.random().toString(36).substr(2, 4).toUpperCase()
+    
+    // Parse order_id if it's a string like "#12345"
+    let parsedOrderId = null
+    if (order_id) {
+      const orderNumMatch = order_id.toString().match(/\d+/)
+      if (orderNumMatch) {
+        parsedOrderId = parseInt(orderNumMatch[0])
+        // Verify the order exists
+        const orderExists = await c.env.DB.prepare(
+          `SELECT id FROM orders WHERE id = ?`
+        ).bind(parsedOrderId).first()
+        
+        if (!orderExists) {
+          parsedOrderId = null // Order doesn't exist, set to null
+        }
+      }
+    }
+    
+    // Create the support ticket
+    const result = await c.env.DB.prepare(`
+      INSERT INTO support_tickets (
+        ticket_number, subject, category, priority, status,
+        message, user_id, order_id, created_at, updated_at
+      ) VALUES (?, ?, ?, 'normal', 'open', ?, NULL, ?, datetime('now'), datetime('now'))
+    `).bind(
+      ticketNumber,
+      subject,
+      category,
+      message,
+      parsedOrderId
+    ).run()
+    
+    // Store customer contact info in a separate table if needed
+    // For now, we'll store it in the contact_messages table
+    await c.env.DB.prepare(`
+      INSERT INTO contact_messages (
+        name, email, subject, message, status, created_at
+      ) VALUES (?, ?, ?, ?, 'new', datetime('now'))
+    `).bind(
+      name,
+      email,
+      `[TICKET: ${ticketNumber}] ${subject}`,
+      `Category: ${category}\nOrder ID: ${order_id || 'N/A'}\n\n${message}`
+    ).run()
+    
+    // Log activity
+    await c.env.DB.prepare(`
+      INSERT INTO activity_log (
+        action, entity_type, entity_id, description, created_at
+      ) VALUES ('ticket_created', 'support_ticket', ?, ?, datetime('now'))
+    `).bind(
+      result.meta.last_row_id,
+      `New support ticket created: ${ticketNumber} by ${email}`
+    ).run()
+    
+    // TODO: Send confirmation email to customer
+    // TODO: Send notification email to support team
+    
+    return c.json({
+      success: true,
+      ticket_number: ticketNumber,
+      message: 'Ihr Support-Ticket wurde erfolgreich erstellt. Wir werden uns in Kürze bei Ihnen melden.'
+    })
+    
+  } catch (error) {
+    console.error('Error creating support ticket:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Fehler beim Erstellen des Tickets. Bitte versuchen Sie es später erneut.' 
+    }, 500)
+  }
+})
+
+// Get ticket status (public endpoint - requires ticket number and email)
+app.get('/api/support/ticket/:ticketNumber', async (c) => {
+  try {
+    const ticketNumber = c.req.param('ticketNumber')
+    const email = c.req.query('email')
+    
+    if (!email) {
+      return c.json({ 
+        success: false, 
+        error: 'E-Mail-Adresse erforderlich' 
+      }, 400)
+    }
+    
+    // Get ticket info
+    const ticket = await c.env.DB.prepare(`
+      SELECT 
+        t.ticket_number, t.subject, t.category, t.priority, t.status,
+        t.message, t.created_at, t.last_reply_at, t.resolved_at,
+        c.name, c.email
+      FROM support_tickets t
+      LEFT JOIN contact_messages c ON c.subject LIKE '%' || t.ticket_number || '%'
+      WHERE t.ticket_number = ? AND c.email = ?
+    `).bind(ticketNumber, email).first()
+    
+    if (!ticket) {
+      return c.json({ 
+        success: false, 
+        error: 'Ticket nicht gefunden oder E-Mail stimmt nicht überein' 
+      }, 404)
+    }
+    
+    return c.json({
+      success: true,
+      ticket: ticket
+    })
+    
+  } catch (error) {
+    console.error('Error fetching ticket:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Fehler beim Abrufen des Tickets' 
+    }, 500)
   }
 })
 
