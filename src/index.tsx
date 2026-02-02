@@ -11219,6 +11219,7 @@ import { AdminLayout, AdminDashboard } from './components/admin'
 import { AdminSidebarAdvanced } from './components/admin-sidebar-advanced'
 import { AdminPlaceholder } from './components/admin-placeholder'
 import { AdminTickets } from './components/admin-tickets'
+import AdminSupportHistory from './components/admin-support-history'
 import { AdminAnalyticsTraffic } from './components/admin-analytics-traffic'
 import { AdminAnalyticsBehavior } from './components/admin-analytics-behavior'
 import { AdminAnalyticsDevices } from './components/admin-analytics-devices'
@@ -11284,6 +11285,12 @@ app.get('/admin/orders', async (c) => {
 // Admin Support Tickets
 app.get('/admin/tickets', async (c) => {
   const html = AdminTickets()
+  return c.html(html)
+})
+
+// Admin Support History
+app.get('/admin/support-history', async (c) => {
+  const html = AdminSupportHistory()
   return c.html(html)
 })
 
