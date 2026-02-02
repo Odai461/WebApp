@@ -334,32 +334,64 @@ export function HomepageModernEcommerce() {
       <div class="bg-gray-100 text-gray-700 py-2 text-sm border-b border-gray-200">
         <div class="container mx-auto px-4 flex justify-between items-center">
           <div class="flex items-center gap-6">
-            <a href="/download-center" class="hover:text-brand-navy transition flex items-center gap-1">
+            <a href="/download-center" class="hover:text-brand-navy transition flex items-center gap-1" data-i18n="download_center">
               <i class="fas fa-download"></i>
               <span>Download Center</span>
             </a>
-            <a href="/faq" class="hover:text-brand-navy transition flex items-center gap-1">
+            <a href="/faq" class="hover:text-brand-navy transition flex items-center gap-1" data-i18n="faq">
               <i class="fas fa-question-circle"></i>
               <span>FAQ</span>
             </a>
-            <a href="/contact" class="hover:text-brand-navy transition flex items-center gap-1">
+            <a href="/contact" class="hover:text-brand-navy transition flex items-center gap-1" data-i18n="contact">
               <i class="fas fa-envelope"></i>
               <span>Kontakt</span>
             </a>
           </div>
           <div class="flex items-center gap-6">
-            <a href="/wishlist" class="hover:text-brand-navy transition flex items-center gap-1">
+            <a href="/wishlist" class="hover:text-brand-navy transition flex items-center gap-1" data-i18n="my_wishlist">
               <i class="fas fa-heart"></i>
               <span>Meine Wunschliste</span>
             </a>
-            <a href="/manufacturers" class="hover:text-brand-navy transition flex items-center gap-1">
+            <a href="/manufacturers" class="hover:text-brand-navy transition flex items-center gap-1" data-i18n="manufacturers">
               <i class="fas fa-industry"></i>
               <span>Hersteller</span>
             </a>
-            <a href="/about" class="hover:text-brand-navy transition flex items-center gap-1">
+            <a href="/about" class="hover:text-brand-navy transition flex items-center gap-1" data-i18n="about_us">
               <i class="fas fa-info-circle"></i>
               <span>Über uns</span>
             </a>
+            
+            <!-- Language Switcher -->
+            <div class="relative dropdown" id="language-switcher">
+              <button class="hover:text-brand-navy transition flex items-center gap-2 cursor-pointer">
+                <i class="fas fa-globe"></i>
+                <span id="current-language-text">Deutsch</span>
+                <i class="fas fa-chevron-down text-xs"></i>
+              </button>
+              <div class="dropdown-menu" style="min-width: 180px; right: 0; left: auto;">
+                <a href="#" onclick="switchLanguage('de'); return false;" data-lang="de" class="language-option">
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='15'%3E%3Crect width='20' height='5' fill='%23000'/%3E%3Crect y='5' width='20' height='5' fill='%23D00'/%3E%3Crect y='10' width='20' height='5' fill='%23FFCE00'/%3E%3C/svg%3E" class="inline-block w-5 h-4 mr-2" alt="DE">
+                  Deutsch
+                </a>
+                <a href="#" onclick="switchLanguage('en'); return false;" data-lang="en" class="language-option">
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='15'%3E%3Crect width='20' height='15' fill='%23012169'/%3E%3Cpath d='M0 0l20 15M20 0L0 15' stroke='%23fff' stroke-width='3'/%3E%3Cpath d='M0 0l20 15M20 0L0 15' stroke='%23C8102E' stroke-width='2'/%3E%3Cpath d='M10 0v15M0 7.5h20' stroke='%23fff' stroke-width='5'/%3E%3Cpath d='M10 0v15M0 7.5h20' stroke='%23C8102E' stroke-width='3'/%3E%3C/svg%3E" class="inline-block w-5 h-4 mr-2" alt="EN">
+                  English
+                </a>
+                <a href="#" onclick="switchLanguage('fr'); return false;" data-lang="fr" class="language-option">
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='15'%3E%3Crect width='6.67' height='15' fill='%23002395'/%3E%3Crect x='6.67' width='6.67' height='15' fill='%23fff'/%3E%3Crect x='13.33' width='6.67' height='15' fill='%23ED2939'/%3E%3C/svg%3E" class="inline-block w-5 h-4 mr-2" alt="FR">
+                  Français
+                </a>
+                <a href="#" onclick="switchLanguage('es'); return false;" data-lang="es" class="language-option">
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='15'%3E%3Crect width='20' height='15' fill='%23AA151B'/%3E%3Crect y='3.75' width='20' height='7.5' fill='%23F1BF00'/%3E%3C/svg%3E" class="inline-block w-5 h-4 mr-2" alt="ES">
+                  Español
+                </a>
+                <a href="#" onclick="switchLanguage('it'); return false;" data-lang="it" class="language-option">
+                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='15'%3E%3Crect width='6.67' height='15' fill='%23009246'/%3E%3Crect x='6.67' width='6.67' height='15' fill='%23fff'/%3E%3Crect x='13.33' width='6.67' height='15' fill='%23CE2B37'/%3E%3C/svg%3E" class="inline-block w-5 h-4 mr-2" alt="IT">
+                  Italiano
+                </a>
+              </div>
+            </div>
+            
           </div>
         </div>
       </div>
@@ -1591,6 +1623,174 @@ export function HomepageModernEcommerce() {
             }
           });
         });
+
+        // ============================================
+        // MULTILINGUAL SUPPORT
+        // ============================================
+        
+        // Translation dictionary
+        const translations = {
+          de: {
+            download_center: 'Download Center',
+            faq: 'FAQ',
+            contact: 'Kontakt',
+            my_wishlist: 'Meine Wunschliste',
+            manufacturers: 'Hersteller',
+            about_us: 'Über uns',
+            account: 'Konto',
+            wishlist: 'Wunschliste',
+            cart: 'Warenkorb',
+            home: 'Startseite',
+            search_placeholder: 'Suchen Sie nach Produkten, Kategorien...',
+            buy_now: 'Jetzt kaufen',
+            add_to_cart: 'In den Warenkorb',
+            hero_title: 'Original & Sofort verfügbar',
+            hero_subtitle: 'Windows 11, Microsoft Office 2024, Antivirus-Programme, Serverlösungen – direkt per E-Mail geliefert zu Top-Preisen.',
+            shop_now: 'Jetzt Einkaufen',
+            learn_more: 'Mehr Erfahren'
+          },
+          en: {
+            download_center: 'Download Center',
+            faq: 'FAQ',
+            contact: 'Contact',
+            my_wishlist: 'My Wishlist',
+            manufacturers: 'Manufacturers',
+            about_us: 'About Us',
+            account: 'Account',
+            wishlist: 'Wishlist',
+            cart: 'Cart',
+            home: 'Home',
+            search_placeholder: 'Search for products, categories...',
+            buy_now: 'Buy Now',
+            add_to_cart: 'Add to Cart',
+            hero_title: 'Original & Instantly Available',
+            hero_subtitle: 'Windows 11, Microsoft Office 2024, Antivirus Programs, Server Solutions – delivered instantly via email at top prices.',
+            shop_now: 'Shop Now',
+            learn_more: 'Learn More'
+          },
+          fr: {
+            download_center: 'Centre de Téléchargement',
+            faq: 'FAQ',
+            contact: 'Contact',
+            my_wishlist: 'Ma Liste de Souhaits',
+            manufacturers: 'Fabricants',
+            about_us: 'À Propos',
+            account: 'Compte',
+            wishlist: 'Liste de Souhaits',
+            cart: 'Panier',
+            home: 'Accueil',
+            search_placeholder: 'Rechercher des produits, catégories...',
+            buy_now: 'Acheter Maintenant',
+            add_to_cart: 'Ajouter au Panier',
+            hero_title: 'Original & Disponible Instantanément',
+            hero_subtitle: 'Windows 11, Microsoft Office 2024, Programmes Antivirus, Solutions Serveur – livrés instantanément par email aux meilleurs prix.',
+            shop_now: 'Acheter Maintenant',
+            learn_more: 'En Savoir Plus'
+          },
+          es: {
+            download_center: 'Centro de Descargas',
+            faq: 'FAQ',
+            contact: 'Contacto',
+            my_wishlist: 'Mi Lista de Deseos',
+            manufacturers: 'Fabricantes',
+            about_us: 'Sobre Nosotros',
+            account: 'Cuenta',
+            wishlist: 'Lista de Deseos',
+            cart: 'Carrito',
+            home: 'Inicio',
+            search_placeholder: 'Buscar productos, categorías...',
+            buy_now: 'Comprar Ahora',
+            add_to_cart: 'Añadir al Carrito',
+            hero_title: 'Original y Disponible Instantáneamente',
+            hero_subtitle: 'Windows 11, Microsoft Office 2024, Programas Antivirus, Soluciones de Servidor – entregados instantáneamente por correo electrónico a los mejores precios.',
+            shop_now: 'Comprar Ahora',
+            learn_more: 'Más Información'
+          },
+          it: {
+            download_center: 'Centro Download',
+            faq: 'FAQ',
+            contact: 'Contatto',
+            my_wishlist: 'La Mia Lista dei Desideri',
+            manufacturers: 'Produttori',
+            about_us: 'Chi Siamo',
+            account: 'Account',
+            wishlist: 'Lista dei Desideri',
+            cart: 'Carrello',
+            home: 'Home',
+            search_placeholder: 'Cerca prodotti, categorie...',
+            buy_now: 'Acquista Ora',
+            add_to_cart: 'Aggiungi al Carrello',
+            hero_title: 'Originale e Disponibile Subito',
+            hero_subtitle: 'Windows 11, Microsoft Office 2024, Programmi Antivirus, Soluzioni Server – consegnati istantaneamente via email ai migliori prezzi.',
+            shop_now: 'Acquista Ora',
+            learn_more: 'Scopri di Più'
+          }
+        };
+
+        const languageNames = {
+          de: 'Deutsch',
+          en: 'English',
+          fr: 'Français',
+          es: 'Español',
+          it: 'Italiano'
+        };
+
+        // Get current language from localStorage or default to 'de'
+        let currentLanguage = localStorage.getItem('language') || 'de';
+
+        // Function to switch language
+        window.switchLanguage = function(lang) {
+          currentLanguage = lang;
+          localStorage.setItem('language', lang);
+          
+          // Update language text
+          document.getElementById('current-language-text').textContent = languageNames[lang];
+          
+          // Update all translatable elements
+          document.querySelectorAll('[data-i18n]').forEach(element => {
+            const key = element.getAttribute('data-i18n');
+            if (translations[lang] && translations[lang][key]) {
+              // Update the text content of the span inside the element
+              const span = element.querySelector('span');
+              if (span) {
+                span.textContent = translations[lang][key];
+              } else {
+                element.textContent = translations[lang][key];
+              }
+            }
+          });
+
+          // Update placeholder
+          const searchInput = document.querySelector('input[placeholder]');
+          if (searchInput && translations[lang].search_placeholder) {
+            searchInput.placeholder = translations[lang].search_placeholder;
+          }
+
+          // Update hero section
+          const heroTitle = document.querySelector('.hero-title span');
+          if (heroTitle && translations[lang].hero_title) {
+            heroTitle.textContent = translations[lang].hero_title;
+          }
+
+          const heroSubtitle = document.querySelector('.hero-gradient p');
+          if (heroSubtitle && translations[lang].hero_subtitle) {
+            heroSubtitle.textContent = translations[lang].hero_subtitle;
+          }
+
+          // Close dropdown
+          const langSwitcher = document.getElementById('language-switcher');
+          if (langSwitcher) {
+            langSwitcher.classList.remove('hover');
+          }
+
+          // Reload page to apply language to products (optional)
+          // window.location.href = window.location.pathname + '?lang=' + lang;
+        };
+
+        // Initialize language on page load
+        if (currentLanguage !== 'de') {
+          switchLanguage(currentLanguage);
+        }
       </script>
     </body>
     </html>
