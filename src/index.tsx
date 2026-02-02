@@ -11219,6 +11219,7 @@ import { AdminAnalyticsBehavior } from './components/admin-analytics-behavior'
 import { AdminAnalyticsDevices } from './components/admin-analytics-devices'
 import { AdminUsers } from './components/admin-users'
 import { AdminMarketing } from './components/admin-marketing'
+import { AdminCoupons } from './components/admin-coupons'
 import { FrontendPlaceholder } from './components/frontend-placeholder'
 import { AdminProducts, AdminProductForm } from './components/admin-products'
 import { AdminProductImport } from './components/admin-product-import'
@@ -11297,6 +11298,12 @@ app.get('/admin/admins', async (c) => {
 // Admin Marketing Overview
 app.get('/admin/marketing', async (c) => {
   const html = AdminMarketing()
+  return c.html(html)
+})
+
+// Admin Coupons Management
+app.get('/admin/coupons', async (c) => {
+  const html = AdminCoupons()
   return c.html(html)
 })
 
