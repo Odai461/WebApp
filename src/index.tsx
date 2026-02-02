@@ -291,6 +291,14 @@ app.get('/de', (c) => {
   return c.html(HomepageModernEcommerce())
 })
 
+// NEW UNCACHED ROUTE - No possible cache interference
+app.get('/new-light-theme', (c) => {
+  c.header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+  c.header('Pragma', 'no-cache')
+  c.header('Expires', '0')
+  return c.html(HomepageModernEcommerce())
+})
+
 // ============================================
 // HOMEPAGE PREVIEW ROUTES - 3 FINALISTS
 // ============================================
