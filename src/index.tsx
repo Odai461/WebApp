@@ -193,8 +193,8 @@ app.use('/api/*', async (c, next) => {
     return next()
   }
   
-  // Skip CSRF for all admin API endpoints and public support endpoints
-  if (c.req.path.startsWith('/api/admin/') || c.req.path.startsWith('/api/support/')) {
+  // Skip CSRF for all admin API endpoints, public support endpoints, and contact form
+  if (c.req.path.startsWith('/api/admin/') || c.req.path.startsWith('/api/support/') || c.req.path === '/api/contact') {
     return next()
   }
   
@@ -881,6 +881,18 @@ app.get('/contact', (c) => {
       <title>Kontakt - SoftwareKing24</title>
       <script src="https://cdn.tailwindcss.com"></script>
       <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+      <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                'brand-navy': '#132C46',
+                'brand-gold': '#D9A50B',
+              }
+            }
+          }
+        }
+      </script>
     </head>
     <body class="bg-gray-50">
       <div class="min-h-screen">
@@ -888,9 +900,9 @@ app.get('/contact', (c) => {
           <div class="container mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
               <a href="/" class="flex items-center">
-                <img src="/static/logo.png" alt="SoftwareKing24" class="h-10">
+                <span class="text-2xl font-bold text-brand-navy">SoftwareKing24</span>
               </a>
-              <a href="/" class="text-gray-600 hover:text-blue-600">
+              <a href="/" class="text-gray-600 hover:text-brand-navy">
                 <i class="fas fa-arrow-left mr-2"></i>Zurück zum Shop
               </a>
             </div>
@@ -900,57 +912,151 @@ app.get('/contact', (c) => {
         <div class="container mx-auto px-4 py-12">
           <div class="max-w-5xl mx-auto">
             <h1 class="text-4xl font-bold text-gray-900 mb-8">
-              <i class="fas fa-envelope text-blue-600 mr-3"></i>Kontakt
+              <i class="fas fa-envelope text-brand-navy mr-3"></i>Kontakt
             </h1>
 
             <div class="grid md:grid-cols-2 gap-8">
               <div class="bg-white rounded-lg shadow-md p-8">
                 <h3 class="text-2xl font-semibold mb-6">Kontaktieren Sie uns</h3>
-                <form class="space-y-4">
+                <form id="contactForm" class="space-y-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                    <input type="text" id="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-navy">
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">E-Mail</label>
-                    <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">E-Mail *</label>
+                    <input type="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-navy">
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Betreff</label>
-                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Telefon (optional)</label>
+                    <input type="tel" id="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-navy">
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nachricht</label>
-                    <textarea rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Betreff *</label>
+                    <input type="text" id="subject" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-navy">
                   </div>
-                  <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nachricht *</label>
+                    <textarea id="message" required rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-navy resize-none"></textarea>
+                  </div>
+                  <button type="submit" class="w-full bg-brand-navy text-white py-3 rounded-lg hover:bg-brand-navy/90 transition font-semibold">
                     <i class="fas fa-paper-plane mr-2"></i>Nachricht senden
                   </button>
+                  <div id="formStatus" class="hidden mt-4 p-4 rounded-lg"></div>
                 </form>
               </div>
 
               <div class="space-y-6">
                 <div class="bg-white rounded-lg shadow-md p-8">
-                  <h3 class="text-xl font-semibold mb-4"><i class="fas fa-phone text-blue-600 mr-2"></i>Telefon</h3>
-                  <p class="text-gray-700 text-lg">+49 (0)30 1234 5678</p>
+                  <h3 class="text-xl font-semibold mb-4"><i class="fas fa-phone text-brand-navy mr-2"></i>Telefon</h3>
+                  <a href="tel:+493012345678" class="text-brand-navy text-lg hover:underline">+49 (0)30 1234 5678</a>
                   <p class="text-sm text-gray-500 mt-2">Mo-Fr: 9:00 - 18:00 Uhr</p>
                 </div>
 
                 <div class="bg-white rounded-lg shadow-md p-8">
-                  <h3 class="text-xl font-semibold mb-4"><i class="fas fa-envelope text-blue-600 mr-2"></i>E-Mail</h3>
-                  <p class="text-gray-700 text-lg">support@softwareking24.com</p>
+                  <h3 class="text-xl font-semibold mb-4"><i class="fas fa-envelope text-brand-navy mr-2"></i>E-Mail</h3>
+                  <a href="mailto:support@softwareking24.de" class="text-brand-navy text-lg hover:underline">support@softwareking24.de</a>
                   <p class="text-sm text-gray-500 mt-2">Antwort innerhalb von 24 Stunden</p>
                 </div>
 
                 <div class="bg-white rounded-lg shadow-md p-8">
-                  <h3 class="text-xl font-semibold mb-4"><i class="fas fa-map-marker-alt text-blue-600 mr-2"></i>Adresse</h3>
+                  <h3 class="text-xl font-semibold mb-4"><i class="fas fa-map-marker-alt text-brand-navy mr-2"></i>Adresse</h3>
                   <p class="text-gray-700">SoftwareKing24 GmbH<br>Beispielstraße 123<br>10115 Berlin<br>Deutschland</p>
+                </div>
+
+                <div class="bg-gradient-to-br from-brand-navy to-brand-navy/90 rounded-lg shadow-md p-8 text-white">
+                  <h3 class="text-xl font-semibold mb-4"><i class="fas fa-clock mr-2"></i>Öffnungszeiten</h3>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                      <span>Montag - Freitag:</span>
+                      <span class="font-semibold">9:00 - 18:00</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span>Samstag:</span>
+                      <span class="font-semibold">10:00 - 14:00</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span>Sonntag:</span>
+                      <span class="font-semibold">Geschlossen</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <script>
+        const contactForm = document.getElementById('contactForm');
+        const formStatus = document.getElementById('formStatus');
+        
+        contactForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const submitButton = contactForm.querySelector('button[type="submit"]');
+          const originalButtonText = submitButton.innerHTML;
+          submitButton.disabled = true;
+          submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Wird gesendet...';
+          
+          const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value || null,
+            subject: document.getElementById('subject').value,
+            message: document.getElementById('message').value
+          };
+          
+          try {
+            const response = await fetch('/api/contact', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+              formStatus.className = 'mt-4 p-4 rounded-lg bg-green-50 border-2 border-green-200';
+              formStatus.innerHTML = \`
+                <div class="flex items-start gap-3">
+                  <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                  <div>
+                    <div class="font-bold text-green-900 mb-1">Nachricht erfolgreich gesendet!</div>
+                    <div class="text-green-800 text-sm">
+                      Vielen Dank für Ihre Nachricht. Wir werden uns in Kürze bei Ihnen melden.
+                    </div>
+                  </div>
+                </div>
+              \`;
+              formStatus.classList.remove('hidden');
+              contactForm.reset();
+              
+              // Scroll to status message
+              formStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+              throw new Error(result.error || 'Fehler beim Senden der Nachricht');
+            }
+          } catch (error) {
+            formStatus.className = 'mt-4 p-4 rounded-lg bg-red-50 border-2 border-red-200';
+            formStatus.innerHTML = \`
+              <div class="flex items-start gap-3">
+                <i class="fas fa-exclamation-circle text-red-600 text-2xl"></i>
+                <div>
+                  <div class="font-bold text-red-900 mb-1">Fehler</div>
+                  <div class="text-red-800 text-sm">\${error.message}</div>
+                </div>
+              </div>
+            \`;
+            formStatus.classList.remove('hidden');
+          } finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
+          }
+        });
+      </script>
     </body>
     </html>
   `)
@@ -4368,6 +4474,68 @@ app.post('/api/support/ticket', async (c) => {
     return c.json({ 
       success: false, 
       error: 'Fehler beim Erstellen des Tickets. Bitte versuchen Sie es später erneut.' 
+    }, 500)
+  }
+})
+
+// Contact form submission API
+app.post('/api/contact', async (c) => {
+  try {
+    const { name, email, phone, subject, message } = await c.req.json()
+    
+    // Validate required fields
+    if (!name || !email || !subject || !message) {
+      return c.json({ 
+        success: false, 
+        error: 'Alle Pflichtfelder müssen ausgefüllt werden' 
+      }, 400)
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return c.json({ 
+        success: false, 
+        error: 'Ungültige E-Mail-Adresse' 
+      }, 400)
+    }
+    
+    // Save to contact_messages table
+    const result = await c.env.DB.prepare(`
+      INSERT INTO contact_messages (
+        name, email, phone, subject, message, status, created_at
+      ) VALUES (?, ?, ?, ?, ?, 'new', datetime('now'))
+    `).bind(
+      name,
+      email,
+      phone,
+      subject,
+      message
+    ).run()
+    
+    // Log activity
+    await c.env.DB.prepare(`
+      INSERT INTO activity_log (
+        action, entity_type, entity_id, description, created_at
+      ) VALUES ('contact_message', 'contact', ?, ?, datetime('now'))
+    `).bind(
+      result.meta.last_row_id,
+      `New contact message from ${email}: ${subject}`
+    ).run()
+    
+    // TODO: Send confirmation email to customer
+    // TODO: Send notification email to support team
+    
+    return c.json({
+      success: true,
+      message: 'Ihre Nachricht wurde erfolgreich gesendet. Wir werden uns in Kürze bei Ihnen melden.'
+    })
+    
+  } catch (error) {
+    console.error('Error saving contact message:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Fehler beim Senden der Nachricht. Bitte versuchen Sie es später erneut.' 
     }, 500)
   }
 })
