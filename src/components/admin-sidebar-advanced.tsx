@@ -154,7 +154,7 @@ export function AdminSidebarAdvanced(currentPath: string = '/admin') {
         { path: '/admin/analytics/regions', label: 'Länder & Regionen', icon: 'globe' },
         { path: '/admin/analytics/events', label: 'Ereignisse & Ziele', icon: 'flag-checkered' },
         { path: '/admin/analytics/reports', label: 'Berichte & Exporte', icon: 'file-export' },
-        { path: '/admin/analytics/integrations', label: 'Integrationen', icon: 'plug' },
+        { path: '/admin/integrations', label: 'Integrationen', icon: 'plug' },
         { path: '/admin/analytics/gdpr', label: 'Datenschutz & DSGVO', icon: 'user-shield' }
       ]
     },
@@ -220,12 +220,12 @@ export function AdminSidebarAdvanced(currentPath: string = '/admin') {
         { path: '/admin/security/file-protection', label: 'Datei- & Systemschutz', icon: 'folder-open' },
         { path: '/admin/security/api-webhooks', label: 'API & Webhooks', icon: 'exchange-alt' },
         { path: '/admin/security/email-security', label: 'E-Mail-Sicherheit', icon: 'envelope-open-text' },
-        { path: '/admin/security/audit-log', label: 'Aktivitätsprotokoll', icon: 'history' },
+        { path: '/admin/audit-log', label: 'Aktivitätsprotokoll', icon: 'history' },
         { path: '/admin/security/scans', label: 'Sicherheits-Scans', icon: 'shield-virus' },
         { path: '/admin/security/login-history', label: 'Login-Verlauf', icon: 'sign-in-alt' },
         { path: '/admin/security/sessions', label: 'Aktive Sessions', icon: 'users' },
         { path: '/admin/security/settings', label: 'Sicherheitseinstellungen', icon: 'cog' },
-        { path: '/admin/backups', label: 'Backups & Wiederherstellung', icon: 'database' }
+        { path: '/admin/backup', label: 'Backups & Wiederherstellung', icon: 'database' }
       ]
     },
     {
@@ -269,6 +269,8 @@ export function AdminSidebarAdvanced(currentPath: string = '/admin') {
       label: 'Einstellungen',
       icon: 'cog',
       children: [
+        { path: '/admin/tax-settings', label: 'Steuereinstellungen', icon: 'percentage' },
+        { path: '/admin/shipping-methods', label: 'Versandmethoden', icon: 'shipping-fast' },
         {
           label: 'Allgemein',
           icon: 'store',
