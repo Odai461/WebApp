@@ -27530,6 +27530,10 @@ export default {
 import authAPI from './api/auth-api'
 app.route('/api/auth', authAPI)
 
+// Mount shopping cart API routes
+import cartAPI from './api/cart-api'
+app.route('/api/cart', cartAPI)
+
 // ============================================
 // SYSTEM MONITOR API ENDPOINTS
 // ============================================
