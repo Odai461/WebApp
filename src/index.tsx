@@ -21339,8 +21339,11 @@ app.get('/admin/users', async (c) => {
     }
 
     if (status !== 'all') {
-      whereClause += ' AND status = ?';
-      params.push(status);
+      if (status === 'active') {
+        whereClause += ' AND is_active = 1';
+      } else if (status === 'inactive') {
+        whereClause += ' AND is_active = 0';
+      }
     }
 
     if (search) {
@@ -21352,8 +21355,9 @@ app.get('/admin/users', async (c) => {
     // Get users
     const usersQuery = `
       SELECT 
-        id, email, first_name, last_name, role, status, 
-        email_verified, last_login, created_at
+        id, email, first_name, last_name, role, 
+        CASE WHEN is_active = 1 THEN 'active' ELSE 'inactive' END as status,
+        email_verified, created_at
       FROM users
       ${whereClause}
       ORDER BY created_at DESC
@@ -21374,7 +21378,7 @@ app.get('/admin/users', async (c) => {
         COUNT(*) as total_users,
         COUNT(CASE WHEN role = 'admin' THEN 1 END) as admin_users,
         COUNT(CASE WHEN role = 'customer' THEN 1 END) as customer_users,
-        COUNT(CASE WHEN order_status = 'active' THEN 1 END) as active_users,
+        COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_users,
         COUNT(CASE WHEN email_verified = 1 THEN 1 END) as verified_users
       FROM users
     `;
@@ -21540,7 +21544,6 @@ app.get('/admin/users', async (c) => {
                       <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">E-Mail</th>
                       <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Rolle</th>
                       <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                      <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Letzter Login</th>
                       <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Aktionen</th>
                     </tr>
                   </thead>
@@ -21579,7 +21582,6 @@ app.get('/admin/users', async (c) => {
                               user.status === 'suspended' ? 'Gesperrt' : 'Inaktiv'}
                           </span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">${user.last_login || 'Nie'}</td>
                         <td class="px-6 py-4">
                           <div class="flex space-x-2">
                             <button onclick="window.location.href='/admin/users/${user.id}'" 

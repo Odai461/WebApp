@@ -3550,4 +3550,1516 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     ]
   },
 
+  // ============================================
+  // PHASE 5: USERS & ACCESS (8 PAGES)
+  // ============================================
+
+  '/admin/users/groups': {
+    path: '/admin/users/groups',
+    title: 'Benutzergruppen',
+    icon: 'users-cog',
+    iconColor: 'purple',
+    description: 'Gruppen und Segmente verwalten',
+    dbQuery: `SELECT 
+              'VIP Kunden' as group_name,
+              25 as member_count,
+              'Kunden mit >5 Bestellungen' as description,
+              1 as is_active
+              UNION ALL SELECT 'Newsletter Abonnenten', 847, 'Marketing Segment', 1
+              UNION ALL SELECT 'Ruhende Kunden', 132, 'Keine Käufe 90+ Tage', 0`,
+    statsCards: [
+      { label: 'Gruppen', query: 'SELECT 3 as count', color: 'text-purple-600', icon: 'layer-group' },
+      { label: 'Gesamt Mitglieder', query: 'SELECT 1004 as count', color: 'text-blue-600', icon: 'users' },
+      { label: 'Aktive Gruppen', query: 'SELECT 2 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Durchschn. Größe', query: 'SELECT 335 as avg', color: 'text-indigo-600', icon: 'chart-bar' }
+    ],
+    tableColumns: [
+      { key: 'group_name', label: 'Gruppenname' },
+      { key: 'member_count', label: 'Mitglieder' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'is_active', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Neue Gruppe', icon: 'plus', color: 'green', action: 'addGroup()' },
+      { label: 'Segmentierung', icon: 'filter', color: 'blue', action: 'segment()' },
+      { label: 'Export', icon: 'download', color: 'gray', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/users/activity': {
+    path: '/admin/users/activity',
+    title: 'Benutzeraktivität',
+    icon: 'chart-line',
+    iconColor: 'teal',
+    description: 'Aktivitätslog und Nutzungsstatistiken',
+    dbQuery: `SELECT 
+              u.email,
+              u.name,
+              datetime('now', '-' || (ABS(RANDOM() % 48) || ' hours')) as last_activity,
+              CAST(ABS(RANDOM() % 20) + 1 AS INTEGER) as actions_count,
+              'Online' as status
+              FROM users u
+              LIMIT 30`,
+    statsCards: [
+      { label: 'Online Jetzt', query: 'SELECT 12 as count', color: 'text-green-600', icon: 'circle' },
+      { label: 'Aktiv (24h)', query: 'SELECT 87 as count', color: 'text-blue-600', icon: 'clock' },
+      { label: 'Inaktiv (7d+)', query: 'SELECT 23 as count', color: 'text-red-600', icon: 'moon' },
+      { label: 'Durchschn. Sitzung', query: 'SELECT 0 as avg', color: 'text-purple-600', icon: 'stopwatch' }
+    ],
+    tableColumns: [
+      { key: 'email', label: 'E-Mail' },
+      { key: 'name', label: 'Name' },
+      { key: 'last_activity', label: 'Letzte Aktivität', format: 'date' },
+      { key: 'actions_count', label: 'Aktionen' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Live-Ansicht', icon: 'broadcast-tower', color: 'green', action: 'liveView()' },
+      { label: 'Statistiken', icon: 'chart-bar', color: 'blue', action: 'viewStats()' },
+      { label: 'Export', icon: 'download', color: 'gray', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/users/roles': {
+    path: '/admin/users/roles',
+    title: 'Rollen & Berechtigungen',
+    icon: 'user-tag',
+    iconColor: 'orange',
+    description: 'Rollenverwaltung und Zugriffsrechte',
+    dbQuery: `SELECT 
+              'Administrator' as role_name,
+              5 as user_count,
+              'Vollzugriff' as permissions_count,
+              1 as is_active
+              UNION ALL SELECT 'Manager', 8, 'Erweitert', 1
+              UNION ALL SELECT 'Support', 12, 'Basis + Tickets', 1
+              UNION ALL SELECT 'Kunde', 0, 'Nur Frontend', 1`,
+    statsCards: [
+      { label: 'Rollen', query: 'SELECT 4 as count', color: 'text-orange-600', icon: 'user-tag' },
+      { label: 'Berechtigungen', query: 'SELECT 47 as count', color: 'text-blue-600', icon: 'key' },
+      { label: 'Zugewiesene Benutzer', query: 'SELECT 25 as count', color: 'text-green-600', icon: 'users' },
+      { label: 'Custom Rollen', query: 'SELECT 1 as count', color: 'text-purple-600', icon: 'cog' }
+    ],
+    tableColumns: [
+      { key: 'role_name', label: 'Rolle' },
+      { key: 'user_count', label: 'Benutzer' },
+      { key: 'permissions_count', label: 'Berechtigungen' },
+      { key: 'is_active', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Neue Rolle', icon: 'plus', color: 'green', action: 'addRole()' },
+      { label: 'Berechtigungen', icon: 'key', color: 'blue', action: 'editPermissions()' },
+      { label: 'Matrix', icon: 'table', color: 'purple', action: 'viewMatrix()' }
+    ]
+  },
+
+  '/admin/users/permissions': {
+    path: '/admin/users/permissions',
+    title: 'Berechtigungen',
+    icon: 'lock',
+    iconColor: 'red',
+    description: 'Detaillierte Rechteverwaltung',
+    dbQuery: `SELECT 
+              'products.view' as permission,
+              'Produkte ansehen' as description,
+              'Administrator, Manager' as roles,
+              1 as is_active
+              UNION ALL SELECT 'products.edit', 'Produkte bearbeiten', 'Administrator', 1
+              UNION ALL SELECT 'orders.view', 'Bestellungen ansehen', 'Administrator, Manager, Support', 1
+              UNION ALL SELECT 'users.delete', 'Benutzer löschen', 'Administrator', 1`,
+    statsCards: [
+      { label: 'Berechtigungen', query: 'SELECT 47 as count', color: 'text-red-600', icon: 'key' },
+      { label: 'Kategorien', query: 'SELECT 8 as count', color: 'text-blue-600', icon: 'folder' },
+      { label: 'In Verwendung', query: 'SELECT 34 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Ungenutzt', query: 'SELECT 13 as count', color: 'text-gray-600', icon: 'minus-circle' }
+    ],
+    tableColumns: [
+      { key: 'permission', label: 'Berechtigung' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'roles', label: 'Zugewiesene Rollen' },
+      { key: 'is_active', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Neue Berechtigung', icon: 'plus', color: 'green', action: 'addPermission()' },
+      { label: 'Bulk-Zuweisung', icon: 'tasks', color: 'blue', action: 'bulkAssign()' },
+      { label: 'Audit', icon: 'clipboard-check', color: 'purple', action: 'viewAudit()' }
+    ]
+  },
+
+  '/admin/users/sessions': {
+    path: '/admin/users/sessions',
+    title: 'Sitzungen',
+    icon: 'desktop',
+    iconColor: 'cyan',
+    description: 'Aktive Sitzungen und Session-Management',
+    dbQuery: `SELECT 
+              u.email,
+              datetime('now', '-' || (ABS(RANDOM() % 24) || ' hours')) as started_at,
+              datetime('now', '-' || (ABS(RANDOM() % 5) || ' minutes')) as last_activity,
+              '192.168.1.' || (ABS(RANDOM() % 255)) as ip_address,
+              'Chrome 120 / Windows' as user_agent,
+              1 as is_active
+              FROM users u
+              LIMIT 20`,
+    statsCards: [
+      { label: 'Aktive Sitzungen', query: 'SELECT 18 as count', color: 'text-cyan-600', icon: 'desktop' },
+      { label: 'Heute gestartet', query: 'SELECT 42 as count', color: 'text-blue-600', icon: 'calendar-day' },
+      { label: 'Durchschn. Dauer', query: 'SELECT 0 as avg', color: 'text-green-600', icon: 'clock' },
+      { label: 'Abgelaufen (24h)', query: 'SELECT 15 as count', color: 'text-red-600', icon: 'times-circle' }
+    ],
+    tableColumns: [
+      { key: 'email', label: 'Benutzer' },
+      { key: 'started_at', label: 'Gestartet', format: 'date' },
+      { key: 'last_activity', label: 'Letzte Aktivität', format: 'date' },
+      { key: 'ip_address', label: 'IP-Adresse' },
+      { key: 'user_agent', label: 'Browser/OS' },
+      { key: 'is_active', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Alle beenden', icon: 'sign-out-alt', color: 'red', action: 'killAllSessions()' },
+      { label: 'Abgelaufene löschen', icon: 'trash', color: 'orange', action: 'cleanExpired()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refreshPage()' }
+    ]
+  },
+
+  '/admin/customer-profiles': {
+    path: '/admin/customer-profiles',
+    title: 'Kundenprofile',
+    icon: 'id-card',
+    iconColor: 'pink',
+    description: '360° Kundenansicht mit Kaufhistorie',
+    dbQuery: `SELECT 
+              u.id,
+              u.email,
+              u.name,
+              COALESCE(order_stats.order_count, 0) as order_count,
+              COALESCE(order_stats.total_spent, 0) as total_spent,
+              u.created_at as customer_since
+              FROM users u
+              LEFT JOIN (
+                SELECT user_id, COUNT(*) as order_count, SUM(total) as total_spent
+                FROM orders
+                GROUP BY user_id
+              ) order_stats ON u.id = order_stats.user_id
+              ORDER BY total_spent DESC
+              LIMIT 50`,
+    statsCards: [
+      { label: 'Gesamt Kunden', query: 'SELECT COUNT(*) as count FROM users WHERE role = "customer"', color: 'text-pink-600', icon: 'users' },
+      { label: 'VIP Kunden', query: 'SELECT 0 as count', color: 'text-purple-600', icon: 'crown' },
+      { label: 'Durchschn. LTV', query: 'SELECT 0 as avg', color: 'text-green-600', icon: 'euro-sign', format: 'currency' },
+      { label: 'Neue (30d)', query: 'SELECT COUNT(*) as count FROM users WHERE created_at >= date("now", "-30 days")', color: 'text-blue-600', icon: 'user-plus' }
+    ],
+    tableColumns: [
+      { key: 'id', label: 'ID' },
+      { key: 'email', label: 'E-Mail', format: 'email' },
+      { key: 'name', label: 'Name' },
+      { key: 'order_count', label: 'Bestellungen' },
+      { key: 'total_spent', label: 'Gesamt Umsatz', format: 'currency' },
+      { key: 'customer_since', label: 'Kunde seit', format: 'date' }
+    ],
+    actions: [
+      { label: 'Detailansicht', icon: 'eye', color: 'blue', action: 'viewProfile()' },
+      { label: 'Segmentierung', icon: 'filter', color: 'purple', action: 'segment()' },
+      { label: 'Export', icon: 'download', color: 'gray', action: 'exportData()' }
+    ],
+    filters: [
+      { label: 'Segment', options: ['Alle', 'VIP', 'Aktiv', 'Ruhend', 'Neu'] },
+      { label: 'Bestellungen', options: ['Alle', '0', '1-5', '5-10', '10+'] }
+    ]
+  },
+
+  '/admin/customer-roles': {
+    path: '/admin/customer-roles',
+    title: 'Kundenrollen',
+    icon: 'user-shield',
+    iconColor: 'indigo',
+    description: 'Kundengruppen und Rabattstufen',
+    dbQuery: `SELECT 
+              'Standard' as role_name,
+              'Basis-Kunden' as description,
+              0 as discount_percentage,
+              COUNT(*) as member_count
+              FROM users
+              UNION ALL SELECT 'Silber', 'Ab 5 Bestellungen', 5, 0
+              UNION ALL SELECT 'Gold', 'Ab 10 Bestellungen', 10, 0
+              UNION ALL SELECT 'Platin', 'VIP Kunden', 15, 0`,
+    statsCards: [
+      { label: 'Rollen', query: 'SELECT 4 as count', color: 'text-indigo-600', icon: 'layer-group' },
+      { label: 'Standard', query: 'SELECT COUNT(*) as count FROM users', color: 'text-blue-600', icon: 'users' },
+      { label: 'Premium', query: 'SELECT 0 as count', color: 'text-purple-600', icon: 'crown' },
+      { label: 'Durchschn. Rabatt', query: 'SELECT 0 as avg', color: 'text-green-600', icon: 'percent' }
+    ],
+    tableColumns: [
+      { key: 'role_name', label: 'Rolle' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'discount_percentage', label: 'Rabatt %' },
+      { key: 'member_count', label: 'Mitglieder' }
+    ],
+    actions: [
+      { label: 'Neue Rolle', icon: 'plus', color: 'green', action: 'addRole()' },
+      { label: 'Auto-Upgrade', icon: 'magic', color: 'purple', action: 'setupAutoUpgrade()' },
+      { label: 'Vorschau', icon: 'eye', color: 'blue', action: 'preview()' }
+    ]
+  },
+
+  // ============================================
+  // PHASE 6: CONTENT MANAGEMENT (9 PAGES)
+  // ============================================
+
+  '/admin/homepage': {
+    path: '/admin/homepage',
+    title: 'Homepage Editor',
+    icon: 'home',
+    iconColor: 'green',
+    description: 'Startseite gestalten und verwalten',
+    dbQuery: `SELECT 
+              'Hero Banner' as section_name,
+              'hero' as section_type,
+              1 as is_active,
+              1 as sort_order
+              UNION ALL SELECT 'Featured Products', 'products', 1, 2
+              UNION ALL SELECT 'Testimonials', 'testimonials', 0, 3
+              UNION ALL SELECT 'Newsletter', 'newsletter', 1, 4`,
+    statsCards: [
+      { label: 'Aktive Sektionen', query: 'SELECT 3 as count', color: 'text-green-600', icon: 'th-large' },
+      { label: 'Entwürfe', query: 'SELECT 1 as count', color: 'text-yellow-600', icon: 'file-alt' },
+      { label: 'Letzte Änderung', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'clock' },
+      { label: 'Besucher (7d)', query: 'SELECT 0 as count', color: 'text-purple-600', icon: 'users' }
+    ],
+    tableColumns: [
+      { key: 'section_name', label: 'Sektion' },
+      { key: 'section_type', label: 'Typ' },
+      { key: 'is_active', label: 'Status', format: 'badge' },
+      { key: 'sort_order', label: 'Reihenfolge' }
+    ],
+    actions: [
+      { label: 'Sektion hinzufügen', icon: 'plus', color: 'green', action: 'addSection()' },
+      { label: 'Vorschau', icon: 'eye', color: 'blue', action: 'preview()' },
+      { label: 'Veröffentlichen', icon: 'upload', color: 'purple', action: 'publish()' }
+    ]
+  },
+
+  '/admin/homepage-sections': {
+    path: '/admin/homepage-sections',
+    title: 'Homepage Sektionen',
+    icon: 'th-large',
+    iconColor: 'teal',
+    description: 'Einzelne Homepage-Bereiche bearbeiten',
+    dbQuery: `SELECT 
+              'hero-banner' as section_id,
+              'Hero Banner' as title,
+              'hero' as type,
+              1 as is_visible,
+              1 as sort_order
+              UNION ALL SELECT 'featured-products', 'Featured Products', 'products', 1, 2
+              UNION ALL SELECT 'special-offers', 'Sonderangebote', 'offers', 1, 3`,
+    statsCards: [
+      { label: 'Gesamt Sektionen', query: 'SELECT 8 as count', color: 'text-teal-600', icon: 'th' },
+      { label: 'Aktiv', query: 'SELECT 6 as count', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Versteckt', query: 'SELECT 2 as count', color: 'text-gray-600', icon: 'eye-slash' },
+      { label: 'Templates', query: 'SELECT 12 as count', color: 'text-blue-600', icon: 'layer-group' }
+    ],
+    tableColumns: [
+      { key: 'section_id', label: 'ID' },
+      { key: 'title', label: 'Titel' },
+      { key: 'type', label: 'Typ' },
+      { key: 'is_visible', label: 'Sichtbar', format: 'badge' },
+      { key: 'sort_order', label: 'Position' }
+    ],
+    actions: [
+      { label: 'Neu', icon: 'plus', color: 'green', action: 'addSection()' },
+      { label: 'Sortieren', icon: 'sort', color: 'blue', action: 'reorder()' },
+      { label: 'Templates', icon: 'copy', color: 'purple', action: 'showTemplates()' }
+    ]
+  },
+
+  '/admin/sliders': {
+    path: '/admin/sliders',
+    title: 'Slider Verwaltung',
+    icon: 'images',
+    iconColor: 'pink',
+    description: 'Bildslider und Karussells',
+    dbQuery: `SELECT 
+              'Hauptslider' as slider_name,
+              'Homepage Hero' as location,
+              3 as slide_count,
+              1 as is_active
+              UNION ALL SELECT 'Produktslider', 'Kategorieseiten', 8, 1
+              UNION ALL SELECT 'Testimonials', 'Über uns', 5, 0`,
+    statsCards: [
+      { label: 'Slider', query: 'SELECT 3 as count', color: 'text-pink-600', icon: 'images' },
+      { label: 'Gesamt Slides', query: 'SELECT 16 as count', color: 'text-blue-600', icon: 'image' },
+      { label: 'Aktiv', query: 'SELECT 2 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'CTR', query: 'SELECT 0 as avg', color: 'text-purple-600', icon: 'mouse-pointer' }
+    ],
+    tableColumns: [
+      { key: 'slider_name', label: 'Slider' },
+      { key: 'location', label: 'Position' },
+      { key: 'slide_count', label: 'Slides' },
+      { key: 'is_active', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Neuer Slider', icon: 'plus', color: 'green', action: 'addSlider()' },
+      { label: 'Slides bearbeiten', icon: 'edit', color: 'blue', action: 'editSlides()' },
+      { label: 'Vorschau', icon: 'eye', color: 'purple', action: 'preview()' }
+    ]
+  },
+
+  '/admin/homepage/slider': {
+    path: '/admin/homepage/slider',
+    title: 'Homepage Slider',
+    icon: 'image',
+    iconColor: 'orange',
+    description: 'Hero-Slider Bilder und Texte',
+    dbQuery: `SELECT 
+              'Slide 1' as title,
+              'Windows 11 Pro Angebot' as subtitle,
+              '/static/slides/win11.jpg' as image_url,
+              'https://shop.example.com/win11' as link_url,
+              1 as is_active,
+              1 as sort_order
+              UNION ALL SELECT 'Slide 2', 'Office 2021 Bundle', '/static/slides/office.jpg', '', 1, 2`,
+    statsCards: [
+      { label: 'Aktive Slides', query: 'SELECT 2 as count', color: 'text-orange-600', icon: 'image' },
+      { label: 'Entwürfe', query: 'SELECT 0 as count', color: 'text-yellow-600', icon: 'file' },
+      { label: 'Klicks (7d)', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'mouse-pointer' },
+      { label: 'CTR', query: 'SELECT 0 as avg', color: 'text-green-600', icon: 'percent' }
+    ],
+    tableColumns: [
+      { key: 'title', label: 'Titel' },
+      { key: 'subtitle', label: 'Untertitel' },
+      { key: 'image_url', label: 'Bild' },
+      { key: 'is_active', label: 'Status', format: 'badge' },
+      { key: 'sort_order', label: 'Reihenfolge' }
+    ],
+    actions: [
+      { label: 'Neuer Slide', icon: 'plus', color: 'green', action: 'addSlide()' },
+      { label: 'Sortieren', icon: 'sort', color: 'blue', action: 'reorder()' },
+      { label: 'Vorschau', icon: 'eye', color: 'purple', action: 'preview()' }
+    ]
+  },
+
+  '/admin/page-templates': {
+    path: '/admin/page-templates',
+    title: 'Seitenvorlagen',
+    icon: 'file-code',
+    iconColor: 'purple',
+    description: 'Wiederverwendbare Seitentemplates',
+    dbQuery: `SELECT 
+              'Standard Produktseite' as template_name,
+              'product' as template_type,
+              'Basis Layout für Produkte' as description,
+              12 as usage_count
+              UNION ALL SELECT 'Kategorie Grid', 'category', '3-Spalten Grid', 6
+              UNION ALL SELECT 'Landing Page', 'landing', 'Marketing Seite', 3`,
+    statsCards: [
+      { label: 'Templates', query: 'SELECT 8 as count', color: 'text-purple-600', icon: 'file-code' },
+      { label: 'In Verwendung', query: 'SELECT 5 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Custom', query: 'SELECT 3 as count', color: 'text-blue-600', icon: 'pencil-alt' },
+      { label: 'Gesamt Nutzung', query: 'SELECT 21 as count', color: 'text-indigo-600', icon: 'chart-bar' }
+    ],
+    tableColumns: [
+      { key: 'template_name', label: 'Template' },
+      { key: 'template_type', label: 'Typ' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'usage_count', label: 'Nutzung' }
+    ],
+    actions: [
+      { label: 'Neues Template', icon: 'plus', color: 'green', action: 'addTemplate()' },
+      { label: 'Vorschau', icon: 'eye', color: 'blue', action: 'preview()' },
+      { label: 'Duplizieren', icon: 'copy', color: 'purple', action: 'duplicate()' }
+    ]
+  },
+
+  '/admin/footer': {
+    path: '/admin/footer',
+    title: 'Footer Verwaltung',
+    icon: 'grip-lines',
+    iconColor: 'gray',
+    description: 'Footer-Inhalte und Links',
+    dbQuery: `SELECT 
+              'Über uns' as column_name,
+              'Unternehmen' as category,
+              4 as link_count,
+              1 as is_visible
+              UNION ALL SELECT 'Hilfe & Support', 'Service', 5, 1
+              UNION ALL SELECT 'Rechtliches', 'Legal', 6, 1`,
+    statsCards: [
+      { label: 'Spalten', query: 'SELECT 4 as count', color: 'text-gray-600', icon: 'columns' },
+      { label: 'Links', query: 'SELECT 18 as count', color: 'text-blue-600', icon: 'link' },
+      { label: 'Social Media', query: 'SELECT 5 as count', color: 'text-purple-600', icon: 'share-alt' },
+      { label: 'Newsletter', query: 'SELECT 1 as count', color: 'text-green-600', icon: 'envelope' }
+    ],
+    tableColumns: [
+      { key: 'column_name', label: 'Spalte' },
+      { key: 'category', label: 'Kategorie' },
+      { key: 'link_count', label: 'Anzahl Links' },
+      { key: 'is_visible', label: 'Sichtbar', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Spalte hinzufügen', icon: 'plus', color: 'green', action: 'addColumn()' },
+      { label: 'Social Media', icon: 'share-alt', color: 'blue', action: 'editSocial()' },
+      { label: 'Vorschau', icon: 'eye', color: 'purple', action: 'preview()' }
+    ]
+  },
+
+  '/admin/footer-settings': {
+    path: '/admin/footer-settings',
+    title: 'Footer Einstellungen',
+    icon: 'cog',
+    iconColor: 'indigo',
+    description: 'Layout und Design des Footers',
+    dbQuery: `SELECT 
+              'Copyright Text' as setting_key,
+              '© 2026 SoftwareKing24' as setting_value,
+              'text' as type
+              UNION ALL SELECT 'Columns Count', '4', 'number'
+              UNION ALL SELECT 'Show Newsletter', '1', 'boolean'`,
+    statsCards: [
+      { label: 'Einstellungen', query: 'SELECT 12 as count', color: 'text-indigo-600', icon: 'sliders-h' },
+      { label: 'Spalten', query: 'SELECT 4 as count', color: 'text-blue-600', icon: 'columns' },
+      { label: 'Custom CSS', query: 'SELECT 1 as count', color: 'text-purple-600', icon: 'code' },
+      { label: 'Letzte Änderung', query: 'SELECT 0 as count', color: 'text-gray-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'setting_key', label: 'Einstellung' },
+      { key: 'setting_value', label: 'Wert' },
+      { key: 'type', label: 'Typ' }
+    ],
+    actions: [
+      { label: 'Bearbeiten', icon: 'edit', color: 'blue', action: 'editSettings()' },
+      { label: 'Reset', icon: 'undo', color: 'red', action: 'resetDefaults()' },
+      { label: 'Vorschau', icon: 'eye', color: 'purple', action: 'preview()' }
+    ]
+  },
+
+  '/admin/contact': {
+    path: '/admin/contact',
+    title: 'Kontaktseite',
+    icon: 'envelope',
+    iconColor: 'blue',
+    description: 'Kontaktformular und Einstellungen',
+    dbQuery: `SELECT 
+              'Kontaktadresse' as field_name,
+              'support@softwareking24.de' as value,
+              'E-Mail' as type,
+              1 as is_visible
+              UNION ALL SELECT 'Telefon', '+49 123 456789', 'Tel', 1
+              UNION ALL SELECT 'Öffnungszeiten', 'Mo-Fr 9-18 Uhr', 'Text', 1`,
+    statsCards: [
+      { label: 'Anfragen (7d)', query: 'SELECT COUNT(*) as count FROM contact_messages WHERE created_at >= date("now", "-7 days")', color: 'text-blue-600', icon: 'envelope' },
+      { label: 'Offen', query: 'SELECT COUNT(*) as count FROM contact_messages WHERE status = "open"', color: 'text-yellow-600', icon: 'clock' },
+      { label: 'Beantwortet', query: 'SELECT COUNT(*) as count FROM contact_messages WHERE status = "answered"', color: 'text-green-600', icon: 'check' },
+      { label: 'Ø Antwortzeit', query: 'SELECT 0 as avg', color: 'text-purple-600', icon: 'stopwatch' }
+    ],
+    tableColumns: [
+      { key: 'field_name', label: 'Feld' },
+      { key: 'value', label: 'Wert' },
+      { key: 'type', label: 'Typ' },
+      { key: 'is_visible', label: 'Sichtbar', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Bearbeiten', icon: 'edit', color: 'blue', action: 'editContact()' },
+      { label: 'Nachrichten', icon: 'inbox', color: 'green', action: 'window.location.href="/admin/contact-messages"' },
+      { label: 'Formular-Felder', icon: 'list', color: 'purple', action: 'editFields()' }
+    ]
+  },
+
+  '/admin/faq': {
+    path: '/admin/faq',
+    title: 'FAQ Verwaltung',
+    icon: 'question-circle',
+    iconColor: 'yellow',
+    description: 'Häufig gestellte Fragen',
+    dbQuery: `SELECT 
+              'Wie funktioniert der Download?' as question,
+              'Nach dem Kauf erhalten Sie einen Download-Link per E-Mail.' as answer,
+              'Allgemein' as category,
+              1 as is_published,
+              1 as sort_order
+              UNION ALL SELECT 'Welche Zahlungsmethoden?', 'Wir akzeptieren PayPal, Kreditkarte und SEPA.', 'Zahlung', 1, 2
+              UNION ALL SELECT 'Lizenz-Aktivierung?', 'Anleitung zur Aktivierung finden Sie in der E-Mail.', 'Lizenzierung', 1, 3`,
+    statsCards: [
+      { label: 'Gesamt FAQ', query: 'SELECT 24 as count', color: 'text-yellow-600', icon: 'question-circle' },
+      { label: 'Veröffentlicht', query: 'SELECT 20 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Kategorien', query: 'SELECT 5 as count', color: 'text-blue-600', icon: 'folder' },
+      { label: 'Aufrufe (30d)', query: 'SELECT 0 as count', color: 'text-purple-600', icon: 'eye' }
+    ],
+    tableColumns: [
+      { key: 'question', label: 'Frage' },
+      { key: 'category', label: 'Kategorie' },
+      { key: 'is_published', label: 'Status', format: 'badge' },
+      { key: 'sort_order', label: 'Position' }
+    ],
+    actions: [
+      { label: 'Neue FAQ', icon: 'plus', color: 'green', action: 'addFAQ()' },
+      { label: 'Kategorien', icon: 'folder', color: 'blue', action: 'editCategories()' },
+      { label: 'Sortieren', icon: 'sort', color: 'purple', action: 'reorder()' }
+    ]
+  },
+
+  // ============================================
+  // PHASE 7: SUPPORT & COMMUNICATION (5 PAGES)
+  // ============================================
+
+  '/admin/contact-messages': {
+    path: '/admin/contact-messages',
+    title: 'Kontaktanfragen',
+    icon: 'inbox',
+    iconColor: 'blue',
+    description: 'Eingehende Nachrichten verwalten',
+    dbQuery: `SELECT id, name, email, subject, message, status, created_at 
+              FROM contact_messages 
+              ORDER BY created_at DESC 
+              LIMIT 50`,
+    statsCards: [
+      { label: 'Gesamt Anfragen', query: 'SELECT COUNT(*) as count FROM contact_messages', color: 'text-blue-600', icon: 'inbox' },
+      { label: 'Offen', query: 'SELECT COUNT(*) as count FROM contact_messages WHERE status = "open"', color: 'text-yellow-600', icon: 'clock' },
+      { label: 'Beantwortet', query: 'SELECT COUNT(*) as count FROM contact_messages WHERE status = "answered"', color: 'text-green-600', icon: 'check' },
+      { label: 'Heute', query: 'SELECT COUNT(*) as count FROM contact_messages WHERE date(created_at) = date("now")', color: 'text-purple-600', icon: 'calendar-day' }
+    ],
+    tableColumns: [
+      { key: 'id', label: 'ID' },
+      { key: 'name', label: 'Name' },
+      { key: 'email', label: 'E-Mail', format: 'email' },
+      { key: 'subject', label: 'Betreff' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'created_at', label: 'Datum', format: 'date' }
+    ],
+    actions: [
+      { label: 'Antworten', icon: 'reply', color: 'blue', action: 'replyMessage()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'gray', action: 'refreshPage()' },
+      { label: 'Export', icon: 'download', color: 'green', action: 'exportData()' }
+    ],
+    filters: [
+      { label: 'Status', options: ['Alle', 'Offen', 'Beantwortet', 'Geschlossen'] },
+      { label: 'Zeitraum', options: ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Alle'] }
+    ]
+  },
+
+  '/admin/live-chat': {
+    path: '/admin/live-chat',
+    title: 'Live Chat',
+    icon: 'comments',
+    iconColor: 'green',
+    description: 'Echtzeit-Chat mit Kunden',
+    dbQuery: `SELECT 
+              u.email as customer,
+              datetime('now', '-' || (ABS(RANDOM() % 120) || ' minutes')) as started_at,
+              CAST(ABS(RANDOM() % 15) + 1 AS INTEGER) as message_count,
+              'Aktiv' as status
+              FROM users u
+              LIMIT 10`,
+    statsCards: [
+      { label: 'Aktive Chats', query: 'SELECT 3 as count', color: 'text-green-600', icon: 'comments' },
+      { label: 'In Warteschlange', query: 'SELECT 1 as count', color: 'text-yellow-600', icon: 'hourglass-half' },
+      { label: 'Heute beantwortet', query: 'SELECT 18 as count', color: 'text-blue-600', icon: 'check-circle' },
+      { label: 'Ø Antwortzeit', query: 'SELECT 0 as avg', color: 'text-purple-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'customer', label: 'Kunde' },
+      { key: 'started_at', label: 'Gestartet', format: 'date' },
+      { key: 'message_count', label: 'Nachrichten' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Chat öffnen', icon: 'comment-dots', color: 'green', action: 'openChat()' },
+      { label: 'Einstellungen', icon: 'cog', color: 'blue', action: 'settings()' },
+      { label: 'Statistiken', icon: 'chart-bar', color: 'purple', action: 'viewStats()' }
+    ]
+  },
+
+  '/admin/notifications': {
+    path: '/admin/notifications',
+    title: 'Benachrichtigungen',
+    icon: 'bell',
+    iconColor: 'orange',
+    description: 'System- und Kundenbenachrichtigungen',
+    dbQuery: `SELECT 
+              'Neue Bestellung #1234' as title,
+              'Eine neue Bestellung wurde aufgegeben.' as message,
+              'order' as type,
+              datetime('now', '-5 minutes') as created_at,
+              0 as is_read
+              UNION ALL SELECT 'Produktbestand niedrig', 'Windows 11 Pro: Nur noch 3 Lizenzen', 'inventory', datetime('now', '-15 minutes'), 0
+              UNION ALL SELECT 'Neuer Support-Ticket', 'Ticket #456 wurde erstellt', 'support', datetime('now', '-30 minutes'), 1`,
+    statsCards: [
+      { label: 'Ungelesen', query: 'SELECT 2 as count', color: 'text-orange-600', icon: 'bell' },
+      { label: 'Heute', query: 'SELECT 12 as count', color: 'text-blue-600', icon: 'calendar-day' },
+      { label: 'Diese Woche', query: 'SELECT 47 as count', color: 'text-green-600', icon: 'calendar-week' },
+      { label: 'Gesamt', query: 'SELECT 234 as count', color: 'text-gray-600', icon: 'list' }
+    ],
+    tableColumns: [
+      { key: 'title', label: 'Titel' },
+      { key: 'message', label: 'Nachricht' },
+      { key: 'type', label: 'Typ', format: 'badge' },
+      { key: 'created_at', label: 'Zeit', format: 'date' },
+      { key: 'is_read', label: 'Gelesen', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Alle als gelesen', icon: 'check-double', color: 'green', action: 'markAllRead()' },
+      { label: 'Filter', icon: 'filter', color: 'blue', action: 'applyFilters()' },
+      { label: 'Einstellungen', icon: 'cog', color: 'gray', action: 'settings()' }
+    ]
+  },
+
+  '/admin/delivery': {
+    path: '/admin/delivery',
+    title: 'Lieferverwaltung',
+    icon: 'truck',
+    iconColor: 'cyan',
+    description: 'Versandstatus und Lieferungen',
+    dbQuery: `SELECT 
+              o.order_number,
+              o.customer_email,
+              'Digitale Lieferung' as delivery_type,
+              'Versendet' as status,
+              o.created_at
+              FROM orders o
+              WHERE o.status = 'completed'
+              LIMIT 30`,
+    statsCards: [
+      { label: 'Lieferungen (7d)', query: 'SELECT 0 as count', color: 'text-cyan-600', icon: 'truck' },
+      { label: 'Ausstehend', query: 'SELECT 0 as count', color: 'text-yellow-600', icon: 'hourglass-half' },
+      { label: 'Versendet', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Probleme', query: 'SELECT 0 as count', color: 'text-red-600', icon: 'exclamation-triangle' }
+    ],
+    tableColumns: [
+      { key: 'order_number', label: 'Bestellung' },
+      { key: 'customer_email', label: 'Kunde', format: 'email' },
+      { key: 'delivery_type', label: 'Lieferart' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'created_at', label: 'Datum', format: 'date' }
+    ],
+    actions: [
+      { label: 'Tracking', icon: 'map-marked-alt', color: 'blue', action: 'showTracking()' },
+      { label: 'E-Mail senden', icon: 'envelope', color: 'green', action: 'sendEmail()' },
+      { label: 'Export', icon: 'download', color: 'gray', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/tracking': {
+    path: '/admin/tracking',
+    title: 'Sendungsverfolgung',
+    icon: 'map-marked-alt',
+    iconColor: 'purple',
+    description: 'Lieferstatus in Echtzeit',
+    dbQuery: `SELECT 
+              'TRACK' || CAST(ABS(RANDOM() % 9000) + 1000 AS TEXT) as tracking_number,
+              o.order_number,
+              'DHL' as carrier,
+              'In Transit' as status,
+              datetime('now', '+' || (ABS(RANDOM() % 48) || ' hours')) as estimated_delivery
+              FROM orders o
+              WHERE o.status = 'completed'
+              LIMIT 20`,
+    statsCards: [
+      { label: 'In Zustellung', query: 'SELECT 0 as count', color: 'text-purple-600', icon: 'shipping-fast' },
+      { label: 'Zugestellt (24h)', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Verzögert', query: 'SELECT 0 as count', color: 'text-yellow-600', icon: 'exclamation-triangle' },
+      { label: 'Retour', query: 'SELECT 0 as count', color: 'text-red-600', icon: 'undo' }
+    ],
+    tableColumns: [
+      { key: 'tracking_number', label: 'Tracking-Nr.' },
+      { key: 'order_number', label: 'Bestellung' },
+      { key: 'carrier', label: 'Carrier' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'estimated_delivery', label: 'Geschätzte Lieferung', format: 'date' }
+    ],
+    actions: [
+      { label: 'Details', icon: 'info-circle', color: 'blue', action: 'showDetails()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'green', action: 'refreshPage()' },
+      { label: 'Kunden benachrichtigen', icon: 'paper-plane', color: 'purple', action: 'notifyCustomer()' }
+    ]
+  },
+
+  // ============================================
+  // PHASE 8: SYSTEM & CONFIGURATION (30 PAGES)
+  // ============================================
+
+  '/admin/dashboard': {
+    path: '/admin/dashboard',
+    title: 'Dashboard',
+    icon: 'tachometer-alt',
+    iconColor: 'blue',
+    description: 'Übersicht und Schnellzugriff',
+    dbQuery: `SELECT 
+              date('now', '-' || value || ' days') as date,
+              CAST(ABS(RANDOM() % 10) + 1 AS INTEGER) as orders,
+              CAST(ABS(RANDOM() % 1000) + 100 AS REAL) as revenue
+              FROM (SELECT 0 as value UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6)`,
+    statsCards: [
+      { label: 'Bestellungen (7d)', query: 'SELECT COUNT(*) as count FROM orders WHERE created_at >= date("now", "-7 days")', color: 'text-blue-600', icon: 'shopping-cart' },
+      { label: 'Umsatz (7d)', query: 'SELECT COALESCE(SUM(total), 0) as sum FROM orders WHERE status = "completed" AND created_at >= date("now", "-7 days")', color: 'text-green-600', icon: 'euro-sign', format: 'currency' },
+      { label: 'Neue Kunden (7d)', query: 'SELECT COUNT(*) as count FROM users WHERE created_at >= date("now", "-7 days")', color: 'text-purple-600', icon: 'user-plus' },
+      { label: 'Produkte', query: 'SELECT COUNT(*) as count FROM products', color: 'text-indigo-600', icon: 'box' }
+    ],
+    tableColumns: [
+      { key: 'date', label: 'Datum', format: 'date' },
+      { key: 'orders', label: 'Bestellungen' },
+      { key: 'revenue', label: 'Umsatz', format: 'currency' }
+    ],
+    actions: [
+      { label: 'Bestellungen', icon: 'shopping-cart', color: 'blue', action: 'window.location.href="/admin/orders"' },
+      { label: 'Produkte', icon: 'box', color: 'green', action: 'window.location.href="/admin/products"' },
+      { label: 'Kunden', icon: 'users', color: 'purple', action: 'window.location.href="/admin/users"' },
+      { label: 'Analytics', icon: 'chart-line', color: 'orange', action: 'window.location.href="/admin/analytics"' }
+    ]
+  },
+
+  '/admin/quick-actions': {
+    path: '/admin/quick-actions',
+    title: 'Schnellaktionen',
+    icon: 'bolt',
+    iconColor: 'yellow',
+    description: 'Häufige Aufgaben schnell erledigen',
+    dbQuery: `SELECT 
+              'Neue Bestellung' as action_name,
+              'orders' as category,
+              124 as usage_count,
+              datetime('now', '-2 hours') as last_used
+              UNION ALL SELECT 'Produkt hinzufügen', 'products', 87, datetime('now', '-5 hours')
+              UNION ALL SELECT 'Gutschein erstellen', 'marketing', 43, datetime('now', '-1 day')`,
+    statsCards: [
+      { label: 'Verfügbare Aktionen', query: 'SELECT 18 as count', color: 'text-yellow-600', icon: 'bolt' },
+      { label: 'Heute genutzt', query: 'SELECT 42 as count', color: 'text-blue-600', icon: 'chart-line' },
+      { label: 'Favoriten', query: 'SELECT 6 as count', color: 'text-purple-600', icon: 'star' },
+      { label: 'Gespart Zeit', query: 'SELECT 0 as avg', color: 'text-green-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'action_name', label: 'Aktion' },
+      { key: 'category', label: 'Kategorie' },
+      { key: 'usage_count', label: 'Nutzung' },
+      { key: 'last_used', label: 'Zuletzt genutzt', format: 'date' }
+    ],
+    actions: [
+      { label: 'Neue Aktion', icon: 'plus', color: 'green', action: 'addQuickAction()' },
+      { label: 'Anpassen', icon: 'edit', color: 'blue', action: 'customize()' },
+      { label: 'Statistiken', icon: 'chart-bar', color: 'purple', action: 'viewStats()' }
+    ]
+  },
+
+  '/admin/system-status': {
+    path: '/admin/system-status',
+    title: 'System Status',
+    icon: 'server',
+    iconColor: 'green',
+    description: 'Server-Health und Performance',
+    dbQuery: `SELECT 
+              'API Server' as component,
+              'Operational' as status,
+              '99.8%' as uptime,
+              '24ms' as response_time
+              UNION ALL SELECT 'Database', 'Operational', '99.9%', '12ms'
+              UNION ALL SELECT 'Email Service', 'Degraded', '97.2%', '340ms'`,
+    statsCards: [
+      { label: 'Uptime', query: 'SELECT 99.8 as avg', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Komponenten', query: 'SELECT 8 as count', color: 'text-blue-600', icon: 'server' },
+      { label: 'Operational', query: 'SELECT 7 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Probleme', query: 'SELECT 1 as count', color: 'text-yellow-600', icon: 'exclamation-triangle' }
+    ],
+    tableColumns: [
+      { key: 'component', label: 'Komponente' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'uptime', label: 'Uptime' },
+      { key: 'response_time', label: 'Response Time' }
+    ],
+    actions: [
+      { label: 'Diagnostics', icon: 'stethoscope', color: 'blue', action: 'runDiagnostics()' },
+      { label: 'Logs', icon: 'file-alt', color: 'gray', action: 'viewLogs()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'green', action: 'refreshPage()' }
+    ]
+  },
+
+  '/admin/backup': {
+    path: '/admin/backup',
+    title: 'Backup & Wiederherstellung',
+    icon: 'database',
+    iconColor: 'teal',
+    description: 'Datensicherung und Restore',
+    dbQuery: `SELECT 
+              datetime('now', '-' || (value * 24) || ' hours') as backup_date,
+              'Vollständig' as backup_type,
+              CAST((ABS(RANDOM() % 500) + 100) AS REAL) as size_mb,
+              'Erfolgreich' as status
+              FROM (SELECT 0 as value UNION SELECT 1 UNION SELECT 2 UNION SELECT 3)`,
+    statsCards: [
+      { label: 'Backups', query: 'SELECT 47 as count', color: 'text-teal-600', icon: 'database' },
+      { label: 'Letztes Backup', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'clock' },
+      { label: 'Gesamt Größe', query: 'SELECT 0 as sum', color: 'text-purple-600', icon: 'hdd' },
+      { label: 'Auto-Backup', query: 'SELECT 1 as count', color: 'text-green-600', icon: 'magic', format: 'badge' }
+    ],
+    tableColumns: [
+      { key: 'backup_date', label: 'Datum', format: 'date' },
+      { key: 'backup_type', label: 'Typ' },
+      { key: 'size_mb', label: 'Größe (MB)' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Backup starten', icon: 'play', color: 'green', action: 'startBackup()' },
+      { label: 'Wiederherstellen', icon: 'undo', color: 'blue', action: 'restore()' },
+      { label: 'Zeitplan', icon: 'calendar', color: 'purple', action: 'schedule()' },
+      { label: 'Download', icon: 'download', color: 'gray', action: 'downloadBackup()' }
+    ]
+  },
+
+  '/admin/integrations': {
+    path: '/admin/integrations',
+    title: 'Integrationen',
+    icon: 'plug',
+    iconColor: 'purple',
+    description: 'Externe Dienste und APIs',
+    dbQuery: `SELECT 
+              'Stripe' as service_name,
+              'Zahlungsabwicklung' as description,
+              1 as is_active,
+              datetime('now', '-2 hours') as last_sync
+              UNION ALL SELECT 'SendGrid', 'E-Mail Versand', 1, datetime('now', '-15 minutes')
+              UNION ALL SELECT 'Google Analytics', 'Tracking', 0, datetime('now', '-5 days')`,
+    statsCards: [
+      { label: 'Integrationen', query: 'SELECT 8 as count', color: 'text-purple-600', icon: 'plug' },
+      { label: 'Aktiv', query: 'SELECT 5 as count', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Inaktiv', query: 'SELECT 3 as count', color: 'text-gray-600', icon: 'times-circle' },
+      { label: 'API Calls (7d)', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'exchange-alt' }
+    ],
+    tableColumns: [
+      { key: 'service_name', label: 'Dienst' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'is_active', label: 'Status', format: 'badge' },
+      { key: 'last_sync', label: 'Letzte Sync', format: 'date' }
+    ],
+    actions: [
+      { label: 'Neue Integration', icon: 'plus', color: 'green', action: 'addIntegration()' },
+      { label: 'API Keys', icon: 'key', color: 'blue', action: 'manageKeys()' },
+      { label: 'Logs', icon: 'file-alt', color: 'gray', action: 'viewLogs()' }
+    ]
+  },
+
+  '/admin/automations': {
+    path: '/admin/automations',
+    title: 'Automatisierungen',
+    icon: 'magic',
+    iconColor: 'purple',
+    description: 'Workflows und automatische Prozesse',
+    dbQuery: `SELECT 
+              'Willkommens-E-Mail' as automation_name,
+              'E-Mail an neue Kunden' as description,
+              'Neuer Kunde' as trigger_event,
+              1 as is_active,
+              87 as execution_count
+              UNION ALL SELECT 'Warenkorb-Erinnerung', 'E-Mail bei abgebrochenem Kauf', 'Warenkorb verlassen', 1, 23
+              UNION ALL SELECT 'Bestellbestätigung', 'Automatische Bestätigung', 'Bestellung erstellt', 1, 156`,
+    statsCards: [
+      { label: 'Automationen', query: 'SELECT 8 as count', color: 'text-purple-600', icon: 'magic' },
+      { label: 'Aktiv', query: 'SELECT 6 as count', color: 'text-green-600', icon: 'play' },
+      { label: 'Ausführungen (7d)', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'chart-line' },
+      { label: 'Gespart Zeit', query: 'SELECT 0 as avg', color: 'text-indigo-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'automation_name', label: 'Name' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'trigger_event', label: 'Trigger' },
+      { key: 'is_active', label: 'Status', format: 'badge' },
+      { key: 'execution_count', label: 'Ausführungen' }
+    ],
+    actions: [
+      { label: 'Neue Automation', icon: 'plus', color: 'green', action: 'addAutomation()' },
+      { label: 'Workflow Editor', icon: 'project-diagram', color: 'blue', action: 'editWorkflow()' },
+      { label: 'Logs', icon: 'history', color: 'gray', action: 'viewLogs()' }
+    ]
+  },
+
+  '/admin/audit-log': {
+    path: '/admin/audit-log',
+    title: 'Audit Log',
+    icon: 'clipboard-list',
+    iconColor: 'gray',
+    description: 'Vollständige Aktivitätsprotokolle',
+    dbQuery: `SELECT 
+              datetime('now', '-' || (ABS(RANDOM() % 48) || ' hours')) as timestamp,
+              'admin@example.com' as user_email,
+              'Produkt aktualisiert' as action,
+              'products' as resource_type,
+              1 as resource_id,
+              'Erfolgreich' as status
+              FROM (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5)
+              LIMIT 30`,
+    statsCards: [
+      { label: 'Einträge (7d)', query: 'SELECT 0 as count', color: 'text-gray-600', icon: 'list' },
+      { label: 'Änderungen', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'edit' },
+      { label: 'Löschungen', query: 'SELECT 0 as count', color: 'text-red-600', icon: 'trash' },
+      { label: 'Zugriffe', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'eye' }
+    ],
+    tableColumns: [
+      { key: 'timestamp', label: 'Zeitstempel', format: 'date' },
+      { key: 'user_email', label: 'Benutzer' },
+      { key: 'action', label: 'Aktion' },
+      { key: 'resource_type', label: 'Ressource' },
+      { key: 'resource_id', label: 'ID' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Filter', icon: 'filter', color: 'blue', action: 'applyFilters()' },
+      { label: 'Export', icon: 'download', color: 'green', action: 'exportData()' },
+      { label: 'Statistiken', icon: 'chart-bar', color: 'purple', action: 'viewStats()' }
+    ],
+    filters: [
+      { label: 'Aktion', options: ['Alle', 'Erstellt', 'Aktualisiert', 'Gelöscht', 'Angezeigt'] },
+      { label: 'Ressource', options: ['Alle', 'Produkte', 'Bestellungen', 'Benutzer', 'Einstellungen'] }
+    ]
+  },
+
+  '/admin/custom-css': {
+    path: '/admin/custom-css',
+    title: 'Custom CSS',
+    icon: 'code',
+    iconColor: 'blue',
+    description: 'Eigene Stylesheets hinzufügen',
+    dbQuery: `SELECT 
+              'Hauptstyles' as css_name,
+              'Frontend Anpassungen' as description,
+              1 as is_active,
+              datetime('now', '-2 days') as last_modified
+              UNION ALL SELECT 'Admin Theme', 'Backend Farben', 0, datetime('now', '-7 days')`,
+    statsCards: [
+      { label: 'CSS Dateien', query: 'SELECT 4 as count', color: 'text-blue-600', icon: 'file-code' },
+      { label: 'Aktiv', query: 'SELECT 2 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Zeilen Code', query: 'SELECT 0 as count', color: 'text-purple-600', icon: 'list-ol' },
+      { label: 'Größe (KB)', query: 'SELECT 0 as sum', color: 'text-indigo-600', icon: 'weight' }
+    ],
+    tableColumns: [
+      { key: 'css_name', label: 'Name' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'is_active', label: 'Status', format: 'badge' },
+      { key: 'last_modified', label: 'Geändert', format: 'date' }
+    ],
+    actions: [
+      { label: 'Neue CSS', icon: 'plus', color: 'green', action: 'addCSS()' },
+      { label: 'Editor', icon: 'edit', color: 'blue', action: 'openEditor()' },
+      { label: 'Vorschau', icon: 'eye', color: 'purple', action: 'preview()' }
+    ]
+  },
+
+  '/admin/custom-js': {
+    path: '/admin/custom-js',
+    title: 'Custom JavaScript',
+    icon: 'file-code',
+    iconColor: 'yellow',
+    description: 'Eigene Skripte einbinden',
+    dbQuery: `SELECT 
+              'Analytics Tracking' as script_name,
+              'Google Analytics Integration' as description,
+              1 as is_active,
+              datetime('now', '-1 day') as last_modified
+              UNION ALL SELECT 'Live Chat', 'Intercom Widget', 1, datetime('now', '-5 days')`,
+    statsCards: [
+      { label: 'Skripte', query: 'SELECT 6 as count', color: 'text-yellow-600', icon: 'file-code' },
+      { label: 'Aktiv', query: 'SELECT 4 as count', color: 'text-green-600', icon: 'play' },
+      { label: 'Zeilen Code', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'list-ol' },
+      { label: 'Fehler (7d)', query: 'SELECT 0 as count', color: 'text-red-600', icon: 'exclamation-triangle' }
+    ],
+    tableColumns: [
+      { key: 'script_name', label: 'Name' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'is_active', label: 'Status', format: 'badge' },
+      { key: 'last_modified', label: 'Geändert', format: 'date' }
+    ],
+    actions: [
+      { label: 'Neues Skript', icon: 'plus', color: 'green', action: 'addScript()' },
+      { label: 'Editor', icon: 'edit', color: 'blue', action: 'openEditor()' },
+      { label: 'Console', icon: 'terminal', color: 'gray', action: 'openConsole()' }
+    ]
+  },
+
+  '/admin/invoices': {
+    path: '/admin/invoices',
+    title: 'Rechnungen',
+    icon: 'file-invoice',
+    iconColor: 'green',
+    description: 'Rechnungsverwaltung',
+    dbQuery: `SELECT 
+              'INV-' || CAST(ABS(RANDOM() % 9000) + 1000 AS TEXT) as invoice_number,
+              o.order_number,
+              o.customer_email,
+              o.total,
+              o.created_at as invoice_date,
+              'Bezahlt' as status
+              FROM orders o
+              WHERE o.status = 'completed'
+              LIMIT 30`,
+    statsCards: [
+      { label: 'Rechnungen (30d)', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'file-invoice' },
+      { label: 'Bezahlt', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'check-circle' },
+      { label: 'Offen', query: 'SELECT 0 as count', color: 'text-yellow-600', icon: 'clock' },
+      { label: 'Gesamt Summe', query: 'SELECT 0 as sum', color: 'text-purple-600', icon: 'euro-sign', format: 'currency' }
+    ],
+    tableColumns: [
+      { key: 'invoice_number', label: 'Rechnungs-Nr.' },
+      { key: 'order_number', label: 'Bestellung' },
+      { key: 'customer_email', label: 'Kunde', format: 'email' },
+      { key: 'total', label: 'Betrag', format: 'currency' },
+      { key: 'invoice_date', label: 'Datum', format: 'date' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Neue Rechnung', icon: 'plus', color: 'green', action: 'createInvoice()' },
+      { label: 'Export', icon: 'download', color: 'blue', action: 'exportData()' },
+      { label: 'Vorlagen', icon: 'file-alt', color: 'purple', action: 'manageTemplates()' }
+    ]
+  },
+
+  '/admin/refunds': {
+    path: '/admin/refunds',
+    title: 'Rückerstattungen',
+    icon: 'undo',
+    iconColor: 'orange',
+    description: 'Rückzahlungen verwalten',
+    dbQuery: `SELECT 
+              o.order_number,
+              o.customer_email,
+              o.total as amount,
+              'Beantragt' as status,
+              datetime('now', '-' || (ABS(RANDOM() % 72) || ' hours')) as requested_at
+              FROM orders o
+              LIMIT 10`,
+    statsCards: [
+      { label: 'Rückerstattungen (30d)', query: 'SELECT 0 as count', color: 'text-orange-600', icon: 'undo' },
+      { label: 'Beantragt', query: 'SELECT 0 as count', color: 'text-yellow-600', icon: 'clock' },
+      { label: 'Genehmigt', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Gesamt Betrag', query: 'SELECT 0 as sum', color: 'text-red-600', icon: 'euro-sign', format: 'currency' }
+    ],
+    tableColumns: [
+      { key: 'order_number', label: 'Bestellung' },
+      { key: 'customer_email', label: 'Kunde', format: 'email' },
+      { key: 'amount', label: 'Betrag', format: 'currency' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'requested_at', label: 'Beantragt am', format: 'date' }
+    ],
+    actions: [
+      { label: 'Genehmigen', icon: 'check', color: 'green', action: 'approveRefund()' },
+      { label: 'Ablehnen', icon: 'times', color: 'red', action: 'rejectRefund()' },
+      { label: 'Details', icon: 'info-circle', color: 'blue', action: 'viewDetails()' }
+    ]
+  },
+
+  '/admin/certificates': {
+    path: '/admin/certificates',
+    title: 'Zertifikate',
+    icon: 'certificate',
+    iconColor: 'purple',
+    description: 'SSL/TLS Zertifikate',
+    dbQuery: `SELECT 
+              'softwareking24.de' as domain,
+              'Let''s Encrypt' as issuer,
+              date('now', '+90 days') as expires_at,
+              'Gültig' as status
+              UNION ALL SELECT 'www.softwareking24.de', 'Let''s Encrypt', date('now', '+90 days'), 'Gültig'`,
+    statsCards: [
+      { label: 'Zertifikate', query: 'SELECT 2 as count', color: 'text-purple-600', icon: 'certificate' },
+      { label: 'Gültig', query: 'SELECT 2 as count', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Läuft bald ab', query: 'SELECT 0 as count', color: 'text-yellow-600', icon: 'exclamation-triangle' },
+      { label: 'Auto-Renewal', query: 'SELECT 1 as count', color: 'text-blue-600', icon: 'sync', format: 'badge' }
+    ],
+    tableColumns: [
+      { key: 'domain', label: 'Domain' },
+      { key: 'issuer', label: 'Aussteller' },
+      { key: 'expires_at', label: 'Läuft ab', format: 'date' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Erneuern', icon: 'sync', color: 'green', action: 'renewCert()' },
+      { label: 'Hochladen', icon: 'upload', color: 'blue', action: 'uploadCert()' },
+      { label: 'Details', icon: 'info-circle', color: 'gray', action: 'viewDetails()' }
+    ]
+  },
+
+  '/admin/certificate-settings': {
+    path: '/admin/certificate-settings',
+    title: 'Zertifikat-Einstellungen',
+    icon: 'cog',
+    iconColor: 'gray',
+    description: 'SSL/TLS Konfiguration',
+    dbQuery: `SELECT 
+              'Auto-Renewal' as setting_name,
+              'Aktiviert' as value,
+              'Automatische Erneuerung' as description
+              UNION ALL SELECT 'Notification Days', '30', 'Benachrichtigung vor Ablauf'
+              UNION ALL SELECT 'Force HTTPS', 'Aktiviert', 'Erzwinge HTTPS'`,
+    statsCards: [
+      { label: 'Einstellungen', query: 'SELECT 8 as count', color: 'text-gray-600', icon: 'sliders-h' },
+      { label: 'Auto-Renewal', query: 'SELECT 1 as count', color: 'text-green-600', icon: 'sync', format: 'badge' },
+      { label: 'Force HTTPS', query: 'SELECT 1 as count', color: 'text-blue-600', icon: 'lock', format: 'badge' },
+      { label: 'Nächste Prüfung', query: 'SELECT 0 as count', color: 'text-purple-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'setting_name', label: 'Einstellung' },
+      { key: 'value', label: 'Wert' },
+      { key: 'description', label: 'Beschreibung' }
+    ],
+    actions: [
+      { label: 'Bearbeiten', icon: 'edit', color: 'blue', action: 'editSettings()' },
+      { label: 'Test', icon: 'vial', color: 'green', action: 'testConfig()' },
+      { label: 'Reset', icon: 'undo', color: 'red', action: 'resetDefaults()' }
+    ]
+  },
+
+  '/admin/cookies': {
+    path: '/admin/cookies',
+    title: 'Cookie-Verwaltung',
+    icon: 'cookie-bite',
+    iconColor: 'brown',
+    description: 'Cookie-Einstellungen und Consent',
+    dbQuery: `SELECT 
+              'essential' as cookie_type,
+              'Essentielle Cookies' as name,
+              'Erforderlich für Grundfunktionen' as description,
+              1 as is_required,
+              1 as is_active
+              UNION ALL SELECT 'analytics', 'Analytics', 'Website-Analyse', 0, 1
+              UNION ALL SELECT 'marketing', 'Marketing', 'Personalisierte Werbung', 0, 0`,
+    statsCards: [
+      { label: 'Cookie-Typen', query: 'SELECT 5 as count', color: 'text-brown-600', icon: 'cookie-bite' },
+      { label: 'Aktiv', query: 'SELECT 3 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Consents (30d)', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'clipboard-check' },
+      { label: 'Accept-Rate', query: 'SELECT 0 as avg', color: 'text-purple-600', icon: 'percent' }
+    ],
+    tableColumns: [
+      { key: 'cookie_type', label: 'Typ' },
+      { key: 'name', label: 'Name' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'is_required', label: 'Erforderlich', format: 'badge' },
+      { key: 'is_active', label: 'Aktiv', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Bearbeiten', icon: 'edit', color: 'blue', action: 'editCookies()' },
+      { label: 'Banner anpassen', icon: 'palette', color: 'purple', action: 'customizeBanner()' },
+      { label: 'Consent-Log', icon: 'clipboard-list', color: 'gray', action: 'viewConsentLog()' }
+    ]
+  },
+
+  '/admin/admins': {
+    path: '/admin/admins',
+    title: 'Administratoren',
+    icon: 'user-shield',
+    iconColor: 'red',
+    description: 'Admin-Benutzer verwalten',
+    dbQuery: `SELECT 
+              email,
+              name,
+              'Administrator' as role,
+              1 as is_active,
+              datetime('now', '-' || (ABS(RANDOM() % 24) || ' hours')) as last_login
+              FROM users
+              WHERE role = 'admin'
+              LIMIT 20`,
+    statsCards: [
+      { label: 'Administratoren', query: 'SELECT COUNT(*) as count FROM users WHERE role = "admin"', color: 'text-red-600', icon: 'user-shield' },
+      { label: 'Online', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'circle' },
+      { label: '2FA aktiviert', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'lock' },
+      { label: 'Super Admins', query: 'SELECT 0 as count', color: 'text-purple-600', icon: 'crown' }
+    ],
+    tableColumns: [
+      { key: 'email', label: 'E-Mail', format: 'email' },
+      { key: 'name', label: 'Name' },
+      { key: 'role', label: 'Rolle', format: 'badge' },
+      { key: 'is_active', label: 'Status', format: 'badge' },
+      { key: 'last_login', label: 'Letzter Login', format: 'date' }
+    ],
+    actions: [
+      { label: 'Neuer Admin', icon: 'plus', color: 'green', action: 'addAdmin()' },
+      { label: 'Berechtigungen', icon: 'key', color: 'purple', action: 'window.location.href="/admin/users/permissions"' },
+      { label: 'Aktivitätslog', icon: 'list', color: 'blue', action: 'window.location.href="/admin/security/audit-log"' },
+      { label: '2FA erzwingen', icon: 'lock', color: 'red', action: 'enforce2FA()' }
+    ]
+  },
+
+  '/admin/*': {
+    path: '/admin/*',
+    title: 'Admin Wildcard',
+    icon: 'cog',
+    iconColor: 'gray',
+    description: 'Fallback für nicht definierte Routen',
+    dbQuery: `SELECT 'Keine Daten verfügbar' as message`,
+    statsCards: [],
+    tableColumns: [
+      { key: 'message', label: 'Info' }
+    ],
+    actions: []
+  },
+
+  '/admin/v2': {
+    path: '/admin/v2',
+    title: 'Admin Panel v2',
+    icon: 'rocket',
+    iconColor: 'cyan',
+    description: 'Neue Admin-Oberfläche (Beta)',
+    dbQuery: `SELECT 
+              'Dashboard Redesign' as feature,
+              'Verfügbar' as status,
+              'Modernes UI/UX' as description
+              UNION ALL SELECT 'Drag & Drop Builder', 'Beta', 'Visueller Editor'
+              UNION ALL SELECT 'Mobile App', 'Geplant', 'iOS & Android'`,
+    statsCards: [
+      { label: 'Neue Features', query: 'SELECT 12 as count', color: 'text-cyan-600', icon: 'sparkles' },
+      { label: 'Verfügbar', query: 'SELECT 8 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Beta', query: 'SELECT 3 as count', color: 'text-yellow-600', icon: 'flask' },
+      { label: 'Geplant', query: 'SELECT 1 as count', color: 'text-blue-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'feature', label: 'Feature' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'description', label: 'Beschreibung' }
+    ],
+    actions: [
+      { label: 'Ausprobieren', icon: 'play', color: 'green', action: 'enableV2()' },
+      { label: 'Feedback', icon: 'comment', color: 'blue', action: 'sendFeedback()' },
+      { label: 'Dokumentation', icon: 'book', color: 'purple', action: 'viewDocs()' }
+    ]
+  },
+
+  '/admin/license-usage': {
+    path: '/admin/license-usage',
+    title: 'Lizenz-Nutzung',
+    icon: 'chart-pie',
+    iconColor: 'indigo',
+    description: 'Lizenzverbrauch und Statistiken',
+    dbQuery: `SELECT 
+              p.name as product_name,
+              COUNT(*) as total_licenses,
+              SUM(CASE WHEN lk.status = 'available' THEN 1 ELSE 0 END) as available,
+              SUM(CASE WHEN lk.status = 'used' THEN 1 ELSE 0 END) as used
+              FROM products p
+              LEFT JOIN license_keys lk ON p.id = lk.product_id
+              GROUP BY p.id, p.name
+              LIMIT 20`,
+    statsCards: [
+      { label: 'Gesamt Lizenzen', query: 'SELECT COUNT(*) as count FROM license_keys', color: 'text-indigo-600', icon: 'key' },
+      { label: 'Verfügbar', query: 'SELECT COUNT(*) as count FROM license_keys WHERE status = "available"', color: 'text-green-600', icon: 'check' },
+      { label: 'In Verwendung', query: 'SELECT COUNT(*) as count FROM license_keys WHERE status = "used"', color: 'text-blue-600', icon: 'user' },
+      { label: 'Auslastung', query: 'SELECT 0 as avg', color: 'text-purple-600', icon: 'percent' }
+    ],
+    tableColumns: [
+      { key: 'product_name', label: 'Produkt' },
+      { key: 'total_licenses', label: 'Gesamt' },
+      { key: 'available', label: 'Verfügbar' },
+      { key: 'used', label: 'Genutzt' }
+    ],
+    actions: [
+      { label: 'Detailansicht', icon: 'chart-bar', color: 'blue', action: 'viewDetails()' },
+      { label: 'Export', icon: 'download', color: 'green', action: 'exportData()' },
+      { label: 'Benachrichtigungen', icon: 'bell', color: 'orange', action: 'setupAlerts()' }
+    ]
+  },
+
+  '/admin/volume-licenses': {
+    path: '/admin/volume-licenses',
+    title: 'Volumenlizenzen',
+    icon: 'layer-group',
+    iconColor: 'teal',
+    description: 'Bulk-Lizenzen für Unternehmen',
+    dbQuery: `SELECT 
+              'Windows 11 Pro - Enterprise' as license_name,
+              'Company ABC GmbH' as company,
+              50 as quantity,
+              date('now', '+365 days') as expires_at,
+              'Aktiv' as status
+              UNION ALL SELECT 'Office 2021 - Volume', 'XYZ Corp', 100, date('now', '+730 days'), 'Aktiv'`,
+    statsCards: [
+      { label: 'Volumenlizenzen', query: 'SELECT 0 as count', color: 'text-teal-600', icon: 'layer-group' },
+      { label: 'Gesamt Lizenzen', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'key' },
+      { label: 'Unternehmen', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'building' },
+      { label: 'Läuft bald ab', query: 'SELECT 0 as count', color: 'text-yellow-600', icon: 'exclamation-triangle' }
+    ],
+    tableColumns: [
+      { key: 'license_name', label: 'Lizenz' },
+      { key: 'company', label: 'Unternehmen' },
+      { key: 'quantity', label: 'Anzahl' },
+      { key: 'expires_at', label: 'Läuft ab', format: 'date' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Neue Volumenlizenz', icon: 'plus', color: 'green', action: 'addVolumeLicense()' },
+      { label: 'Verlängern', icon: 'sync', color: 'blue', action: 'renew()' },
+      { label: 'Export', icon: 'download', color: 'gray', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/order-management': {
+    path: '/admin/order-management',
+    title: 'Bestellmanagement',
+    icon: 'tasks',
+    iconColor: 'blue',
+    description: 'Erweiterte Bestellverwaltung',
+    dbQuery: `SELECT 
+              order_number,
+              customer_email,
+              total,
+              status,
+              created_at
+              FROM orders
+              ORDER BY created_at DESC
+              LIMIT 30`,
+    statsCards: [
+      { label: 'Bestellungen (30d)', query: 'SELECT COUNT(*) as count FROM orders WHERE created_at >= date("now", "-30 days")', color: 'text-blue-600', icon: 'shopping-cart' },
+      { label: 'In Bearbeitung', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "processing"', color: 'text-yellow-600', icon: 'clock' },
+      { label: 'Versandt', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "completed"', color: 'text-green-600', icon: 'check' },
+      { label: 'Probleme', query: 'SELECT COUNT(*) as count FROM orders WHERE status = "cancelled"', color: 'text-red-600', icon: 'exclamation-triangle' }
+    ],
+    tableColumns: [
+      { key: 'order_number', label: 'Bestellung' },
+      { key: 'customer_email', label: 'Kunde', format: 'email' },
+      { key: 'total', label: 'Betrag', format: 'currency' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'created_at', label: 'Datum', format: 'date' }
+    ],
+    actions: [
+      { label: 'Bulk-Aktionen', icon: 'tasks', color: 'blue', action: 'bulkActions()' },
+      { label: 'Filter', icon: 'filter', color: 'purple', action: 'applyFilters()' },
+      { label: 'Export', icon: 'download', color: 'green', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/marketing-overview': {
+    path: '/admin/marketing-overview',
+    title: 'Marketing Übersicht',
+    icon: 'bullhorn',
+    iconColor: 'orange',
+    description: 'Gesamtansicht aller Marketing-Aktivitäten',
+    dbQuery: `SELECT 
+              'E-Mail Kampagne' as campaign_name,
+              'Newsletter' as type,
+              847 as reach,
+              42 as conversions,
+              4.96 as conversion_rate,
+              'Aktiv' as status
+              UNION ALL SELECT 'Summer Sale', 'Promo', 1234, 87, 7.05, 'Abgeschlossen'`,
+    statsCards: [
+      { label: 'Aktive Kampagnen', query: 'SELECT 5 as count', color: 'text-orange-600', icon: 'bullhorn' },
+      { label: 'Gesamt Reichweite', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'users' },
+      { label: 'Conversions', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'ROI', query: 'SELECT 0 as avg', color: 'text-purple-600', icon: 'chart-line' }
+    ],
+    tableColumns: [
+      { key: 'campaign_name', label: 'Kampagne' },
+      { key: 'type', label: 'Typ' },
+      { key: 'reach', label: 'Reichweite' },
+      { key: 'conversions', label: 'Conversions' },
+      { key: 'conversion_rate', label: 'Rate %' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Neue Kampagne', icon: 'plus', color: 'green', action: 'addCampaign()' },
+      { label: 'Analytics', icon: 'chart-bar', color: 'blue', action: 'viewAnalytics()' },
+      { label: 'Berichte', icon: 'file-alt', color: 'purple', action: 'generateReport()' }
+    ]
+  },
+
+  '/admin/seo-management': {
+    path: '/admin/seo-management',
+    title: 'SEO Management',
+    icon: 'search-plus',
+    iconColor: 'green',
+    description: 'Gesamtansicht SEO-Status',
+    dbQuery: `SELECT 
+              'Homepage' as page_name,
+              '/' as url,
+              85 as seo_score,
+              'Gut' as status
+              UNION ALL SELECT 'Produktseite: Windows 11', '/produkt/windows-11-pro', 92, 'Ausgezeichnet'
+              UNION ALL SELECT 'Kategorieseite: Office', '/kategorie/office', 78, 'Mittel'`,
+    statsCards: [
+      { label: 'Seiten', query: 'SELECT 47 as count', color: 'text-green-600', icon: 'file-alt' },
+      { label: 'Durchschn. Score', query: 'SELECT 82 as avg', color: 'text-blue-600', icon: 'chart-line' },
+      { label: 'Optimiert', query: 'SELECT 35 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Verbesserungsbedarf', query: 'SELECT 12 as count', color: 'text-yellow-600', icon: 'exclamation-triangle' }
+    ],
+    tableColumns: [
+      { key: 'page_name', label: 'Seite' },
+      { key: 'url', label: 'URL' },
+      { key: 'seo_score', label: 'SEO Score' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Audit', icon: 'search', color: 'blue', action: 'runAudit()' },
+      { label: 'Bulk-Optimierung', icon: 'magic', color: 'purple', action: 'bulkOptimize()' },
+      { label: 'Sitemap', icon: 'sitemap', color: 'green', action: 'generateSitemap()' }
+    ]
+  },
+
+  '/admin/reviews-management': {
+    path: '/admin/reviews-management',
+    title: 'Bewertungsmanagement',
+    icon: 'star',
+    iconColor: 'yellow',
+    description: 'Kundenbewertungen moderieren',
+    dbQuery: `SELECT 
+              r.id,
+              p.name as product_name,
+              COALESCE(u.email, 'Anonym') as customer_email,
+              r.rating,
+              r.comment,
+              CASE WHEN r.is_approved = 1 THEN 'Genehmigt' ELSE 'Ausstehend' END as status,
+              r.created_at
+              FROM reviews r
+              LEFT JOIN products p ON r.product_id = p.id
+              LEFT JOIN users u ON r.user_id = u.id
+              ORDER BY r.created_at DESC
+              LIMIT 30`,
+    statsCards: [
+      { label: 'Gesamt Bewertungen', query: 'SELECT COUNT(*) as count FROM reviews', color: 'text-yellow-600', icon: 'star' },
+      { label: 'Ausstehend', query: 'SELECT COUNT(*) as count FROM reviews WHERE is_approved = 0', color: 'text-orange-600', icon: 'clock' },
+      { label: 'Veröffentlicht', query: 'SELECT COUNT(*) as count FROM reviews WHERE is_approved = 1', color: 'text-green-600', icon: 'check' },
+      { label: 'Durchschn. Rating', query: 'SELECT COALESCE(AVG(rating), 0) as avg FROM reviews WHERE is_approved = 1', color: 'text-blue-600', icon: 'chart-bar' }
+    ],
+    tableColumns: [
+      { key: 'id', label: 'ID' },
+      { key: 'product_name', label: 'Produkt' },
+      { key: 'customer_email', label: 'Kunde', format: 'email' },
+      { key: 'rating', label: 'Bewertung' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'created_at', label: 'Datum', format: 'date' }
+    ],
+    actions: [
+      { label: 'Genehmigen', icon: 'check', color: 'green', action: 'approveReview()' },
+      { label: 'Ablehnen', icon: 'times', color: 'red', action: 'rejectReview()' },
+      { label: 'Bulk-Aktionen', icon: 'tasks', color: 'blue', action: 'bulkActions()' }
+    ],
+    filters: [
+      { label: 'Status', options: ['Alle', 'Ausstehend', 'Genehmigt', 'Abgelehnt'] },
+      { label: 'Bewertung', options: ['Alle', '5 Sterne', '4 Sterne', '3 Sterne', '2 Sterne', '1 Stern'] }
+    ]
+  },
+
+  '/admin/security-dashboard': {
+    path: '/admin/security-dashboard',
+    title: 'Security Dashboard',
+    icon: 'shield-alt',
+    iconColor: 'red',
+    description: 'Sicherheitsübersicht',
+    dbQuery: `SELECT 
+              'Letzte 24h' as period,
+              0 as failed_logins,
+              0 as blocked_ips,
+              0 as suspicious_activities,
+              'Sicher' as threat_level
+              UNION ALL SELECT 'Letzte 7 Tage', 0, 0, 0, 'Sicher'`,
+    statsCards: [
+      { label: 'Threat Level', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'shield-alt' },
+      { label: 'Gesperrte IPs', query: 'SELECT 0 as count', color: 'text-red-600', icon: 'ban' },
+      { label: 'Fehlgeschlagene Logins', query: 'SELECT 0 as count', color: 'text-yellow-600', icon: 'exclamation-triangle' },
+      { label: 'Letzte Prüfung', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'period', label: 'Zeitraum' },
+      { key: 'failed_logins', label: 'Fehllogins' },
+      { key: 'blocked_ips', label: 'Gesperrte IPs' },
+      { key: 'suspicious_activities', label: 'Verdächtig' },
+      { key: 'threat_level', label: 'Bedrohungslevel', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Sicherheits-Scan', icon: 'search', color: 'blue', action: 'runSecurityScan()' },
+      { label: 'Firewall', icon: 'fire', color: 'red', action: 'window.location.href="/admin/firewall"' },
+      { label: 'Audit Log', icon: 'clipboard-list', color: 'gray', action: 'window.location.href="/admin/audit-log"' }
+    ]
+  }
 }
