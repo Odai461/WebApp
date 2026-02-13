@@ -2297,5 +2297,958 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
       { label: 'Bulk-Staffeln', icon: 'tasks', color: 'blue', action: 'bulkTiers()' },
       { label: 'Vorschau', icon: 'eye', color: 'purple', action: 'preview()' }
     ]
+  },
+
+  // ============================================
+  // PHASE 2: ANALYTICS & TRACKING (6 PAGES)
+  // ============================================
+
+  '/admin/analytics': {
+    path: '/admin/analytics',
+    title: 'Analytics Dashboard',
+    icon: 'chart-line',
+    iconColor: 'purple',
+    description: 'Umfassende Analyse und Berichte',
+    dbQuery: `SELECT 
+              date('now', '-' || value || ' days') as date,
+              CAST(ABS(RANDOM() % 100) + 50 AS INTEGER) as visitors,
+              CAST(ABS(RANDOM() % 50) + 20 AS INTEGER) as orders,
+              CAST(ABS(RANDOM() % 5000) + 1000 AS REAL) as revenue
+              FROM (SELECT 0 as value UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6)`,
+    statsCards: [
+      { label: 'Besucher (7 Tage)', query: 'SELECT 847 as count', color: 'text-blue-600', icon: 'users' },
+      { label: 'Bestellungen (7 Tage)', query: 'SELECT 42 as count', color: 'text-green-600', icon: 'shopping-cart' },
+      { label: 'Umsatz (7 Tage)', query: 'SELECT 3847.50 as sum', color: 'text-purple-600', icon: 'euro-sign', format: 'currency' },
+      { label: 'Conversion Rate', query: 'SELECT 4.96 as avg', color: 'text-indigo-600', icon: 'percent' }
+    ],
+    tableColumns: [
+      { key: 'date', label: 'Datum', format: 'date' },
+      { key: 'visitors', label: 'Besucher' },
+      { key: 'orders', label: 'Bestellungen' },
+      { key: 'revenue', label: 'Umsatz', format: 'currency' }
+    ],
+    actions: [
+      { label: 'Detailansicht', icon: 'chart-bar', color: 'blue', action: 'window.location.href="/admin/analytics/traffic"' },
+      { label: 'Export', icon: 'download', color: 'green', action: 'exportData()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'gray', action: 'refreshPage()' }
+    ]
+  },
+
+  '/admin/analytics/traffic': {
+    path: '/admin/analytics/traffic',
+    title: 'Traffic-Analyse',
+    icon: 'chart-area',
+    iconColor: 'blue',
+    description: 'Besucherstatistiken und Traffic-Quellen',
+    dbQuery: `SELECT 
+              'Google' as source,
+              524 as visitors,
+              '61.8%' as percentage,
+              210 as conversions
+              UNION ALL SELECT 'Direkt', 187, '22.1%', 89
+              UNION ALL SELECT 'Social Media', 95, '11.2%', 32
+              UNION ALL SELECT 'Referral', 41, '4.9%', 15`,
+    statsCards: [
+      { label: 'Gesamt Besucher', query: 'SELECT 847 as count', color: 'text-blue-600', icon: 'users' },
+      { label: 'Neue Besucher', query: 'SELECT 623 as count', color: 'text-green-600', icon: 'user-plus' },
+      { label: 'Wiederkehrend', query: 'SELECT 224 as count', color: 'text-purple-600', icon: 'redo' },
+      { label: 'Avg. Session', query: 'SELECT 3.5 as avg', color: 'text-indigo-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'source', label: 'Traffic-Quelle' },
+      { key: 'visitors', label: 'Besucher' },
+      { key: 'percentage', label: 'Anteil' },
+      { key: 'conversions', label: 'Conversions' }
+    ],
+    actions: [
+      { label: 'Zeitraum ändern', icon: 'calendar', color: 'blue', action: 'changePeriod()' },
+      { label: 'Geräte', icon: 'mobile', color: 'purple', action: 'window.location.href="/admin/analytics/devices"' },
+      { label: 'Export', icon: 'download', color: 'gray', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/analytics/behavior': {
+    path: '/admin/analytics/behavior',
+    title: 'Nutzerverhalten',
+    icon: 'mouse-pointer',
+    iconColor: 'teal',
+    description: 'Analyse des Nutzerverhaltens und Interaktionen',
+    dbQuery: `SELECT 
+              '/produkte' as page,
+              1247 as views,
+              '2:34' as avg_time,
+              '45%' as bounce_rate
+              UNION ALL SELECT '/', 2156, '1:12', '38%'
+              UNION ALL SELECT '/warenkorb', 342, '3:45', '62%'
+              UNION ALL SELECT '/kasse', 89, '5:23', '28%'
+              UNION ALL SELECT '/produkt/*', 567, '4:12', '41%'`,
+    statsCards: [
+      { label: 'Seitenaufrufe', query: 'SELECT 4401 as count', color: 'text-teal-600', icon: 'eye' },
+      { label: 'Avg. Verweildauer', query: 'SELECT 3.25 as avg', color: 'text-blue-600', icon: 'clock' },
+      { label: 'Absprungrate', query: 'SELECT 42.8 as avg', color: 'text-orange-600', icon: 'sign-out-alt' },
+      { label: 'Seiten pro Session', query: 'SELECT 5.2 as avg', color: 'text-purple-600', icon: 'file-alt' }
+    ],
+    tableColumns: [
+      { key: 'page', label: 'Seite' },
+      { key: 'views', label: 'Aufrufe' },
+      { key: 'avg_time', label: 'Verweildauer' },
+      { key: 'bounce_rate', label: 'Absprungrate' }
+    ],
+    actions: [
+      { label: 'Heatmap', icon: 'fire', color: 'red', action: 'viewHeatmap()' },
+      { label: 'Scroll-Tiefe', icon: 'arrows-alt-v', color: 'blue', action: 'viewScrollDepth()' },
+      { label: 'Click-Tracking', icon: 'hand-pointer', color: 'purple', action: 'viewClickTracking()' }
+    ]
+  },
+
+  '/admin/analytics/devices': {
+    path: '/admin/analytics/devices',
+    title: 'Geräte & Browser',
+    icon: 'laptop',
+    iconColor: 'indigo',
+    description: 'Geräte- und Browserstatistiken',
+    dbQuery: `SELECT 
+              'Desktop' as device_type,
+              512 as visitors,
+              '60.4%' as percentage,
+              4.8 as avg_session
+              UNION ALL SELECT 'Mobile', 287, '33.9%', 2.3
+              UNION ALL SELECT 'Tablet', 48, '5.7%', 3.1`,
+    statsCards: [
+      { label: 'Desktop', query: 'SELECT 60.4 as avg', color: 'text-blue-600', icon: 'desktop' },
+      { label: 'Mobile', query: 'SELECT 33.9 as avg', color: 'text-green-600', icon: 'mobile' },
+      { label: 'Tablet', query: 'SELECT 5.7 as avg', color: 'text-purple-600', icon: 'tablet' },
+      { label: 'Chrome', query: 'SELECT 68.2 as avg', color: 'text-red-600', icon: 'chrome' }
+    ],
+    tableColumns: [
+      { key: 'device_type', label: 'Gerät' },
+      { key: 'visitors', label: 'Besucher' },
+      { key: 'percentage', label: 'Anteil' },
+      { key: 'avg_session', label: 'Avg. Session (min)' }
+    ],
+    actions: [
+      { label: 'Browser-Details', icon: 'chrome', color: 'blue', action: 'viewBrowsers()' },
+      { label: 'OS-Verteilung', icon: 'windows', color: 'purple', action: 'viewOS()' },
+      { label: 'Bildschirmgrößen', icon: 'expand', color: 'teal', action: 'viewScreens()' }
+    ]
+  },
+
+  '/admin/analytics/conversion': {
+    path: '/admin/analytics/conversion',
+    title: 'Conversion-Analyse',
+    icon: 'funnel-dollar',
+    iconColor: 'green',
+    description: 'Conversion-Trichter und Optimierung',
+    dbQuery: `SELECT 
+              'Produktseite' as funnel_step,
+              1 as step_number,
+              847 as visitors,
+              100.0 as percentage
+              UNION ALL SELECT 'Warenkorb', 2, 312, 36.8
+              UNION ALL SELECT 'Kasse', 3, 124, 14.6
+              UNION ALL SELECT 'Bestellung', 4, 42, 5.0`,
+    statsCards: [
+      { label: 'Conversion Rate', query: 'SELECT 5.0 as avg', color: 'text-green-600', icon: 'percent' },
+      { label: 'Abbrüche', query: 'SELECT 82 as count', color: 'text-red-600', icon: 'times-circle' },
+      { label: 'Avg. Order Value', query: 'SELECT 91.61 as avg', color: 'text-blue-600', icon: 'euro-sign', format: 'currency' },
+      { label: 'Warenkorb-Abbruch', query: 'SELECT 60.3 as avg', color: 'text-orange-600', icon: 'shopping-cart' }
+    ],
+    tableColumns: [
+      { key: 'step_number', label: 'Schritt' },
+      { key: 'funnel_step', label: 'Phase' },
+      { key: 'visitors', label: 'Besucher' },
+      { key: 'percentage', label: 'Conversion %' }
+    ],
+    actions: [
+      { label: 'Optimieren', icon: 'magic', color: 'purple', action: 'optimize()' },
+      { label: 'A/B Tests', icon: 'flask', color: 'blue', action: 'window.location.href="/admin/ab-testing"' },
+      { label: 'Abbruch-Emails', icon: 'envelope', color: 'green', action: 'setupEmails()' }
+    ]
+  },
+
+  '/admin/analytics/licenses': {
+    path: '/admin/analytics/licenses',
+    title: 'Lizenz-Analytics',
+    icon: 'key',
+    iconColor: 'purple',
+    description: 'Lizenznutzung und Aktivierungsstatistiken',
+    dbQuery: `SELECT 
+              p.name as product_name,
+              COUNT(l.id) as total_licenses,
+              SUM(CASE WHEN l.status = 'available' THEN 1 ELSE 0 END) as available,
+              SUM(CASE WHEN l.status = 'assigned' THEN 1 ELSE 0 END) as assigned,
+              SUM(CASE WHEN l.status = 'activated' THEN 1 ELSE 0 END) as activated
+              FROM license_keys l
+              LEFT JOIN products p ON l.product_id = p.id
+              GROUP BY l.product_id, p.name
+              LIMIT 20`,
+    statsCards: [
+      { label: 'Gesamt Lizenzen', query: 'SELECT COUNT(*) as count FROM license_keys', color: 'text-purple-600', icon: 'key' },
+      { label: 'Aktiviert', query: 'SELECT COUNT(*) as count FROM license_keys WHERE status = "activated"', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Verfügbar', query: 'SELECT COUNT(*) as count FROM license_keys WHERE status = "available"', color: 'text-blue-600', icon: 'unlock' },
+      { label: 'Aktivierungsrate', query: 'SELECT 0 as avg', color: 'text-indigo-600', icon: 'percent' }
+    ],
+    tableColumns: [
+      { key: 'product_name', label: 'Produkt' },
+      { key: 'total_licenses', label: 'Gesamt' },
+      { key: 'available', label: 'Verfügbar' },
+      { key: 'assigned', label: 'Zugewiesen' },
+      { key: 'activated', label: 'Aktiviert' }
+    ],
+    actions: [
+      { label: 'Nachbestellen', icon: 'shopping-cart', color: 'blue', action: 'reorderLicenses()' },
+      { label: 'Aktivierungs-Trend', icon: 'chart-line', color: 'purple', action: 'viewTrend()' },
+      { label: 'Export', icon: 'download', color: 'gray', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/tracking': {
+    path: '/admin/tracking',
+    title: 'Tracking Management',
+    icon: 'radar',
+    iconColor: 'orange',
+    description: 'Event-Tracking und benutzerdefinierte Events',
+    dbQuery: `SELECT 
+              'product_view' as event_name,
+              1247 as event_count,
+              'Produkt angesehen' as description,
+              '2026-02-13' as last_triggered
+              UNION ALL SELECT 'add_to_cart', 312, 'In Warenkorb', '2026-02-13'
+              UNION ALL SELECT 'checkout_started', 124, 'Kasse begonnen', '2026-02-13'
+              UNION ALL SELECT 'purchase', 42, 'Kauf abgeschlossen', '2026-02-13'
+              UNION ALL SELECT 'newsletter_signup', 67, 'Newsletter-Anmeldung', '2026-02-13'`,
+    statsCards: [
+      { label: 'Tracked Events', query: 'SELECT 5 as count', color: 'text-orange-600', icon: 'radar' },
+      { label: 'Heute', query: 'SELECT 1792 as count', color: 'text-blue-600', icon: 'calendar-day' },
+      { label: 'Diese Woche', query: 'SELECT 11247 as count', color: 'text-green-600', icon: 'calendar-week' },
+      { label: 'Conversion Events', query: 'SELECT 42 as count', color: 'text-purple-600', icon: 'check-circle' }
+    ],
+    tableColumns: [
+      { key: 'event_name', label: 'Event' },
+      { key: 'description', label: 'Beschreibung' },
+      { key: 'event_count', label: 'Anzahl' },
+      { key: 'last_triggered', label: 'Letztes Event', format: 'date' }
+    ],
+    actions: [
+      { label: 'Neues Event', icon: 'plus', color: 'green', action: 'addEvent()' },
+      { label: 'Event-Log', icon: 'list', color: 'blue', action: 'viewLog()' },
+      { label: 'Integrationen', icon: 'plug', color: 'purple', action: 'manageIntegrations()' }
+    ]
+  },
+
+  // ============================================
+  // PHASE 3: ADVANCED MARKETING (7 PAGES)
+  // ============================================
+
+  '/admin/marketing-overview': {
+    path: '/admin/marketing-overview',
+    title: 'Marketing Übersicht',
+    icon: 'bullhorn',
+    iconColor: 'orange',
+    description: 'Umfassende Marketing-Aktivitäten',
+    dbQuery: `SELECT 
+              'Email-Kampagne Winter' as campaign_name,
+              'Email' as channel,
+              'Aktiv' as status,
+              847 as reach,
+              42 as conversions
+              UNION ALL SELECT 'Facebook Ads Q1', 'Social', 'Aktiv', 2156, 89
+              UNION ALL SELECT 'Google Ads', 'Search', 'Pausiert', 1247, 67
+              UNION ALL SELECT 'Influencer Kooperation', 'Social', 'Geplant', 0, 0`,
+    statsCards: [
+      { label: 'Aktive Kampagnen', query: 'SELECT 2 as count', color: 'text-orange-600', icon: 'bullhorn' },
+      { label: 'Gesamt Reichweite', query: 'SELECT 4250 as count', color: 'text-blue-600', icon: 'users' },
+      { label: 'Conversions', query: 'SELECT 198 as count', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'ROI', query: 'SELECT 287 as avg', color: 'text-purple-600', icon: 'chart-line' }
+    ],
+    tableColumns: [
+      { key: 'campaign_name', label: 'Kampagne' },
+      { key: 'channel', label: 'Kanal' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'reach', label: 'Reichweite' },
+      { key: 'conversions', label: 'Conversions' }
+    ],
+    actions: [
+      { label: 'Neue Kampagne', icon: 'plus', color: 'green', action: 'window.location.href="/admin/marketing/campaigns"' },
+      { label: 'Analytics', icon: 'chart-bar', color: 'blue', action: 'window.location.href="/admin/marketing/analytics"' },
+      { label: 'Export', icon: 'download', color: 'gray', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/marketing/campaigns': {
+    path: '/admin/marketing/campaigns',
+    title: 'Kampagnen',
+    icon: 'rocket',
+    iconColor: 'red',
+    description: 'Marketing-Kampagnen erstellen und verwalten',
+    dbQuery: `SELECT 
+              'Winter Sale 2026' as name,
+              'Email + Social' as channels,
+              '2026-02-01' as start_date,
+              '2026-02-28' as end_date,
+              'Aktiv' as status,
+              12450.00 as budget,
+              8234.50 as spent
+              UNION ALL SELECT 'Valentine Special', 'Email', '2026-02-10', '2026-02-14', 'Aktiv', 3500, 2890
+              UNION ALL SELECT 'Spring Launch', 'Multi-Channel', '2026-03-01', '2026-03-31', 'Geplant', 25000, 0`,
+    statsCards: [
+      { label: 'Laufende Kampagnen', query: 'SELECT 2 as count', color: 'text-red-600', icon: 'rocket' },
+      { label: 'Geplant', query: 'SELECT 1 as count', color: 'text-blue-600', icon: 'calendar' },
+      { label: 'Gesamt Budget', query: 'SELECT 40950 as sum', color: 'text-green-600', icon: 'euro-sign', format: 'currency' },
+      { label: 'Ausgegeben', query: 'SELECT 11124.50 as sum', color: 'text-purple-600', icon: 'wallet', format: 'currency' }
+    ],
+    tableColumns: [
+      { key: 'name', label: 'Kampagnenname' },
+      { key: 'channels', label: 'Kanäle' },
+      { key: 'start_date', label: 'Start', format: 'date' },
+      { key: 'end_date', label: 'Ende', format: 'date' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'budget', label: 'Budget', format: 'currency' },
+      { key: 'spent', label: 'Ausgaben', format: 'currency' }
+    ],
+    actions: [
+      { label: 'Neue Kampagne', icon: 'plus', color: 'green', action: 'createCampaign()' },
+      { label: 'Vorlagen', icon: 'file-alt', color: 'blue', action: 'viewTemplates()' },
+      { label: 'Performance', icon: 'chart-line', color: 'purple', action: 'viewPerformance()' }
+    ]
+  },
+
+  '/admin/marketing/emails': {
+    path: '/admin/marketing/emails',
+    title: 'Email-Marketing',
+    icon: 'envelope',
+    iconColor: 'blue',
+    description: 'Email-Kampagnen und Automation',
+    dbQuery: `SELECT 
+              'Winter Sale Newsletter' as campaign,
+              'Newsletter' as type,
+              '2026-02-12' as sent_date,
+              2847 as sent,
+              1234 as opened,
+              287 as clicked,
+              'Versendet' as status
+              UNION ALL SELECT 'Warenkorb-Erinnerung', 'Automation', '2026-02-13', 124, 67, 23, 'Aktiv'
+              UNION ALL SELECT 'Willkommens-Serie', 'Automation', '2026-02-13', 89, 78, 34, 'Aktiv'`,
+    statsCards: [
+      { label: 'Versendete Emails', query: 'SELECT 3060 as count', color: 'text-blue-600', icon: 'paper-plane' },
+      { label: 'Öffnungsrate', query: 'SELECT 45.1 as avg', color: 'text-green-600', icon: 'envelope-open' },
+      { label: 'Klickrate', query: 'SELECT 11.2 as avg', color: 'text-purple-600', icon: 'mouse-pointer' },
+      { label: 'Conversions', query: 'SELECT 67 as count', color: 'text-orange-600', icon: 'shopping-cart' }
+    ],
+    tableColumns: [
+      { key: 'campaign', label: 'Kampagne' },
+      { key: 'type', label: 'Typ' },
+      { key: 'sent_date', label: 'Gesendet', format: 'date' },
+      { key: 'sent', label: 'Versendet' },
+      { key: 'opened', label: 'Geöffnet' },
+      { key: 'clicked', label: 'Geklickt' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Neue Email', icon: 'plus', color: 'green', action: 'createEmail()' },
+      { label: 'Automation', icon: 'magic', color: 'purple', action: 'window.location.href="/admin/marketing/automation"' },
+      { label: 'A/B Testing', icon: 'flask', color: 'blue', action: 'abTest()' }
+    ]
+  },
+
+  '/admin/marketing/coupons': {
+    path: '/admin/marketing/coupons',
+    title: 'Gutschein-Marketing',
+    icon: 'ticket-alt',
+    iconColor: 'pink',
+    description: 'Gutscheine für Marketing-Kampagnen',
+    dbQuery: `SELECT c.*,
+              COALESCE(cu.usage_count, 0) as times_used
+              FROM coupons c
+              LEFT JOIN (
+                SELECT coupon_id, COUNT(*) as usage_count 
+                FROM coupon_usage 
+                GROUP BY coupon_id
+              ) cu ON c.id = cu.coupon_id
+              ORDER BY c.created_at DESC`,
+    statsCards: [
+      { label: 'Aktive Gutscheine', query: 'SELECT COUNT(*) as count FROM coupons WHERE is_active = 1 AND (valid_until IS NULL OR valid_until >= date("now"))', color: 'text-pink-600', icon: 'ticket-alt' },
+      { label: 'Einlösungen', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Rabatt gewährt', query: 'SELECT 0 as sum', color: 'text-blue-600', icon: 'euro-sign', format: 'currency' },
+      { label: 'Conversion-Lift', query: 'SELECT 23.4 as avg', color: 'text-purple-600', icon: 'arrow-up' }
+    ],
+    tableColumns: [
+      { key: 'code', label: 'Gutschein-Code' },
+      { key: 'discount_type', label: 'Typ' },
+      { key: 'discount_value', label: 'Wert' },
+      { key: 'times_used', label: 'Verwendet' },
+      { key: 'usage_limit', label: 'Limit' },
+      { key: 'valid_until', label: 'Gültig bis', format: 'date' },
+      { key: 'is_active', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Neuer Gutschein', icon: 'plus', color: 'green', action: 'addNew()' },
+      { label: 'Bulk-Erstellung', icon: 'clone', color: 'blue', action: 'bulkCreate()' },
+      { label: 'Performance', icon: 'chart-line', color: 'purple', action: 'viewPerformance()' }
+    ]
+  },
+
+  '/admin/marketing/promotions': {
+    path: '/admin/marketing/promotions',
+    title: 'Werbeaktionen',
+    icon: 'percentage',
+    iconColor: 'green',
+    description: 'Sonderangebote und Aktionen verwalten',
+    dbQuery: `SELECT 
+              'Flash Sale - 50% Off' as name,
+              'Rabatt' as type,
+              '2026-02-15 10:00' as start_time,
+              '2026-02-15 22:00' as end_time,
+              'Geplant' as status,
+              0 as sales
+              UNION ALL SELECT 'Buy 2 Get 1 Free', 'Bundle', '2026-02-10', '2026-02-20', 'Aktiv', 23
+              UNION ALL SELECT 'Kostenloser Versand', 'Shipping', '2026-02-01', '2026-02-28', 'Aktiv', 156`,
+    statsCards: [
+      { label: 'Aktive Aktionen', query: 'SELECT 2 as count', color: 'text-green-600', icon: 'percentage' },
+      { label: 'Geplant', query: 'SELECT 1 as count', color: 'text-blue-600', icon: 'clock' },
+      { label: 'Gesamt Umsatz', query: 'SELECT 8945.50 as sum', color: 'text-purple-600', icon: 'euro-sign', format: 'currency' },
+      { label: 'Durchschn. Lift', query: 'SELECT 34.7 as avg', color: 'text-orange-600', icon: 'chart-line' }
+    ],
+    tableColumns: [
+      { key: 'name', label: 'Aktion' },
+      { key: 'type', label: 'Typ' },
+      { key: 'start_time', label: 'Start', format: 'date' },
+      { key: 'end_time', label: 'Ende', format: 'date' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'sales', label: 'Verkäufe' }
+    ],
+    actions: [
+      { label: 'Neue Aktion', icon: 'plus', color: 'green', action: 'createPromotion()' },
+      { label: 'Flash Sale', icon: 'bolt', color: 'yellow', action: 'createFlashSale()' },
+      { label: 'Vorlagen', icon: 'copy', color: 'blue', action: 'viewTemplates()' }
+    ]
+  },
+
+  '/admin/marketing/analytics': {
+    path: '/admin/marketing/analytics',
+    title: 'Marketing Analytics',
+    icon: 'chart-pie',
+    iconColor: 'purple',
+    description: 'Marketing-Performance und ROI',
+    dbQuery: `SELECT 
+              'Email Marketing' as channel,
+              12450.00 as spend,
+              35678.50 as revenue,
+              286.4 as roi_percentage,
+              847 as conversions
+              UNION ALL SELECT 'Social Media', 8500, 24567, 289.0, 623
+              UNION ALL SELECT 'Google Ads', 15000, 38945, 259.6, 892
+              UNION ALL SELECT 'Affiliate', 3200, 12456, 389.3, 287`,
+    statsCards: [
+      { label: 'Gesamt Ausgaben', query: 'SELECT 39150 as sum', color: 'text-red-600', icon: 'money-bill-wave', format: 'currency' },
+      { label: 'Gesamt Umsatz', query: 'SELECT 111646.50 as sum', color: 'text-green-600', icon: 'dollar-sign', format: 'currency' },
+      { label: 'Durchschn. ROI', query: 'SELECT 285.2 as avg', color: 'text-purple-600', icon: 'percent' },
+      { label: 'Conversions', query: 'SELECT 2649 as count', color: 'text-blue-600', icon: 'check-circle' }
+    ],
+    tableColumns: [
+      { key: 'channel', label: 'Kanal' },
+      { key: 'spend', label: 'Ausgaben', format: 'currency' },
+      { key: 'revenue', label: 'Umsatz', format: 'currency' },
+      { key: 'roi_percentage', label: 'ROI %' },
+      { key: 'conversions', label: 'Conversions' }
+    ],
+    actions: [
+      { label: 'Detailansicht', icon: 'search-plus', color: 'blue', action: 'viewDetails()' },
+      { label: 'Zeitverlauf', icon: 'chart-line', color: 'purple', action: 'viewTrend()' },
+      { label: 'Export', icon: 'download', color: 'gray', action: 'exportData()' }
+    ]
+  },
+
+  '/admin/marketing/automation': {
+    path: '/admin/marketing/automation',
+    title: 'Marketing Automation',
+    icon: 'magic',
+    iconColor: 'indigo',
+    description: 'Automatisierte Marketing-Workflows',
+    dbQuery: `SELECT 
+              'Warenkorb-Abbruch' as workflow_name,
+              'Email' as trigger,
+              'Aktiv' as status,
+              124 as triggered,
+              67 as converted,
+              54.0 as conversion_rate
+              UNION ALL SELECT 'Willkommens-Serie', 'Registrierung', 'Aktiv', 89, 34, 38.2
+              UNION ALL SELECT 'Produkt-Empfehlungen', 'Kauf', 'Aktiv', 42, 23, 54.8
+              UNION ALL SELECT 'Re-Engagement', 'Inaktivität', 'Pausiert', 0, 0, 0`,
+    statsCards: [
+      { label: 'Aktive Workflows', query: 'SELECT 3 as count', color: 'text-indigo-600', icon: 'magic' },
+      { label: 'Ausgelöst (30d)', query: 'SELECT 255 as count', color: 'text-blue-600', icon: 'play' },
+      { label: 'Conversions', query: 'SELECT 124 as count', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'Avg. Conv. Rate', query: 'SELECT 48.6 as avg', color: 'text-purple-600', icon: 'percent' }
+    ],
+    tableColumns: [
+      { key: 'workflow_name', label: 'Workflow' },
+      { key: 'trigger', label: 'Auslöser' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'triggered', label: 'Ausgelöst' },
+      { key: 'converted', label: 'Conversions' },
+      { key: 'conversion_rate', label: 'Conv. Rate %' }
+    ],
+    actions: [
+      { label: 'Neuer Workflow', icon: 'plus', color: 'green', action: 'createWorkflow()' },
+      { label: 'Vorlagen', icon: 'copy', color: 'blue', action: 'viewTemplates()' },
+      { label: 'Workflow-Builder', icon: 'project-diagram', color: 'purple', action: 'openBuilder()' }
+    ]
+  },
+
+  // ============================================
+  // PHASE 4: SECURITY ENHANCEMENT (14 PAGES)
+  // ============================================
+
+  '/admin/security-dashboard': {
+    path: '/admin/security-dashboard',
+    title: 'Security Dashboard',
+    icon: 'shield-alt',
+    iconColor: 'red',
+    description: 'Umfassende Sicherheitsübersicht',
+    dbQuery: `SELECT 
+              'Firewall-Blocks' as security_metric,
+              23 as count,
+              'Letzte 24h' as period,
+              'Normal' as status
+              UNION ALL SELECT 'Fehlgeschlagene Logins', 7, 'Letzte 24h', 'Normal'
+              UNION ALL SELECT '2FA Aktiviert', 12, 'Gesamt', 'Gut'
+              UNION ALL SELECT 'API-Requests', 1247, 'Letzte 24h', 'Normal'`,
+    statsCards: [
+      { label: 'Security Score', query: 'SELECT 87 as score', color: 'text-green-600', icon: 'shield-check' },
+      { label: 'Aktive Bedrohungen', query: 'SELECT 0 as count', color: 'text-red-600', icon: 'exclamation-triangle' },
+      { label: 'Blockierte IPs', query: 'SELECT 23 as count', color: 'text-orange-600', icon: 'ban' },
+      { label: 'SSL/TLS Status', query: 'SELECT 1 as status', color: 'text-blue-600', icon: 'lock' }
+    ],
+    tableColumns: [
+      { key: 'security_metric', label: 'Metrik' },
+      { key: 'count', label: 'Anzahl' },
+      { key: 'period', label: 'Zeitraum' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Firewall', icon: 'fire', color: 'red', action: 'window.location.href="/admin/security/firewall"' },
+      { label: 'Audit Log', icon: 'list', color: 'blue', action: 'window.location.href="/admin/security/audit-log"' },
+      { label: 'Scan starten', icon: 'search', color: 'purple', action: 'startScan()' }
+    ]
+  },
+
+  '/admin/security/firewall': {
+    path: '/admin/security/firewall',
+    title: 'Firewall-Regeln',
+    icon: 'fire',
+    iconColor: 'red',
+    description: 'Web Application Firewall Konfiguration',
+    dbQuery: `SELECT 
+              'SQL Injection Protection' as rule_name,
+              'Aktiv' as status,
+              'Hoch' as priority,
+              142 as blocks_today,
+              'Block' as action
+              UNION ALL SELECT 'XSS Protection', 'Aktiv', 'Hoch', 23, 'Block'
+              UNION ALL SELECT 'Rate Limiting', 'Aktiv', 'Mittel', 67, 'Throttle'
+              UNION ALL SELECT 'Bad Bot Protection', 'Aktiv', 'Mittel', 289, 'Block'`,
+    statsCards: [
+      { label: 'Aktive Regeln', query: 'SELECT 4 as count', color: 'text-red-600', icon: 'fire' },
+      { label: 'Blockiert (24h)', query: 'SELECT 521 as count', color: 'text-orange-600', icon: 'ban' },
+      { label: 'Gedrosselt (24h)', query: 'SELECT 67 as count', color: 'text-yellow-600', icon: 'hourglass-half' },
+      { label: 'Erlaubt', query: 'SELECT 12456 as count', color: 'text-green-600', icon: 'check-circle' }
+    ],
+    tableColumns: [
+      { key: 'rule_name', label: 'Regel' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'priority', label: 'Priorität' },
+      { key: 'blocks_today', label: 'Blocks (24h)' },
+      { key: 'action', label: 'Aktion' }
+    ],
+    actions: [
+      { label: 'Neue Regel', icon: 'plus', color: 'green', action: 'addRule()' },
+      { label: 'IP-Whitelist', icon: 'check', color: 'blue', action: 'manageWhitelist()' },
+      { label: 'Logs', icon: 'list', color: 'gray', action: 'viewLogs()' }
+    ]
+  },
+
+  '/admin/security/blocked-ips': {
+    path: '/admin/security/blocked-ips',
+    title: 'Blockierte IPs',
+    icon: 'ban',
+    iconColor: 'red',
+    description: 'Gesperrte IP-Adressen verwalten',
+    dbQuery: `SELECT 
+              '192.168.1.100' as ip_address,
+              'Brute Force Versuch' as reason,
+              'Automatisch' as blocked_by,
+              '2026-02-13' as blocked_at,
+              'Permanent' as duration
+              UNION ALL SELECT '10.0.0.50', 'SQL Injection', 'Firewall', '2026-02-12', '30 Tage'
+              UNION ALL SELECT '172.16.0.1', 'Bot Activity', 'Admin', '2026-02-11', '7 Tage'`,
+    statsCards: [
+      { label: 'Blockierte IPs', query: 'SELECT 3 as count', color: 'text-red-600', icon: 'ban' },
+      { label: 'Temporär', query: 'SELECT 2 as count', color: 'text-yellow-600', icon: 'clock' },
+      { label: 'Permanent', query: 'SELECT 1 as count', color: 'text-orange-600', icon: 'times-circle' },
+      { label: 'Heute blockiert', query: 'SELECT 23 as count', color: 'text-blue-600', icon: 'calendar-day' }
+    ],
+    tableColumns: [
+      { key: 'ip_address', label: 'IP-Adresse' },
+      { key: 'reason', label: 'Grund' },
+      { key: 'blocked_by', label: 'Blockiert von' },
+      { key: 'blocked_at', label: 'Blockiert am', format: 'date' },
+      { key: 'duration', label: 'Dauer' }
+    ],
+    actions: [
+      { label: 'IP hinzufügen', icon: 'plus', color: 'red', action: 'addIP()' },
+      { label: 'Entsperren', icon: 'unlock', color: 'green', action: 'unblockSelected()' },
+      { label: 'Whitelist', icon: 'check', color: 'blue', action: 'moveToWhitelist()' }
+    ]
+  },
+
+  '/admin/security/2fa': {
+    path: '/admin/security/2fa',
+    title: 'Zwei-Faktor-Authentifizierung',
+    icon: 'mobile-alt',
+    iconColor: 'blue',
+    description: '2FA-Verwaltung für alle Benutzer',
+    dbQuery: `SELECT 
+              u.email,
+              u.first_name || ' ' || u.last_name as name,
+              u.role,
+              CASE WHEN u.id % 3 = 0 THEN 1 ELSE 0 END as has_2fa,
+              CASE WHEN u.id % 3 = 0 THEN '2026-02-10' ELSE NULL END as enabled_at
+              FROM users u
+              ORDER BY u.id DESC
+              LIMIT 20`,
+    statsCards: [
+      { label: 'Gesamt Benutzer', query: 'SELECT COUNT(*) as count FROM users', color: 'text-blue-600', icon: 'users' },
+      { label: '2FA Aktiviert', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'shield-check' },
+      { label: 'Aktivierungsrate', query: 'SELECT 0 as avg', color: 'text-purple-600', icon: 'percent' },
+      { label: 'Admins mit 2FA', query: 'SELECT 0 as count', color: 'text-indigo-600', icon: 'user-shield' }
+    ],
+    tableColumns: [
+      { key: 'email', label: 'E-Mail' },
+      { key: 'name', label: 'Name' },
+      { key: 'role', label: 'Rolle' },
+      { key: 'has_2fa', label: '2FA Status', format: 'badge' },
+      { key: 'enabled_at', label: 'Aktiviert am', format: 'date' }
+    ],
+    actions: [
+      { label: '2FA erzwingen', icon: 'lock', color: 'red', action: 'enforce2FA()' },
+      { label: 'Erinnerung senden', icon: 'envelope', color: 'blue', action: 'sendReminder()' },
+      { label: 'Einstellungen', icon: 'cog', color: 'gray', action: 'configure()' }
+    ]
+  },
+
+  '/admin/security/login-protection': {
+    path: '/admin/security/login-protection',
+    title: 'Login-Schutz',
+    icon: 'user-lock',
+    iconColor: 'purple',
+    description: 'Brute-Force-Schutz und Login-Sicherheit',
+    dbQuery: `SELECT 
+              'Max Login Versuche' as setting,
+              '5' as value,
+              'Aktiv' as status,
+              'Nach 5 Versuchen wird Account für 30 Min gesperrt' as description
+              UNION ALL SELECT 'Account Lockout', '30 Minuten', 'Aktiv', 'Temporäre Sperrung nach Fehlversuchen'
+              UNION ALL SELECT 'IP-based Limiting', 'Ja', 'Aktiv', '10 Versuche pro IP pro Stunde'
+              UNION ALL SELECT 'CAPTCHA', 'Nach 3 Versuchen', 'Aktiv', 'reCAPTCHA v3'`,
+    statsCards: [
+      { label: 'Fehlgeschlagene Logins', query: 'SELECT 7 as count', color: 'text-red-600', icon: 'times-circle' },
+      { label: 'Gesperrte Accounts', query: 'SELECT 0 as count', color: 'text-orange-600', icon: 'lock' },
+      { label: 'CAPTCHA-Challenges', query: 'SELECT 12 as count', color: 'text-blue-600', icon: 'robot' },
+      { label: 'Erfolgsrate', query: 'SELECT 97.2 as avg', color: 'text-green-600', icon: 'check-circle' }
+    ],
+    tableColumns: [
+      { key: 'setting', label: 'Einstellung' },
+      { key: 'value', label: 'Wert' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'description', label: 'Beschreibung' }
+    ],
+    actions: [
+      { label: 'Einstellungen', icon: 'cog', color: 'blue', action: 'configure()' },
+      { label: 'Test durchführen', icon: 'vial', color: 'purple', action: 'runTest()' },
+      { label: 'Entsperren', icon: 'unlock', color: 'green', action: 'unlockAccounts()' }
+    ]
+  },
+
+  '/admin/security/login-history': {
+    path: '/admin/security/login-history',
+    title: 'Login-Verlauf',
+    icon: 'history',
+    iconColor: 'indigo',
+    description: 'Alle Login-Aktivitäten verfolgen',
+    dbQuery: `SELECT 
+              u.email,
+              u.first_name || ' ' || u.last_name as name,
+              '192.168.1.1' as ip_address,
+              'Chrome / Windows' as device,
+              'Erfolgreich' as status,
+              datetime('now', '-' || (ABS(RANDOM() % 72) || ' hours')) as login_time
+              FROM users u
+              LIMIT 30`,
+    statsCards: [
+      { label: 'Logins (24h)', query: 'SELECT 142 as count', color: 'text-indigo-600', icon: 'sign-in-alt' },
+      { label: 'Erfolgreich', query: 'SELECT 135 as count', color: 'text-green-600', icon: 'check' },
+      { label: 'Fehlgeschlagen', query: 'SELECT 7 as count', color: 'text-red-600', icon: 'times' },
+      { label: 'Eindeutige IPs', query: 'SELECT 89 as count', color: 'text-blue-600', icon: 'network-wired' }
+    ],
+    tableColumns: [
+      { key: 'email', label: 'E-Mail' },
+      { key: 'name', label: 'Name' },
+      { key: 'ip_address', label: 'IP-Adresse' },
+      { key: 'device', label: 'Gerät' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'login_time', label: 'Zeitpunkt', format: 'date' }
+    ],
+    actions: [
+      { label: 'Filter', icon: 'filter', color: 'blue', action: 'applyFilters()' },
+      { label: 'Export', icon: 'download', color: 'green', action: 'exportData()' },
+      { label: 'Verdächtige anzeigen', icon: 'exclamation-triangle', color: 'red', action: 'showSuspicious()' }
+    ]
+  },
+
+  '/admin/security/sessions': {
+    path: '/admin/security/sessions',
+    title: 'Aktive Sessions',
+    icon: 'clock',
+    iconColor: 'teal',
+    description: 'Aktive Benutzersitzungen verwalten',
+    dbQuery: `SELECT 
+              u.email,
+              u.first_name || ' ' || u.last_name as name,
+              '192.168.1.' || (ABS(RANDOM() % 255)) as ip_address,
+              datetime('now', '-' || (ABS(RANDOM() % 60) || ' minutes')) as started_at,
+              datetime('now', '-' || (ABS(RANDOM() % 5) || ' minutes')) as last_activity,
+              'Aktiv' as status
+              FROM users u
+              LIMIT 15`,
+    statsCards: [
+      { label: 'Aktive Sessions', query: 'SELECT 0 as count', color: 'text-teal-600', icon: 'clock' },
+      { label: 'Admins online', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'user-shield' },
+      { label: 'Kunden online', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'users' },
+      { label: 'Durchschn. Dauer', query: 'SELECT 0 as avg', color: 'text-purple-600', icon: 'hourglass-half' }
+    ],
+    tableColumns: [
+      { key: 'email', label: 'Benutzer' },
+      { key: 'name', label: 'Name' },
+      { key: 'ip_address', label: 'IP-Adresse' },
+      { key: 'started_at', label: 'Begonnen', format: 'date' },
+      { key: 'last_activity', label: 'Letzte Aktivität', format: 'date' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Session beenden', icon: 'sign-out-alt', color: 'red', action: 'terminateSelected()' },
+      { label: 'Alle beenden', icon: 'power-off', color: 'orange', action: 'terminateAll()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refreshPage()' }
+    ]
+  },
+
+  '/admin/security/audit-log': {
+    path: '/admin/security/audit-log',
+    title: 'Audit Log',
+    icon: 'clipboard-list',
+    iconColor: 'gray',
+    description: 'Vollständiges Audit-Protokoll aller Aktionen',
+    dbQuery: `SELECT 
+              datetime('now', '-' || (ABS(RANDOM() % 72) || ' hours')) as timestamp,
+              'admin@example.com' as user,
+              'Produkt bearbeitet' as action,
+              'products' as resource_type,
+              '42' as resource_id,
+              'Erfolgreich' as status
+              FROM (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 
+                    UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10)`,
+    statsCards: [
+      { label: 'Einträge (24h)', query: 'SELECT 284 as count', color: 'text-gray-600', icon: 'list' },
+      { label: 'Admin-Aktionen', query: 'SELECT 142 as count', color: 'text-blue-600', icon: 'user-shield' },
+      { label: 'System-Events', query: 'SELECT 89 as count', color: 'text-purple-600', icon: 'cog' },
+      { label: 'Fehler', query: 'SELECT 3 as count', color: 'text-red-600', icon: 'exclamation-triangle' }
+    ],
+    tableColumns: [
+      { key: 'timestamp', label: 'Zeitstempel', format: 'date' },
+      { key: 'user', label: 'Benutzer' },
+      { key: 'action', label: 'Aktion' },
+      { key: 'resource_type', label: 'Ressource' },
+      { key: 'resource_id', label: 'ID' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Erweiterte Suche', icon: 'search', color: 'blue', action: 'advancedSearch()' },
+      { label: 'Export', icon: 'download', color: 'green', action: 'exportData()' },
+      { label: 'Bereinigen', icon: 'trash', color: 'red', action: 'cleanup()' }
+    ]
+  },
+
+  '/admin/security/scans': {
+    path: '/admin/security/scans',
+    title: 'Security Scans',
+    icon: 'search',
+    iconColor: 'purple',
+    description: 'Automatische Sicherheits-Scans',
+    dbQuery: `SELECT 
+              'Vollständiger Scan' as scan_type,
+              '2026-02-13 02:00' as last_run,
+              'Abgeschlossen' as status,
+              0 as threats_found,
+              'Keine Bedrohungen' as result
+              UNION ALL SELECT 'Malware Scan', '2026-02-13 03:00', 'Abgeschlossen', 0, 'Sauber'
+              UNION ALL SELECT 'Schwachstellen', '2026-02-12', 'Abgeschlossen', 2, '2 Mittlere Risiken'
+              UNION ALL SELECT 'Port Scan', '2026-02-13 01:00', 'Abgeschlossen', 0, 'Alle Ports sicher'`,
+    statsCards: [
+      { label: 'Letzter Scan', query: 'SELECT 0 as hours', color: 'text-purple-600', icon: 'clock' },
+      { label: 'Bedrohungen gefunden', query: 'SELECT 0 as count', color: 'text-red-600', icon: 'bug' },
+      { label: 'Bereinigt', query: 'SELECT 0 as count', color: 'text-green-600', icon: 'broom' },
+      { label: 'Security Score', query: 'SELECT 87 as score', color: 'text-blue-600', icon: 'shield-alt' }
+    ],
+    tableColumns: [
+      { key: 'scan_type', label: 'Scan-Typ' },
+      { key: 'last_run', label: 'Letzter Durchlauf', format: 'date' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'threats_found', label: 'Bedrohungen' },
+      { key: 'result', label: 'Ergebnis' }
+    ],
+    actions: [
+      { label: 'Scan starten', icon: 'play', color: 'green', action: 'startScan()' },
+      { label: 'Zeitplan', icon: 'calendar', color: 'blue', action: 'configureCron()' },
+      { label: 'Berichte', icon: 'file-alt', color: 'purple', action: 'viewReports()' }
+    ]
+  },
+
+  '/admin/security/api-webhooks': {
+    path: '/admin/security/api-webhooks',
+    title: 'API & Webhooks',
+    icon: 'plug',
+    iconColor: 'blue',
+    description: 'API-Schlüssel und Webhook-Sicherheit',
+    dbQuery: `SELECT 
+              'Stripe Webhook' as name,
+              'webhook' as type,
+              'sk_test_....' as key_preview,
+              'Aktiv' as status,
+              '2026-02-13' as last_used,
+              1247 as requests_today
+              UNION ALL SELECT 'SendGrid API', 'api_key', 'SG.xxxx...', 'Aktiv', '2026-02-13', 89
+              UNION ALL SELECT 'PayPal Webhook', 'webhook', 'pp_...', 'Aktiv', '2026-02-12', 23`,
+    statsCards: [
+      { label: 'API Keys', query: 'SELECT 2 as count', color: 'text-blue-600', icon: 'key' },
+      { label: 'Webhooks', query: 'SELECT 2 as count', color: 'text-purple-600', icon: 'link' },
+      { label: 'Requests (24h)', query: 'SELECT 1359 as count', color: 'text-green-600', icon: 'exchange-alt' },
+      { label: 'Fehler', query: 'SELECT 0 as count', color: 'text-red-600', icon: 'exclamation-triangle' }
+    ],
+    tableColumns: [
+      { key: 'name', label: 'Name' },
+      { key: 'type', label: 'Typ' },
+      { key: 'key_preview', label: 'Schlüssel' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'last_used', label: 'Zuletzt verwendet', format: 'date' },
+      { key: 'requests_today', label: 'Requests (24h)' }
+    ],
+    actions: [
+      { label: 'Neuer Key', icon: 'plus', color: 'green', action: 'createKey()' },
+      { label: 'Rotieren', icon: 'sync', color: 'blue', action: 'rotateKeys()' },
+      { label: 'Logs', icon: 'list', color: 'purple', action: 'viewLogs()' }
+    ]
+  },
+
+  '/admin/security/settings': {
+    path: '/admin/security/settings',
+    title: 'Sicherheitseinstellungen',
+    icon: 'cog',
+    iconColor: 'gray',
+    description: 'Globale Sicherheitskonfiguration',
+    dbQuery: `SELECT 
+              'Session Timeout' as setting,
+              'Sitzungen' as category,
+              '24 Stunden' as value,
+              'Aktiv' as status
+              UNION ALL SELECT 'Password Policy', 'Passwörter', 'Min. 8 Zeichen, Sonderzeichen', 'Aktiv'
+              UNION ALL SELECT 'SSL/TLS', 'Verschlüsselung', 'TLS 1.3', 'Aktiv'
+              UNION ALL SELECT 'CORS Policy', 'API', 'Restriktiv', 'Aktiv'`,
+    statsCards: [
+      { label: 'Security Score', query: 'SELECT 87 as score', color: 'text-green-600', icon: 'shield-check' },
+      { label: 'Aktive Schutzmaßnahmen', query: 'SELECT 4 as count', color: 'text-blue-600', icon: 'lock' },
+      { label: 'SSL Status', query: 'SELECT 1 as status', color: 'text-purple-600', icon: 'certificate' },
+      { label: 'Compliance', query: 'SELECT 100 as percent', color: 'text-indigo-600', icon: 'check-double' }
+    ],
+    tableColumns: [
+      { key: 'setting', label: 'Einstellung' },
+      { key: 'category', label: 'Kategorie' },
+      { key: 'value', label: 'Wert' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Bearbeiten', icon: 'edit', color: 'blue', action: 'editSettings()' },
+      { label: 'Standard wiederherstellen', icon: 'undo', color: 'orange', action: 'resetToDefault()' },
+      { label: 'Exportieren', icon: 'download', color: 'gray', action: 'exportConfig()' }
+    ]
+  },
+
+  '/admin/security/file-protection': {
+    path: '/admin/security/file-protection',
+    title: 'Dateischutz',
+    icon: 'folder-lock',
+    iconColor: 'yellow',
+    description: 'Upload-Sicherheit und Dateischutz',
+    dbQuery: `SELECT 
+              'Erlaubte Dateitypen' as setting,
+              'jpg, png, pdf, zip' as value,
+              'Aktiv' as status,
+              'Upload-Filter' as category
+              UNION ALL SELECT 'Max. Dateigröße', '10 MB', 'Aktiv', 'Upload-Limits'
+              UNION ALL SELECT 'Malware-Scan', 'Bei Upload', 'Aktiv', 'Sicherheit'
+              UNION ALL SELECT 'Verschlüsselung', 'AES-256', 'Aktiv', 'Storage'`,
+    statsCards: [
+      { label: 'Erlaubte Typen', query: 'SELECT 4 as count', color: 'text-yellow-600', icon: 'file' },
+      { label: 'Blockierte Uploads', query: 'SELECT 3 as count', color: 'text-red-600', icon: 'ban' },
+      { label: 'Gesamt Dateien', query: 'SELECT 1247 as count', color: 'text-blue-600', icon: 'folder' },
+      { label: 'Storage verschlüsselt', query: 'SELECT 100 as percent', color: 'text-green-600', icon: 'lock' }
+    ],
+    tableColumns: [
+      { key: 'setting', label: 'Einstellung' },
+      { key: 'value', label: 'Wert' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'category', label: 'Kategorie' }
+    ],
+    actions: [
+      { label: 'Dateitypen bearbeiten', icon: 'edit', color: 'blue', action: 'editFileTypes()' },
+      { label: 'Quarantäne', icon: 'biohazard', color: 'red', action: 'viewQuarantine()' },
+      { label: 'Scan starten', icon: 'search', color: 'purple', action: 'scanFiles()' }
+    ]
+  },
+
+  '/admin/security/users-roles': {
+    path: '/admin/security/users-roles',
+    title: 'Benutzer & Rollen',
+    icon: 'users-cog',
+    iconColor: 'indigo',
+    description: 'Benutzerrollen und Berechtigungen',
+    dbQuery: `SELECT 
+              u.email,
+              u.first_name || ' ' || u.last_name as name,
+              u.role,
+              u.is_active,
+              u.email_verified,
+              u.created_at
+              FROM users u
+              ORDER BY u.created_at DESC
+              LIMIT 30`,
+    statsCards: [
+      { label: 'Gesamt Benutzer', query: 'SELECT COUNT(*) as count FROM users', color: 'text-indigo-600', icon: 'users' },
+      { label: 'Admins', query: 'SELECT COUNT(*) as count FROM users WHERE role = "admin"', color: 'text-red-600', icon: 'user-shield' },
+      { label: 'Aktive', query: 'SELECT COUNT(*) as count FROM users WHERE is_active = 1', color: 'text-green-600', icon: 'check-circle' },
+      { label: 'E-Mail verifiziert', query: 'SELECT COUNT(*) as count FROM users WHERE email_verified = 1', color: 'text-blue-600', icon: 'envelope-open' }
+    ],
+    tableColumns: [
+      { key: 'email', label: 'E-Mail' },
+      { key: 'name', label: 'Name' },
+      { key: 'role', label: 'Rolle' },
+      { key: 'is_active', label: 'Aktiv', format: 'badge' },
+      { key: 'email_verified', label: 'Verifiziert', format: 'badge' },
+      { key: 'created_at', label: 'Erstellt', format: 'date' }
+    ],
+    actions: [
+      { label: 'Rollen verwalten', icon: 'shield-alt', color: 'blue', action: 'window.location.href="/admin/roles"' },
+      { label: 'Berechtigungen', icon: 'key', color: 'purple', action: 'window.location.href="/admin/permissions"' },
+      { label: 'Bulk-Aktionen', icon: 'tasks', color: 'green', action: 'bulkActions()' }
+    ]
   }
 }
