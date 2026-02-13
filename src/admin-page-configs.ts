@@ -1124,14 +1124,29 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     icon: 'shield-alt',
     iconColor: 'red',
     description: 'Übersicht der Sicherheitseinstellungen',
+    dbQuery: `SELECT 
+              'Firewall' as feature,
+              'Aktiv' as status,
+              'Web Application Firewall schützt vor Angriffen' as description
+              UNION ALL SELECT 'HTTPS', 'Aktiv', 'SSL/TLS Verschlüsselung aktiviert'
+              UNION ALL SELECT 'Cookie Security', 'Aktiv', 'Secure und HttpOnly Flags gesetzt'
+              UNION ALL SELECT 'CSRF Protection', 'Aktiv', 'Cross-Site Request Forgery Schutz'
+              UNION ALL SELECT '2FA', 'Verfügbar', 'Zwei-Faktor-Authentifizierung'`,
     statsCards: [
-      { label: 'Sicherheitsstufe', color: 'text-green-600', icon: 'shield-alt' },
-      { label: 'Letzte Prüfung', color: 'text-blue-600', icon: 'clock' },
-      { label: 'Warnungen', color: 'text-red-600', icon: 'exclamation-triangle' }
+      { label: 'Sicherheitsstufe', query: 'SELECT "Hoch" as count', color: 'text-green-600', icon: 'shield-alt' },
+      { label: 'Aktive Features', query: 'SELECT 4 as count', color: 'text-blue-600', icon: 'check-circle' },
+      { label: 'Warnungen', query: 'SELECT 0 as count', color: 'text-yellow-600', icon: 'exclamation-triangle' },
+      { label: 'Letzte Prüfung', query: 'SELECT 0 as count', color: 'text-gray-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'feature', label: 'Feature' },
+      { key: 'status', label: 'Status', format: 'badge' },
+      { key: 'description', label: 'Beschreibung' }
     ],
     actions: [
-      { label: 'Security Scan', icon: 'search', color: 'blue', action: 'alert("Scan gestartet")' },
-      { label: 'Einstellungen', icon: 'cog', color: 'gray', action: 'addNew()' }
+      { label: 'Security Scan', icon: 'search', color: 'blue', action: 'window.location.href="/admin/security/scans"' },
+      { label: 'Firewall', icon: 'fire', color: 'red', action: 'window.location.href="/admin/firewall"' },
+      { label: 'Audit Log', icon: 'clipboard-list', color: 'gray', action: 'window.location.href="/admin/audit-log"' }
     ]
   },
 

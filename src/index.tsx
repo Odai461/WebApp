@@ -16248,6 +16248,7 @@ app.get('/admin/reviews-management', async (c) => {
 // ============================================================================
 
 // PAGE 1: SECURITY OVERVIEW - /admin/security
+/* DISABLED: Hardcoded route replaced with config-based route in admin-page-configs.ts
 app.get('/admin/security', async (c) => {
   const db = c.get('db') as DatabaseHelper
   
@@ -16516,6 +16517,7 @@ app.get('/admin/security', async (c) => {
     return c.html('<h1>Error loading security overview</h1>', 500)
   }
 })
+*/  // End of disabled route - See line 16251
 
 // PAGE 2: LOGIN HISTORY - /admin/security/login-history
 app.get('/admin/security/login-history', async (c) => {
@@ -22166,6 +22168,7 @@ app.get('/admin/users/permissions', async (c) => {
 // ============================================================================
 
 // Page 3: User Activity
+/* DISABLED: Hardcoded route replaced with config-based route in admin-page-configs.ts
 app.get('/admin/users/activity', async (c) => {
   const page = parseInt(c.req.query('page') || '1');
   const limit = 20;
@@ -22379,6 +22382,7 @@ app.get('/admin/users/activity', async (c) => {
     return c.html(`<h1>Fehler</h1><pre>${error.message}</pre>`, 500);
   }
 });
+*/  // End of disabled route - See line 22169
 
 // Page 4: Audit Logs
 app.get('/admin/users/audit', async (c) => {
@@ -22606,6 +22610,7 @@ app.get('/admin/users/audit', async (c) => {
 // ============================================================================
 
 // Page 5: Active Sessions
+/* DISABLED: Hardcoded route replaced with config-based route
 app.get('/admin/users/sessions', async (c) => {
   const page = parseInt(c.req.query('page') || '1');
   const limit = 20;
@@ -22815,6 +22820,7 @@ app.get('/admin/users/sessions', async (c) => {
     return c.html(`<h1>Fehler</h1><pre>${error.message}</pre>`, 500);
   }
 });
+*/  // End of disabled route - See line 22613
 
 // Page 6: Login History
 app.get('/admin/users/login-history', async (c) => {
@@ -23037,6 +23043,7 @@ app.get('/admin/users/login-history', async (c) => {
 });
 
 // Page 7: User Groups
+/* DISABLED: Hardcoded route replaced with config-based route
 app.get('/admin/users/groups', async (c) => {
   try {
     // Get user groups with member counts
@@ -23206,6 +23213,7 @@ app.get('/admin/users/groups', async (c) => {
     return c.html(`<h1>Fehler</h1><pre>${error.message}</pre>`, 500);
   }
 });
+*/  // End of disabled route - See line 23044
 
 // ============================================
 // ORDER STATUS PAGES
