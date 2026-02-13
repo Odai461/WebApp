@@ -27641,6 +27641,14 @@ export default {
 }
 
 // ============================================
+// AUTHENTICATION API ENDPOINTS
+// ============================================
+
+// Mount authentication API routes
+import authAPI from './api/auth-api'
+app.route('/api/auth', authAPI)
+
+// ============================================
 // SYSTEM MONITOR API ENDPOINTS
 // ============================================
 
