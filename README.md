@@ -480,11 +480,20 @@ Decline: 4000 0000 0000 0002
 ## 🌐 Live URLs
 
 ### Sandbox (Development)
-- **Homepage:** https://3000-iiy5dmdkef8bwxqrgjvk8-b237eb32.sandbox.novita.ai
-- **Admin Panel:** https://3000-iiy5dmdkef8bwxqrgjvk8-b237eb32.sandbox.novita.ai/admin
-- **Products:** https://3000-iiy5dmdkef8bwxqrgjvk8-b237eb32.sandbox.novita.ai/produkte
-- **Login:** https://3000-iiy5dmdkef8bwxqrgjvk8-b237eb32.sandbox.novita.ai/login
-- **Register:** https://3000-iiy5dmdkef8bwxqrgjvk8-b237eb32.sandbox.novita.ai/register
+- **Homepage:** https://3000-iajr1uzogojd35ozgn244-ea026bf9.sandbox.novita.ai
+- **Admin Panel:** https://3000-iajr1uzogojd35ozgn244-ea026bf9.sandbox.novita.ai/admin
+- **Products:** https://3000-iajr1uzogojd35ozgn244-ea026bf9.sandbox.novita.ai/produkte
+- **Products API:** https://3000-iajr1uzogojd35ozgn244-ea026bf9.sandbox.novita.ai/api/products
+- **Login:** https://3000-iajr1uzogojd35ozgn244-ea026bf9.sandbox.novita.ai/login
+- **Register:** https://3000-iajr1uzogojd35ozgn244-ea026bf9.sandbox.novita.ai/register
+
+**Latest Updates (2026-02-13):**
+- ✅ Fixed database migrations (added 4 new migrations)
+- ✅ Added missing tables: brands, category_translations, brand_translations  
+- ✅ Added missing product columns: base_price, discount_price, discount_percentage, is_bestseller, is_new, brand_id, category_id
+- ✅ Products API working correctly (8 products available)
+- ✅ Homepage loading successfully
+- ✅ PM2 process manager running (uptime monitoring)
 
 ### Production (After Deployment)
 - Will be: `https://webapp.pages.dev` (or your custom domain)
