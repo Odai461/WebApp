@@ -1,265 +1,223 @@
 /**
  * Global Cart Manager for SoftwareKing24
- * Handles cart operations across all pages
+ * Backend API Integration - Persistent cart storage
  */
 
 class CartManager {
   constructor() {
-    this.VAT_RATE = 0.19;
-    this.cart = this.loadCart();
-    this.initializeCartCounters();
+    this.cart = null;
+    this.sessionId = this.getSessionId();
+    this.initializeCart();
   }
 
-  // Load cart from localStorage
-  loadCart() {
-    try {
-      const savedCart = localStorage.getItem('cart');
-      if (savedCart) {
-        return JSON.parse(savedCart);
-      }
-    } catch (e) {
-      console.error('Error loading cart:', e);
-    }
-    return {
-      items: [],
-      subtotal: 0,
-      vat: 0,
-      total: 0,
-      discount: 0,
-      coupon: null
-    };
-  }
-
-  // Save cart to localStorage
-  saveCart() {
-    try {
-      localStorage.setItem('cart', JSON.stringify(this.cart));
-      this.updateCartCounters();
-    } catch (e) {
-      console.error('Error saving cart:', e);
-    }
-  }
-
-  // Get session ID
+  // Get or create session ID
   getSessionId() {
-    let sessionId = localStorage.getItem('session_id');
+    let sessionId = localStorage.getItem('cart_session_id');
     if (!sessionId) {
-      sessionId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(7);
-      localStorage.setItem('session_id', sessionId);
+      sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+      localStorage.setItem('cart_session_id', sessionId);
     }
     return sessionId;
   }
 
-  // Calculate totals
-  calculateTotals() {
-    this.cart.subtotal = this.cart.items.reduce((sum, item) => {
-      const price = item.product.sale_price || item.product.price;
-      return sum + (price * item.quantity);
-    }, 0);
-
-    // Apply discount
-    if (this.cart.coupon) {
-      this.cart.discount = Math.round((this.cart.subtotal * this.cart.coupon.discount) / 100);
-    } else {
-      this.cart.discount = 0;
+  // Initialize cart from backend
+  async initializeCart() {
+    try {
+      const response = await axios.get('/api/cart', {
+        headers: { 'X-Session-ID': this.sessionId }
+      });
+      
+      if (response.data.success) {
+        this.cart = response.data.cart;
+        this.updateCartCounters();
+      }
+    } catch (error) {
+      console.error('Error loading cart:', error);
+      this.cart = {
+        items: [],
+        subtotal: 0,
+        total: 0,
+        item_count: 0
+      };
     }
-
-    const afterDiscount = this.cart.subtotal - this.cart.discount;
-    this.cart.vat = Math.round(afterDiscount * this.VAT_RATE);
-    this.cart.total = afterDiscount + this.cart.vat;
   }
 
-  // Add product to cart
-  async addToCart(productId, quantity = 1, licenseType = 'single') {
+  // Add product to cart using backend API
+  async addToCart(productId, quantity = 1) {
     try {
-      // Fetch product details using the ID-specific endpoint
-      const response = await axios.get('/api/products/id/' + productId);
+      const response = await axios.post('/api/cart/items', {
+        product_id: productId,
+        quantity: quantity
+      }, {
+        headers: {
+          'X-Session-ID': this.sessionId,
+          'Content-Type': 'application/json'
+        }
+      });
+
       if (!response.data.success) {
-        this.showNotification('Produkt konnte nicht geladen werden', 'error');
+        this.showNotification(response.data.error || 'Fehler beim Hinzufügen zum Warenkorb', 'error');
         return false;
       }
 
-      const product = response.data.data;
-
-      // Check if product already in cart
-      const existingIndex = this.cart.items.findIndex(
-        item => item.product.id === productId && item.licenseType === licenseType
-      );
-
-      if (existingIndex >= 0) {
-        // Update quantity
-        this.cart.items[existingIndex].quantity += quantity;
-      } else {
-        // Add new item
-        this.cart.items.push({
-          product: product,
-          quantity: quantity,
-          licenseType: licenseType
-        });
-      }
-
-      this.calculateTotals();
-      this.saveCart();
+      this.cart = response.data.cart;
+      this.updateCartCounters();
       this.showNotification('Produkt wurde zum Warenkorb hinzugefügt!', 'success');
       return true;
 
     } catch (error) {
       console.error('Error adding to cart:', error);
-      this.showNotification('Fehler beim Hinzufügen zum Warenkorb', 'error');
+      const errorMsg = error.response?.data?.error || 'Fehler beim Hinzufügen zum Warenkorb';
+      this.showNotification(errorMsg, 'error');
       return false;
     }
   }
 
-  // Update quantity
-  updateQuantity(index, newQuantity) {
-    if (newQuantity < 1) {
-      this.removeItem(index);
-      return;
-    }
+  // Update item quantity
+  async updateQuantity(itemId, quantity) {
+    try {
+      const response = await axios.put(`/api/cart/items/${itemId}`, {
+        quantity: quantity
+      }, {
+        headers: {
+          'X-Session-ID': this.sessionId,
+          'Content-Type': 'application/json'
+        }
+      });
 
-    this.cart.items[index].quantity = newQuantity;
-    this.calculateTotals();
-    this.saveCart();
-  }
+      if (!response.data.success) {
+        this.showNotification('Fehler beim Aktualisieren der Menge', 'error');
+        return false;
+      }
 
-  // Remove item
-  removeItem(index) {
-    this.cart.items.splice(index, 1);
-    this.calculateTotals();
-    this.saveCart();
-  }
-
-  // Apply coupon
-  applyCoupon(code) {
-    const validCoupons = {
-      'SAVE10': { code: 'SAVE10', discount: 10 },
-      'SAVE20': { code: 'SAVE20', discount: 20 },
-      'WELCOME': { code: 'WELCOME', discount: 15 }
-    };
-
-    if (validCoupons[code.toUpperCase()]) {
-      this.cart.coupon = validCoupons[code.toUpperCase()];
-      this.calculateTotals();
-      this.saveCart();
+      this.cart = response.data.cart;
+      this.updateCartCounters();
       return true;
+
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      this.showNotification('Fehler beim Aktualisieren der Menge', 'error');
+      return false;
     }
-    return false;
   }
 
-  // Remove coupon
-  removeCoupon() {
-    this.cart.coupon = null;
-    this.cart.discount = 0;
-    this.calculateTotals();
-    this.saveCart();
+  // Remove item from cart
+  async removeItem(itemId) {
+    try {
+      const response = await axios.delete(`/api/cart/items/${itemId}`, {
+        headers: { 'X-Session-ID': this.sessionId }
+      });
+
+      if (!response.data.success) {
+        this.showNotification('Fehler beim Entfernen des Produkts', 'error');
+        return false;
+      }
+
+      this.cart = response.data.cart;
+      this.updateCartCounters();
+      this.showNotification('Produkt wurde entfernt', 'success');
+      return true;
+
+    } catch (error) {
+      console.error('Error removing item:', error);
+      this.showNotification('Fehler beim Entfernen des Produkts', 'error');
+      return false;
+    }
   }
 
-  // Clear cart
-  clearCart() {
-    this.cart = {
-      items: [],
-      subtotal: 0,
-      vat: 0,
-      total: 0,
-      discount: 0,
-      coupon: null
-    };
-    this.saveCart();
+  // Clear entire cart
+  async clearCart() {
+    try {
+      const response = await axios.delete('/api/cart', {
+        headers: { 'X-Session-ID': this.sessionId }
+      });
+
+      if (!response.data.success) {
+        this.showNotification('Fehler beim Leeren des Warenkorbs', 'error');
+        return false;
+      }
+
+      this.cart = response.data.cart;
+      this.updateCartCounters();
+      this.showNotification('Warenkorb wurde geleert', 'success');
+      return true;
+
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      this.showNotification('Fehler beim Leeren des Warenkorbs', 'error');
+      return false;
+    }
   }
 
-  // Get cart item count
-  getItemCount() {
-    return this.cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  // Get current cart
+  async getCart() {
+    try {
+      const response = await axios.get('/api/cart', {
+        headers: { 'X-Session-ID': this.sessionId }
+      });
+      
+      if (response.data.success) {
+        this.cart = response.data.cart;
+        return this.cart;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+      return null;
+    }
   }
 
   // Update cart counters in UI
   updateCartCounters() {
-    const count = this.getItemCount();
-    const elements = document.querySelectorAll('[data-cart-count]');
-    elements.forEach(el => {
-      el.textContent = count;
-      if (count > 0) {
-        el.classList.remove('hidden');
-      }
+    const itemCount = this.cart?.item_count || 0;
+    const countElements = document.querySelectorAll('#cart-count, #cart-badge, .cart-count');
+    countElements.forEach(el => {
+      if (el) el.textContent = itemCount;
     });
-  }
-
-  // Initialize cart counters
-  initializeCartCounters() {
-    this.updateCartCounters();
   }
 
   // Show notification
   showNotification(message, type = 'success') {
     // Remove existing notifications
     const existing = document.querySelectorAll('.cart-notification');
-    existing.forEach(n => n.remove());
+    existing.forEach(el => el.remove());
 
     const notification = document.createElement('div');
-    notification.className = `cart-notification fixed top-20 right-4 px-6 py-4 rounded-lg shadow-2xl text-white z-[9999] animate-slide-in ${
+    notification.className = `cart-notification fixed top-20 right-4 px-6 py-4 rounded-lg shadow-xl text-white z-50 transition-all ${
       type === 'success' ? 'bg-green-500' : 'bg-red-500'
     }`;
-    notification.style.animation = 'slideInRight 0.3s ease-out';
-    
     notification.innerHTML = `
       <div class="flex items-center space-x-3">
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} text-2xl"></i>
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} text-xl"></i>
         <div>
           <p class="font-bold">${type === 'success' ? 'Erfolg!' : 'Fehler'}</p>
           <p class="text-sm">${message}</p>
         </div>
       </div>
     `;
-    
     document.body.appendChild(notification);
     
     setTimeout(() => {
-      notification.style.animation = 'slideOutRight 0.3s ease-out';
+      notification.style.opacity = '0';
       setTimeout(() => notification.remove(), 300);
     }, 3000);
   }
 
-  // Format price
-  static formatPrice(cents) {
-    return (cents / 100).toFixed(2).replace('.', ',') + ' €';
+  // Initialize cart counters on page load
+  initializeCartCounters() {
+    this.updateCartCounters();
   }
 }
 
-// Create global cart manager instance
-window.cartManager = new CartManager();
+// Global cart manager instance
+const cartManager = new CartManager();
 
-// Global helper functions
-window.addToCart = async function(productId, quantity = 1, licenseType = 'single') {
-  return await window.cartManager.addToCart(productId, quantity, licenseType);
-};
+// Legacy function for backward compatibility
+async function addToCart(productId, quantity = 1) {
+  return await cartManager.addToCart(productId, quantity);
+}
 
-window.formatPrice = CartManager.formatPrice;
-
-// Add animation styles
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideInRight {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes slideOutRight {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-  }
-`;
-document.head.appendChild(style);
-
-console.log('✅ CartManager initialized');
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  cartManager.initializeCart();
+});

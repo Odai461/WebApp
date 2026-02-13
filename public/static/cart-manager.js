@@ -1,52 +1,59 @@
-// Enhanced Cart Management - Add this to all pages with Add to Cart buttons
+// Enhanced Cart Management - Backend API Integration
 
-// Add to cart with localStorage
-async function addToCart(productId) {
+// Get or create session ID
+function getSessionId() {
+  let sessionId = localStorage.getItem('cart_session_id');
+  if (!sessionId) {
+    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+    localStorage.setItem('cart_session_id', sessionId);
+  }
+  return sessionId;
+}
+
+// Add to cart using backend API
+async function addToCart(productId, quantity = 1) {
   try {
-    // First, fetch product details
-    const response = await axios.get('/api/products/' + productId);
+    const sessionId = getSessionId();
+    
+    // Call backend API to add item to cart
+    const response = await axios.post('/api/cart/items', {
+      product_id: productId,
+      quantity: quantity
+    }, {
+      headers: {
+        'X-Session-ID': sessionId,
+        'Content-Type': 'application/json'
+      }
+    });
+
     if (!response.data.success) {
-      showNotification('Fehler beim Laden des Produkts', 'error');
+      showNotification('Fehler beim Hinzufügen zum Warenkorb', 'error');
       return;
     }
 
-    const product = response.data.data;
-
-    // Load existing cart from localStorage
-    let cart = JSON.parse(localStorage.getItem('cart') || '{"items":[],"subtotal":0,"vat":0,"total":0,"discount":0,"coupon":null}');
-
-    // Check if product already in cart
-    const existingIndex = cart.items.findIndex(item => item.product.id === productId);
-    
-    if (existingIndex >= 0) {
-      // Increase quantity
-      cart.items[existingIndex].quantity += 1;
-    } else {
-      // Add new item
-      cart.items.push({
-        product: product,
-        quantity: 1,
-        licenseType: 'single'
-      });
-    }
-
-    // Save to localStorage
-    localStorage.setItem('cart', JSON.stringify(cart));
-
-    // Update cart counter in header
-    const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-    const countElements = document.querySelectorAll('#cart-count, #cart-badge');
-    countElements.forEach(el => {
-      if (el) el.textContent = totalItems;
-    });
+    // Update cart counter from API response
+    const cart = response.data.cart;
+    updateCartCounter(cart.item_count);
 
     // Show success notification
     showNotification('Produkt wurde zum Warenkorb hinzugefügt!', 'success');
 
   } catch (error) {
     console.error('Error adding to cart:', error);
-    showNotification('Fehler beim Hinzufügen zum Warenkorb', 'error');
+    if (error.response?.data?.error) {
+      showNotification(error.response.data.error, 'error');
+    } else {
+      showNotification('Fehler beim Hinzufügen zum Warenkorb', 'error');
+    }
   }
+}
+
+// Update cart counter
+function updateCartCounter(itemCount) {
+  const countElements = document.querySelectorAll('#cart-count, #cart-badge, .cart-count');
+  countElements.forEach(el => {
+    if (el) el.textContent = itemCount || 0;
+  });
 }
 
 // Show notification
@@ -69,14 +76,24 @@ function showNotification(message, type = 'success') {
   }, 3000);
 }
 
-// Initialize cart counter on page load
-function initCartCounter() {
-  const cart = JSON.parse(localStorage.getItem('cart') || '{"items":[]}');
-  const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-  const countElements = document.querySelectorAll('#cart-count, #cart-badge');
-  countElements.forEach(el => {
-    if (el) el.textContent = totalItems;
-  });
+// Load cart from backend and initialize counter
+async function initCartCounter() {
+  try {
+    const sessionId = getSessionId();
+    
+    const response = await axios.get('/api/cart', {
+      headers: {
+        'X-Session-ID': sessionId
+      }
+    });
+    
+    if (response.data.success) {
+      updateCartCounter(response.data.cart.item_count);
+    }
+  } catch (error) {
+    console.error('Error loading cart:', error);
+    updateCartCounter(0);
+  }
 }
 
 // Call on page load
