@@ -2884,144 +2884,22 @@ async function requireAdmin(c: any, next: any) {
 app.use('/api/admin/*', requireAuth)
 app.use('/api/admin/*', requireAdmin)
 
-// POST /api/auth/login - User login
-app.post('/api/auth/login', async (c) => {
-  try {
-    const body = await c.req.json()
-    const { email, password } = body
+// POST /api/auth/login - User login (OLD - Replaced by authAPI)
+// app.post('/api/auth/login', async (c) => {
+//   ... (commented out - see src/api/auth-api.ts)
+// })
 
-    if (!email || !password) {
-      return c.json({ 
-        success: false, 
-        error: 'Email and password are required' 
-      }, 400)
-    }
+// POST /api/auth/logout - User logout (OLD - Replaced by authAPI)
+// app.post('/api/auth/logout', requireAuth, async (c) => {
+//   ... (commented out - see src/api/auth-api.ts)
+// })
 
-    // Get user from database
-    const db = c.get('db') as DatabaseHelper
-    const user = await db.db.prepare(`
-      SELECT id, email, password_hash, first_name, last_name, role, status, created_at
-      FROM users 
-      WHERE email = ?
-    `).bind(email.toLowerCase()).first() as any
+/*
+=== OLD AUTH ENDPOINTS - REPLACED BY src/api/auth-api.ts ===
+All endpoints below are commented out as they are now handled by the new AuthService
+*/
 
-    if (!user) {
-      return c.json({ 
-        success: false, 
-        error: 'Invalid email or password' 
-      }, 401)
-    }
-
-    // Check if user is active
-    if (user.status !== 'active') {
-      return c.json({ 
-        success: false, 
-        error: 'Account is deactivated' 
-      }, 403)
-    }
-
-    // Verify password using PBKDF2
-    const isValidPassword = await verifyPassword(password, user.password_hash)
-    if (!isValidPassword) {
-      return c.json({ 
-        success: false, 
-        error: 'Invalid email or password' 
-      }, 401)
-    }
-
-    // Generate JWT token
-    const token = generateToken({
-      id: user.id,
-      email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      role: user.role,
-      is_admin: user.role === 'admin' ? 1 : 0
-    })
-
-    // Log successful login
-    await db.db.prepare(`
-      INSERT INTO login_history (user_id, user_email, status, ip_address, user_agent)
-      VALUES (?, ?, 'success', ?, ?)
-    `).bind(
-      user.id,
-      user.email,
-      c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown',
-      c.req.header('User-Agent') || 'unknown'
-    ).run()
-
-    // Create session
-    const sessionToken = `sess_${Math.random().toString(36).substring(2)}_${Date.now()}`
-    await db.db.prepare(`
-      INSERT INTO user_sessions (user_id, session_token, ip_address, user_agent, is_active, last_activity)
-      VALUES (?, ?, ?, ?, 1, datetime('now'))
-    `).bind(
-      user.id,
-      sessionToken,
-      c.req.header('CF-Connecting-IP') || 'unknown',
-      c.req.header('User-Agent') || 'unknown'
-    ).run()
-
-    return c.json({
-      success: true,
-      data: {
-        token,
-        sessionToken,
-        user: {
-          id: user.id,
-          email: user.email,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          role: user.role
-        }
-      },
-      message: 'Login successful'
-    })
-  } catch (error: any) {
-    console.error('Login error:', error)
-    return c.json({ 
-      success: false, 
-      error: error.message || 'Login failed' 
-    }, 500)
-  }
-})
-
-// POST /api/auth/logout - User logout
-app.post('/api/auth/logout', requireAuth, async (c) => {
-  try {
-    const user = c.get('user')
-    const db = c.get('db') as DatabaseHelper
-
-    // Deactivate all user sessions
-    await db.db.prepare(`
-      UPDATE user_sessions 
-      SET is_active = 0 
-      WHERE user_id = ?
-    `).bind(user.id).run()
-
-    // Log logout
-    await db.db.prepare(`
-      INSERT INTO user_activity_logs (user_id, user_email, action, details, ip_address)
-      VALUES (?, ?, 'logout', 'User logged out', ?)
-    `).bind(
-      user.id,
-      user.email,
-      c.req.header('CF-Connecting-IP') || 'unknown'
-    ).run()
-
-    return c.json({
-      success: true,
-      message: 'Logout successful'
-    })
-  } catch (error: any) {
-    console.error('Logout error:', error)
-    return c.json({ 
-      success: false, 
-      error: error.message || 'Logout failed' 
-    }, 500)
-  }
-})
-
+/*
 // GET /api/auth/me - Get current user info
 app.get('/api/auth/me', requireAuth, async (c) => {
   try {
@@ -3176,6 +3054,7 @@ app.post('/api/auth/change-password', requireAuth, async (c) => {
     }, 500)
   }
 })
+*/
 
 // ============================================
 // API ROUTES: Products
@@ -9003,9 +8882,11 @@ app.get('/api/homepage-sections', async (c) => {
   }
 })
 
-// ============================================
-// API ROUTES: Authentication
-// ============================================
+/*
+============================================
+OLD API ROUTES: Authentication (DUPLICATE - REMOVED)
+============================================
+These routes are commented out as they duplicate src/api/auth-api.ts
 
 app.post('/api/auth/register', async (c) => {
   try {
@@ -9212,6 +9093,7 @@ app.get('/api/auth/me', async (c) => {
     return c.json({ success: false, error: 'Authentication failed' }, 500)
   }
 })
+*/
 
 // ============================================
 // API ROUTES: Orders

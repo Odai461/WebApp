@@ -132,29 +132,23 @@ export class AuthService {
       const user = await this.db.prepare(`
         SELECT id, email, password_hash, first_name, last_name, role, 
                email_verified as is_verified, 
-               0 as two_factor_enabled,
-               0 as login_attempts,
-               NULL as locked_until
+               is_active
         FROM users 
         WHERE email = ?
       `).bind(data.email.toLowerCase()).first() as any
 
       if (!user) {
-        await this.logFailedLogin(data.email, ipAddress, 'user_not_found')
         return { success: false, error: 'Invalid email or password' }
       }
 
-      // Check if account is locked
-      if (user.locked_until && new Date(user.locked_until) > new Date()) {
-        await this.logFailedLogin(data.email, ipAddress, 'account_locked')
-        return { success: false, error: 'Account is temporarily locked due to too many failed attempts' }
+      // Check if account is active
+      if (!user.is_active) {
+        return { success: false, error: 'Account is deactivated' }
       }
 
       // Verify password
       const passwordValid = await this.verifyPassword(data.password, user.password_hash)
       if (!passwordValid) {
-        await this.incrementFailedAttempts(user.id)
-        await this.logFailedLogin(data.email, ipAddress, 'invalid_password')
         return { success: false, error: 'Invalid email or password' }
       }
 
@@ -163,19 +157,9 @@ export class AuthService {
         return { success: false, error: 'Please verify your email address before logging in' }
       }
 
-      // Reset failed attempts
-      await this.resetFailedAttempts(user.id)
-
       // Create session
       const sessionToken = await this.generateToken()
       const sessionId = await this.createSession(user.id, sessionToken, ipAddress, userAgent)
-
-      // Update last login
-      await this.db.prepare(`
-        UPDATE users 
-        SET last_login = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `).bind(user.id).run()
 
       // Audit log
       await this.auditLog.log({

@@ -43,7 +43,7 @@ export class AuditLogService {
       await this.db.prepare(`
         INSERT INTO system_activity_log (
           user_id, action, module, details, 
-          ip_address, user_agent, severity, created_at
+          ip_address, user_agent, log_type, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       `).bind(
         entry.userId,
@@ -91,7 +91,7 @@ export class AuditLogService {
       }
 
       if (filter.severity) {
-        conditions.push('severity = ?')
+        conditions.push('log_type = ?')
         params.push(filter.severity)
       }
 
@@ -133,7 +133,7 @@ export class AuditLogService {
       const logs = await this.db.prepare(`
         SELECT 
           id, user_id, action, module, details,
-          ip_address, user_agent, severity, created_at
+          ip_address, user_agent, log_type as severity, created_at
         FROM system_activity_log
         WHERE ${whereClause}
         ORDER BY created_at DESC
@@ -193,7 +193,7 @@ export class AuditLogService {
 
       // Recent actions
       const recentResults = await this.db.prepare(`
-        SELECT action, module, created_at, ip_address
+        SELECT action, module, created_at, ip_address, log_type as severity
         FROM system_activity_log
         WHERE user_id = ?
         ORDER BY created_at DESC
@@ -226,10 +226,10 @@ export class AuditLogService {
       const results = await this.db.prepare(`
         SELECT 
           user_id, action, module, details,
-          ip_address, created_at, severity
+          ip_address, created_at, log_type as severity
         FROM system_activity_log
         WHERE 
-          severity = 'security'
+          log_type = 'security'
           AND created_at >= ?
         ORDER BY created_at DESC
         LIMIT 100
@@ -357,10 +357,10 @@ export class AuditLogService {
 
       // Severity breakdown
       const severityResults = await this.db.prepare(`
-        SELECT severity, COUNT(*) as count
+        SELECT log_type as severity, COUNT(*) as count
         FROM system_activity_log
         WHERE created_at >= ?
-        GROUP BY severity
+        GROUP BY log_type
       `).bind(startDate.toISOString()).all()
 
       const severityBreakdown: Record<string, number> = {}
