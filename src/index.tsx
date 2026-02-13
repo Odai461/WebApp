@@ -23523,6 +23523,7 @@ app.get('/admin/orders/processing', async (c) => {
 
 // Page configurations for all admin pages
 
+/* DISABLED: First generic handler - using second more complete handler at line 23956
 // Dynamic page handler
 app.get('/admin/*', async (c) => {
   const path = c.req.path;
@@ -23645,6 +23646,7 @@ app.get('/admin/*', async (c) => {
 });
 */
 
+/* DISABLED: Local adminPageConfigs shadowing imported one - using imported config from admin-page-configs.ts
 const adminPageConfigs: Record<string, any> = {
   '/admin/orders/completed': {
     title: 'Abgeschlossene Bestellungen',
@@ -23948,6 +23950,7 @@ const adminPageConfigs: Record<string, any> = {
     actions: [{label: 'API-Key erstellen', icon: 'plus', color: 'blue', action: 'addNew()'}]
   }
 };
+*/
 
 // ============================================
 // SMART DYNAMIC ROUTE HANDLER FOR ALL 44 ADMIN PAGES

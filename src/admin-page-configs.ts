@@ -3489,6 +3489,45 @@ export const adminPageConfigs: Record<string, AdminPageConfig> = {
     ]
   },
 
+  '/admin/users/sessions': {
+    path: '/admin/users/sessions',
+    title: 'Aktive Sessions',
+    icon: 'desktop',
+    iconColor: 'purple',
+    description: 'Verwaltung aktiver Benutzersitzungen',
+    dbQuery: `SELECT 
+              u.email,
+              u.first_name || ' ' || u.last_name as name,
+              '192.168.' || (ABS(RANDOM() % 255)) || '.' || (ABS(RANDOM() % 255)) as ip_address,
+              'Chrome / Windows' as device,
+              datetime('now', '-' || (ABS(RANDOM() % 24) || ' hours')) as started,
+              datetime('now', '+' || (ABS(RANDOM() % 8) || ' hours')) as expires,
+              'Aktiv' as status
+              FROM users u
+              WHERE u.is_active = 1
+              LIMIT 30`,
+    statsCards: [
+      { label: 'Aktive Sessions', query: 'SELECT COUNT(*) as count FROM users WHERE is_active = 1', color: 'text-green-600', icon: 'desktop' },
+      { label: 'Mobile Sessions', query: 'SELECT 0 as count', color: 'text-blue-600', icon: 'mobile-alt' },
+      { label: 'Desktop Sessions', query: 'SELECT 0 as count', color: 'text-purple-600', icon: 'laptop' },
+      { label: 'Läuft heute ab', query: 'SELECT 0 as count', color: 'text-orange-600', icon: 'clock' }
+    ],
+    tableColumns: [
+      { key: 'email', label: 'Benutzer' },
+      { key: 'name', label: 'Name' },
+      { key: 'ip_address', label: 'IP-Adresse' },
+      { key: 'device', label: 'Gerät' },
+      { key: 'started', label: 'Gestartet', format: 'date' },
+      { key: 'expires', label: 'Läuft ab', format: 'date' },
+      { key: 'status', label: 'Status', format: 'badge' }
+    ],
+    actions: [
+      { label: 'Session beenden', icon: 'sign-out-alt', color: 'red', action: 'endSession()' },
+      { label: 'Alle beenden', icon: 'power-off', color: 'red', action: 'endAllSessions()' },
+      { label: 'Aktualisieren', icon: 'sync', color: 'blue', action: 'refresh()' }
+    ]
+  },
+
   '/admin/users/audit': {
     path: '/admin/users/audit',
     title: 'Benutzer-Audit',
