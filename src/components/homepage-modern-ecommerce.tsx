@@ -1,6 +1,8 @@
 // Modern E-Commerce Homepage for SOFTWAREKING24 - LIGHT THEME
 // CONVERTED TO LIGHT THEME with white background and blue accents
 
+import { AddToCartScript } from './add-to-cart-script'
+
 export function HomepageModernEcommerce() {
   const timestamp = Date.now();
   return `
@@ -2110,6 +2112,8 @@ export function HomepageModernEcommerce() {
           switchLanguage(currentLanguage);
         }
       </script>
+
+      ${AddToCartScript()}
     </body>
     </html>
   `;
