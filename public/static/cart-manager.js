@@ -10,8 +10,8 @@ function getSessionId() {
   return sessionId;
 }
 
-// Add to cart using backend API
-async function addToCart(productId, quantity = 1) {
+// Add to cart using backend API - Make it global
+window.addToCart = async function(productId, quantity = 1) {
   try {
     const sessionId = getSessionId();
     

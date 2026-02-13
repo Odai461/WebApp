@@ -212,8 +212,8 @@ class CartManager {
 // Global cart manager instance
 const cartManager = new CartManager();
 
-// Legacy function for backward compatibility
-async function addToCart(productId, quantity = 1) {
+// Legacy function for backward compatibility - Make it global
+window.addToCart = async function(productId, quantity = 1) {
   return await cartManager.addToCart(productId, quantity);
 }
 
