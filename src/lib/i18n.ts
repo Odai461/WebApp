@@ -552,17 +552,23 @@ export function getLocalizedUrl(path: string, lang: Language): string {
   return cleanPath;
 }
 
-// Format price with locale
+// Format price with locale - Use formatPrice from utils/helpers.ts instead
+// This wrapper is for backward compatibility
 export function formatPrice(price: number, lang: Language = DEFAULT_LANGUAGE): string {
-  const locale = lang === 'de' ? 'de-DE' : 'en-US';
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(price);
+  // Import and use the more flexible version from helpers
+  const { formatPrice: helperFormatPrice } = require('../utils/helpers');
+  return helperFormatPrice(price, 'EUR', lang);
 }
 
-// Format date with locale
+// Format date with locale - Use formatDate from utils/helpers.ts instead
+// This wrapper is for backward compatibility
 export function formatDate(date: Date | string, lang: Language = DEFAULT_LANGUAGE): string {
+  const { formatDate: helperFormatDate } = require('../utils/helpers');
+  return helperFormatDate(date, lang);
+}
+
+// Keep original implementation as fallback
+function formatDateOriginal(date: Date | string, lang: Language = DEFAULT_LANGUAGE): string {
   const locale = lang === 'de' ? 'de-DE' : 'en-US';
   return new Intl.DateTimeFormat(locale, {
     year: 'numeric',

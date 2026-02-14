@@ -287,15 +287,10 @@ export async function retryOperation<T>(
 }
 
 /**
- * Safe JSON parse
+ * Safe JSON parse - Use safeJsonParse from utils/helpers.ts instead
+ * This import is for backward compatibility
  */
-export function safeJsonParse<T>(json: string, fallback: T): T {
-  try {
-    return JSON.parse(json) as T
-  } catch {
-    return fallback
-  }
-}
+export { safeJsonParse } from '../utils/helpers'
 
 /**
  * Sanitize error for logging (remove sensitive data)
