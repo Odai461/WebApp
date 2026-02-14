@@ -924,6 +924,24 @@ export function HomepageModernEcommerce() {
         </div>
       </section>
 
+      <!-- All Products Section - Dynamic from Database -->
+      <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Alle Produkte</h2>
+            <p class="text-xl text-gray-600">Entdecken Sie unser vollständiges Sortiment</p>
+          </div>
+          
+          <div id="all-products-container" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Products will be loaded here dynamically -->
+            <div class="col-span-4 text-center py-12">
+              <i class="fas fa-spinner fa-spin text-4xl text-brand-navy mb-4"></i>
+              <p class="text-gray-600">Produkte werden geladen...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Windows 11 Benefits Section -->
       <section class="py-16 bg-white" id="windows11">
         <div class="container mx-auto px-4">
@@ -2114,6 +2132,67 @@ export function HomepageModernEcommerce() {
       </script>
 
       ${AddToCartScript()}
+
+      <script>
+        // Load all products dynamically
+        async function loadAllProducts() {
+          try {
+            const response = await fetch('/api/products');
+            const data = await response.json();
+            
+            if (data.success && data.data && data.data.length > 0) {
+              const container = document.getElementById('all-products-container');
+              container.innerHTML = '';
+              
+              data.data.forEach(product => {
+                const discountBadge = product.discount_percentage > 0 
+                  ? \`<div class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">-\${Math.round(product.discount_percentage)}%</div>\`
+                  : '';
+                
+                const price = product.discount_price > 0 
+                  ? \`<div class="flex items-baseline gap-2 mb-4">
+                      <span class="text-2xl font-bold text-brand-gold">€\${product.discount_price.toFixed(2)}</span>
+                      <span class="text-sm text-gray-400 line-through">€\${product.base_price.toFixed(2)}</span>
+                    </div>\`
+                  : \`<div class="text-2xl font-bold text-brand-gold mb-4">€\${product.base_price.toFixed(2)}</div>\`;
+                
+                const productCard = \`
+                  <div class="product-card bg-white rounded-xl shadow-md overflow-hidden relative hover:shadow-xl transition-all duration-300">
+                    \${discountBadge}
+                    <div class="aspect-square bg-gray-100 flex items-center justify-center p-8">
+                      <img src="\${product.image_url}" alt="\${product.name}" class="max-w-full max-h-full object-contain" 
+                           onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                      <i class="fas fa-box text-6xl text-gray-300" style="display:none;"></i>
+                    </div>
+                    <div class="p-6">
+                      <p class="text-sm text-brand-navy font-semibold mb-2">\${product.category_name || 'Software'}</p>
+                      <h3 class="font-bold text-lg text-gray-900 mb-2 line-clamp-2">\${product.name}</h3>
+                      <p class="text-sm text-gray-600 mb-4 line-clamp-2">\${product.short_description || ''}</p>
+                      \${price}
+                      <button onclick="addToCart(\${product.id}, 1, event)" 
+                              class="w-full bg-brand-navy text-white py-3 rounded-lg hover:bg-brand-navy-dark transition font-semibold">
+                        <i class="fas fa-shopping-cart mr-2"></i>In den Warenkorb
+                      </button>
+                    </div>
+                  </div>
+                \`;
+                
+                container.insertAdjacentHTML('beforeend', productCard);
+              });
+            } else {
+              document.getElementById('all-products-container').innerHTML = 
+                '<div class="col-span-4 text-center py-12"><p class="text-gray-600">Keine Produkte verfügbar</p></div>';
+            }
+          } catch (error) {
+            console.error('Error loading products:', error);
+            document.getElementById('all-products-container').innerHTML = 
+              '<div class="col-span-4 text-center py-12"><p class="text-red-600">Fehler beim Laden der Produkte</p></div>';
+          }
+        }
+        
+        // Load products when page loads
+        document.addEventListener('DOMContentLoaded', loadAllProducts);
+      </script>
     </body>
     </html>
   `;
