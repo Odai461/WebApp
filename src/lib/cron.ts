@@ -246,9 +246,10 @@ export async function runAllMaintenanceTasks(db: D1Database): Promise<void> {
   await checkLowStockProducts(db)
   await optimizeDatabase(db)
   
+  return {
     sessions_cleaned: sessions,
     orders_cancelled: orders,
     rate_limits_cleaned: rateLimits,
     audit_logs_archived: auditLogs
-  })
+  }
 }

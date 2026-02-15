@@ -14274,12 +14274,13 @@ app.post('/api/admin/settings/test-smtp', async (c) => {
     // or an external email service like SendGrid/Mailgun
     
     // For now, simulate success (you'll need to implement actual SMTP logic)
+    const config = {
       host: smtp_host,
       port: smtp_port,
       user: smtp_username,
       from: `${smtp_from_name} <${smtp_from_email}>`,
       to: test_email
-    })
+    }
     
     // Simulate sending
     await new Promise(resolve => setTimeout(resolve, 1000))
