@@ -3151,7 +3151,7 @@ app.get('/api/products', async (c) => {
         ct.name as category_name
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language_code = ?
+      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       LEFT JOIN brands b ON p.brand_id = b.id
       WHERE p.is_active = 1
     `
@@ -3247,7 +3247,7 @@ app.get('/api/products', async (c) => {
       SELECT COUNT(DISTINCT p.id) as total
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language_code = ?
+      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       WHERE p.is_active = 1
     `
     const countParams: any[] = [language]
@@ -4238,7 +4238,7 @@ app.get('/api/translations/:languageCode', async (c) => {
       if (env.DB) {
         translations = await env.DB.prepare(`
           SELECT * FROM translations 
-          WHERE language_code = ?
+          WHERE language = ?
           ORDER BY translation_key ASC
         `).bind(languageCode).all()
       }
@@ -7174,7 +7174,7 @@ app.get('/api/admin/categories/:id', async (c) => {
     const category = await db.db.prepare(`
       SELECT c.*, ct.name, ct.description
       FROM categories c
-      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language_code = 'de'
+      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = 'de'
       WHERE c.id = ?
     `).bind(categoryId).first()
     
@@ -8149,7 +8149,7 @@ app.get('/api/bundles', async (c) => {
       FROM products p
       LEFT JOIN brands b ON p.brand_id = b.id
       LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language_code = ?
+      LEFT JOIN category_translations ct ON c.id = ct.category_id AND ct.language = ?
       WHERE p.is_active = 1 
         AND (p.name LIKE '%Bundle%' OR p.name LIKE '%&%')
       ORDER BY p.is_featured DESC, p.sale_count DESC
@@ -11384,9 +11384,9 @@ app.get('/api/admin/languages', async (c) => {
     `).all();
     
     const translations = await env.DB.prepare(`
-      SELECT COUNT(*) as count, language_code 
+      SELECT COUNT(*) as count, language 
       FROM translations 
-      GROUP BY language_code
+      GROUP BY language
     `).all();
     
     return c.json({
