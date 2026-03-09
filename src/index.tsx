@@ -4216,15 +4216,16 @@ app.get('/api/translations/:languageCode', async (c) => {
   try {
     const { env } = c;
     const languageCode = c.req.param('languageCode')
-    let translations: any = { results: [] };
+    let translationsArray: any[] = [];
     
     try {
       if (env.DB) {
-        translations = await env.DB.prepare(`
+        const result = await env.DB.prepare(`
           SELECT * FROM translations 
           WHERE language = ?
           ORDER BY translation_key ASC
         `).bind(languageCode).all()
+        translationsArray = result.results || [];
       }
     } catch (dbError) {
       // Return sample translations
@@ -4248,10 +4249,16 @@ app.get('/api/translations/:languageCode', async (c) => {
           { translation_key: 'nav.account', translated_text: 'Mon Compte' }
         ]
       };
-      translations.results = sampleTranslations[languageCode as keyof typeof sampleTranslations] || [];
+      translationsArray = sampleTranslations[languageCode as keyof typeof sampleTranslations] || [];
     }
     
-    return c.json({ success: true, translations: translations.results })
+    // Convert array to object for easier frontend usage
+    const translationsObj: Record<string, string> = {};
+    translationsArray.forEach((item: any) => {
+      translationsObj[item.translation_key] = item.translated_text;
+    });
+    
+    return c.json({ success: true, translations: translationsObj, language: languageCode })
   } catch (error) {
     console.error('Error fetching translations:', error)
     return c.json({ success: false, error: 'Failed to fetch translations' }, 500)
