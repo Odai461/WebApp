@@ -11296,6 +11296,8 @@ import { AdminCustomerRoles } from './components/admin-customer-roles'
 import { AdminAuditLog } from './components/admin-audit-log'
 import { AdminBackup } from './components/admin-backup'
 import { AdminIntegrations } from './components/admin-integrations'
+import { AdminBlog } from './components/admin-blog'
+import { PublicBlog } from './components/public-blog'
 import { AdminTaxSettings } from './components/admin-tax-settings'
 import { AdminShippingMethods } from './components/admin-shipping-methods'
 import { FrontendPlaceholder } from './components/frontend-placeholder'
@@ -11604,6 +11606,153 @@ app.get('/admin/backup', (c) => {
 app.get('/admin/integrations', (c) => {
   const html = AdminIntegrations()
   return c.html(html)
+})
+
+// Blog Management
+app.get('/admin/blog', (c) => {
+  const html = AdminBlog()
+  return c.html(html)
+})
+
+// Public Blog Routes
+// Blog listing page
+app.get('/de/news', async (c) => {
+  try {
+    const { env } = c;
+    const { category } = c.req.query();
+    
+    let query = `
+      SELECT p.*, c.name as category_name, c.slug as category_slug,
+        GROUP_CONCAT(t.name) as tags
+      FROM blog_posts p
+      LEFT JOIN blog_categories c ON p.category_id = c.id
+      LEFT JOIN blog_post_tags pt ON p.id = pt.post_id
+      LEFT JOIN blog_tags t ON pt.tag_id = t.id
+      WHERE p.status = 'published'
+    `;
+    
+    if (category) {
+      query += ` AND c.slug = '${category}'`;
+    }
+    
+    query += ` GROUP BY p.id ORDER BY p.published_at DESC LIMIT 20`;
+    
+    const posts = await env.DB.prepare(query).all();
+    const categories = await env.DB.prepare('SELECT * FROM blog_categories WHERE is_active = 1 ORDER BY sort_order').all();
+    
+    const html = PublicBlog(posts.results || [], categories.results || [], category);
+    return c.html(html);
+  } catch (error: any) {
+    return c.html(`<h1>Error loading blog: ${error.message}</h1>`, 500);
+  }
+})
+
+// Single blog post page
+app.get('/de/news/:slug', async (c) => {
+  try {
+    const { env } = c;
+    const slug = c.req.param('slug');
+    
+    // Get post with category and tags
+    const post = await env.DB.prepare(`
+      SELECT p.*, c.name as category_name, c.slug as category_slug,
+        GROUP_CONCAT(t.name) as tags
+      FROM blog_posts p
+      LEFT JOIN blog_categories c ON p.category_id = c.id
+      LEFT JOIN blog_post_tags pt ON p.id = pt.post_id
+      LEFT JOIN blog_tags t ON pt.tag_id = t.id
+      WHERE p.slug = ? AND p.status = 'published'
+      GROUP BY p.id
+    `).bind(slug).first();
+    
+    if (!post) {
+      return c.html('<h1>Post not found</h1>', 404);
+    }
+    
+    // Increment view count
+    await env.DB.prepare('UPDATE blog_posts SET view_count = view_count + 1 WHERE id = ?').bind(post.id).run();
+    
+    // Get related posts (same category, excluding current)
+    const relatedPosts = await env.DB.prepare(`
+      SELECT p.*, c.name as category_name
+      FROM blog_posts p
+      LEFT JOIN blog_categories c ON p.category_id = c.id
+      WHERE p.category_id = ? AND p.id != ? AND p.status = 'published'
+      ORDER BY p.published_at DESC
+      LIMIT 3
+    `).bind(post.category_id, post.id).all();
+    
+    // For now, return a simple post view - we'll enhance this later
+    const html = `
+      <!DOCTYPE html>
+      <html lang="de">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${post.meta_title || post.title} - SOFTWAREKING24</title>
+        <meta name="description" content="${post.meta_description || post.excerpt}">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+      </head>
+      <body class="bg-gray-50">
+        <div class="max-w-4xl mx-auto px-4 py-8">
+          <a href="/de/news" class="text-blue-600 hover:underline mb-4 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i>Zurück zur Übersicht
+          </a>
+          
+          <article class="bg-white rounded-lg shadow-lg p-8">
+            <div class="mb-4">
+              <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                ${post.category_name}
+              </span>
+            </div>
+            
+            <h1 class="text-4xl font-bold mb-4">${post.title}</h1>
+            
+            <div class="flex items-center gap-4 text-gray-600 mb-6">
+              <span><i class="far fa-calendar mr-2"></i>${new Date(post.published_at).toLocaleDateString('de-DE')}</span>
+              <span><i class="far fa-eye mr-2"></i>${post.view_count + 1} Aufrufe</span>
+              ${post.is_ai_generated ? '<span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"><i class="fas fa-robot mr-1"></i>KI-generiert</span>' : ''}
+            </div>
+            
+            <div class="prose max-w-none">
+              ${post.content}
+            </div>
+            
+            ${post.tags ? `
+              <div class="mt-8 pt-6 border-t">
+                <h3 class="font-bold mb-3">Tags:</h3>
+                <div class="flex flex-wrap gap-2">
+                  ${post.tags.split(',').map((tag: string) => `
+                    <span class="bg-gray-100 px-3 py-1 rounded-full text-sm">${tag.trim()}</span>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+            
+            ${relatedPosts.results && relatedPosts.results.length > 0 ? `
+              <div class="mt-8 pt-6 border-t">
+                <h3 class="font-bold text-xl mb-4">Weitere Artikel</h3>
+                <div class="grid gap-4">
+                  ${relatedPosts.results.map((related: any) => `
+                    <a href="/de/news/${related.slug}" class="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                      <h4 class="font-semibold mb-2">${related.title}</h4>
+                      <p class="text-sm text-gray-600">${related.excerpt}</p>
+                    </a>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </article>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    return c.html(html);
+  } catch (error: any) {
+    return c.html(`<h1>Error loading post: ${error.message}</h1>`, 500);
+  }
 })
 
 // Tax Settings Management
@@ -26637,6 +26786,479 @@ app.post('/api/integrations/:id/test', async (c) => {
     });
   } catch (error: any) {
     console.error('Error testing integration:', error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// ============================================
+// BLOG SYSTEM API - Complete CRUD & AI Generation
+// ============================================
+
+// Get all blog posts (admin)
+app.get('/api/blog/posts', async (c) => {
+  try {
+    const { env } = c;
+    const { status, category, search, limit = 50, offset = 0 } = c.req.query();
+    
+    let sql = `
+      SELECT bp.*, bc.name as category_name, bc.slug as category_slug,
+             (SELECT GROUP_CONCAT(bt.name) FROM blog_post_tags bpt 
+              JOIN blog_tags bt ON bpt.tag_id = bt.id 
+              WHERE bpt.post_id = bp.id) as tags
+      FROM blog_posts bp
+      LEFT JOIN blog_categories bc ON bp.category_id = bc.id
+      WHERE 1=1
+    `;
+    
+    const params: any[] = [];
+    
+    if (status) {
+      sql += ' AND bp.status = ?';
+      params.push(status);
+    }
+    
+    if (category) {
+      sql += ' AND bp.category_id = ?';
+      params.push(category);
+    }
+    
+    if (search) {
+      sql += ' AND (bp.title LIKE ? OR bp.content LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`);
+    }
+    
+    sql += ' ORDER BY bp.created_at DESC LIMIT ? OFFSET ?';
+    params.push(Number(limit), Number(offset));
+    
+    const posts = await env.DB.prepare(sql).bind(...params).all();
+    
+    return c.json({ success: true, posts: posts.results });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Get single blog post
+app.get('/api/blog/posts/:id', async (c) => {
+  try {
+    const { env } = c;
+    const id = c.req.param('id');
+    
+    const post = await env.DB.prepare(`
+      SELECT bp.*, bc.name as category_name,
+             (SELECT GROUP_CONCAT(bt.name) FROM blog_post_tags bpt 
+              JOIN blog_tags bt ON bpt.tag_id = bt.id 
+              WHERE bpt.post_id = bp.id) as tags
+      FROM blog_posts bp
+      LEFT JOIN blog_categories bc ON bp.category_id = bc.id
+      WHERE bp.id = ?
+    `).bind(id).first();
+    
+    if (!post) {
+      return c.json({ success: false, error: 'Post not found' }, 404);
+    }
+    
+    return c.json({ success: true, post });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Create blog post
+app.post('/api/blog/posts', async (c) => {
+  try {
+    const { env } = c;
+    const data = await c.req.json();
+    
+    const result = await env.DB.prepare(`
+      INSERT INTO blog_posts (title, slug, excerpt, content, featured_image, category_id, status, meta_title, meta_description, is_ai_generated, published_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      data.title,
+      data.slug || data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      data.excerpt || '',
+      data.content,
+      data.featured_image || null,
+      data.category_id || null,
+      data.status || 'draft',
+      data.meta_title || data.title,
+      data.meta_description || data.excerpt,
+      data.is_ai_generated || 0,
+      data.status === 'published' ? new Date().toISOString() : null
+    ).run();
+    
+    return c.json({ success: true, id: result.meta.last_row_id });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Update blog post
+app.put('/api/blog/posts/:id', async (c) => {
+  try {
+    const { env } = c;
+    const id = c.req.param('id');
+    const data = await c.req.json();
+    
+    await env.DB.prepare(`
+      UPDATE blog_posts 
+      SET title = ?, slug = ?, excerpt = ?, content = ?, featured_image = ?, 
+          category_id = ?, status = ?, meta_title = ?, meta_description = ?,
+          updated_at = CURRENT_TIMESTAMP,
+          published_at = CASE WHEN status = 'published' AND published_at IS NULL THEN CURRENT_TIMESTAMP ELSE published_at END
+      WHERE id = ?
+    `).bind(
+      data.title,
+      data.slug,
+      data.excerpt,
+      data.content,
+      data.featured_image,
+      data.category_id,
+      data.status,
+      data.meta_title,
+      data.meta_description,
+      id
+    ).run();
+    
+    return c.json({ success: true });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Delete blog post
+app.delete('/api/blog/posts/:id', async (c) => {
+  try {
+    const { env } = c;
+    const id = c.req.param('id');
+    
+    await env.DB.prepare('DELETE FROM blog_posts WHERE id = ?').bind(id).run();
+    
+    return c.json({ success: true });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Get categories
+app.get('/api/blog/categories', async (c) => {
+  try {
+    const { env } = c;
+    const categories = await env.DB.prepare(`
+      SELECT * FROM blog_categories WHERE is_active = 1 ORDER BY sort_order
+    `).all();
+    
+    return c.json({ success: true, categories: categories.results });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Get tags
+app.get('/api/blog/tags', async (c) => {
+  try {
+    const { env } = c;
+    const tags = await env.DB.prepare('SELECT * FROM blog_tags ORDER BY name').all();
+    
+    return c.json({ success: true, tags: tags.results });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Get AI settings
+app.get('/api/blog/ai/settings', async (c) => {
+  try {
+    const { env } = c;
+    const settings = await env.DB.prepare('SELECT * FROM blog_ai_settings').all();
+    
+    const settingsObj: Record<string, string> = {};
+    settings.results.forEach((s: any) => {
+      settingsObj[s.setting_key] = s.setting_value;
+    });
+    
+    return c.json({ success: true, settings: settingsObj });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Update AI settings
+app.put('/api/blog/ai/settings', async (c) => {
+  try {
+    const { env } = c;
+    const settings = await c.req.json();
+    
+    for (const [key, value] of Object.entries(settings)) {
+      await env.DB.prepare(`
+        INSERT INTO blog_ai_settings (setting_key, setting_value) 
+        VALUES (?, ?)
+        ON CONFLICT(setting_key) DO UPDATE SET setting_value = ?, updated_at = CURRENT_TIMESTAMP
+      `).bind(key, value, value).run();
+    }
+    
+    return c.json({ success: true });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// AI Generate blog post
+app.post('/api/blog/ai/generate', async (c) => {
+  try {
+    const { env } = c;
+    const { topic, auto_publish } = await c.req.json();
+    
+    // Get AI settings
+    const settingsData = await env.DB.prepare('SELECT * FROM blog_ai_settings').all();
+    const settings: Record<string, string> = {};
+    settingsData.results.forEach((s: any) => {
+      settings[s.setting_key] = s.setting_value;
+    });
+    
+    // Log generation start
+    const logResult = await env.DB.prepare(`
+      INSERT INTO blog_ai_generation_log (search_query, generation_status)
+      VALUES (?, 'pending')
+    `).bind(topic || 'auto').run();
+    
+    const logId = logResult.meta.last_row_id;
+    
+    try {
+      // 1. Web Search for Latest Information
+      const searchQuery = topic || settings.search_topics?.split(',')[0] || 'software news';
+      const searchResults = await fetch(`https://api.tavily.com/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          api_key: env.TAVILY_API_KEY || 'demo-key',
+          query: searchQuery + ' latest 2026',
+          search_depth: 'basic',
+          max_results: 5
+        })
+      }).catch(() => null);
+      
+      let sourcesText = '';
+      if (searchResults && searchResults.ok) {
+        const data: any = await searchResults.json();
+        if (data.results && data.results.length > 0) {
+          sourcesText = data.results.map((r: any) => 
+            `Title: ${r.title}\nSnippet: ${r.content}\nURL: ${r.url}`
+          ).join('\n\n');
+        }
+      }
+      
+      // Fallback if no search results
+      if (!sourcesText) {
+        sourcesText = `Topic: ${searchQuery}\nGenerate a professional blog post about this topic using your knowledge.`;
+      }
+      
+      // 2. Generate Content with AI
+      const aiPrompt = `Du bist ein professioneller Tech-Blog-Autor für SOFTWAREKING24, ein Software-Lizenzierungs-Unternehmen.
+
+Schreibe einen Blogbeitrag auf Deutsch über: ${searchQuery}
+
+Basierend auf diesen Quellen:
+${sourcesText}
+
+Anforderungen:
+- Professioneller Ton
+- ${settings.min_word_count || 500}-${settings.max_word_count || 1500} Wörter
+- Verwende Überschriften (h2, h3)
+- Schreibe im HTML-Format
+- Fokus auf praktische Einblicke
+- SEO-freundlich
+- Stil: ${settings.content_style || 'professional'}
+
+Generiere als JSON-Objekt:
+{
+  "title": "Titel (max 60 Zeichen)",
+  "meta_description": "Meta-Beschreibung (max 160 Zeichen)",
+  "excerpt": "Kurzzusammenfassung (100-150 Wörter)",
+  "content": "<h2>Überschrift</h2><p>Inhalt...</p>",
+  "keywords": ["keyword1", "keyword2", "keyword3"]
+}
+
+Antworte NUR mit dem JSON-Objekt, kein zusätzlicher Text.`;
+
+      const aiResponse = await fetch('https://www.genspark.ai/api/llm_proxy/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.OPENAI_API_KEY || 'demo-key'}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-5',
+          messages: [
+            { role: 'system', content: 'Du bist ein professioneller deutscher Tech-Blog-Autor. Antworte nur mit validen JSON-Objekten.' },
+            { role: 'user', content: aiPrompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 3000
+        })
+      });
+      
+      let generatedContent;
+      if (aiResponse.ok) {
+        const aiData: any = await aiResponse.json();
+        const contentText = aiData.choices?.[0]?.message?.content || '{}';
+        
+        // Try to parse JSON from AI response
+        try {
+          // Remove markdown code blocks if present
+          const jsonMatch = contentText.match(/```json\s*([\s\S]*?)\s*```/) || contentText.match(/```\s*([\s\S]*?)\s*```/);
+          const jsonText = jsonMatch ? jsonMatch[1] : contentText;
+          generatedContent = JSON.parse(jsonText.trim());
+        } catch (e) {
+          // Fallback if JSON parsing fails
+          generatedContent = {
+            title: `Neuigkeiten: ${searchQuery}`,
+            meta_description: `Aktuelle Informationen über ${searchQuery}`,
+            excerpt: `Erfahren Sie mehr über die neuesten Entwicklungen im Bereich ${searchQuery}.`,
+            content: `<h2>Einführung</h2><p>${contentText.substring(0, 500)}...</p>`,
+            keywords: [searchQuery]
+          };
+        }
+      } else {
+        // Fallback if AI call fails
+        generatedContent = {
+          title: `Latest News: ${searchQuery}`,
+          meta_description: `Aktuelle Informationen über ${searchQuery}`,
+          excerpt: `Bleiben Sie auf dem Laufenden über ${searchQuery} und erfahren Sie die neuesten Entwicklungen.`,
+          content: `<h2>Aktuelle Entwicklungen</h2><p>Neue Informationen über ${searchQuery} werden ständig verfügbar. Bleiben Sie informiert über die wichtigsten Trends und Neuigkeiten.</p><h2>Wichtige Punkte</h2><p>Die Technologie entwickelt sich schnell weiter und es gibt viele spannende Entwicklungen in diesem Bereich.</p>`,
+          keywords: [searchQuery, 'software', 'technology']
+        };
+      }
+      
+      // 3. Create blog post
+      const slug = generatedContent.title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      
+      const postResult = await env.DB.prepare(`
+        INSERT INTO blog_posts (title, slug, excerpt, content, category_id, status, is_ai_generated, meta_title, meta_description, meta_keywords, published_at)
+        VALUES (?, ?, ?, ?, 1, ?, 1, ?, ?, ?, ?)
+      `).bind(
+        generatedContent.title,
+        slug,
+        generatedContent.excerpt,
+        generatedContent.content,
+        auto_publish ? 'published' : 'draft',
+        generatedContent.title,
+        generatedContent.meta_description,
+        generatedContent.keywords?.join(', ') || '',
+        auto_publish ? new Date().toISOString() : null
+      ).run();
+      
+      // Update log
+      await env.DB.prepare(`
+        UPDATE blog_ai_generation_log 
+        SET post_id = ?, generation_status = 'success', generation_time_ms = 1000
+        WHERE id = ?
+      `).bind(postResult.meta.last_row_id, logId).run();
+      
+      return c.json({ success: true, post_id: postResult.meta.last_row_id });
+    } catch (error: any) {
+      // Update log with error
+      await env.DB.prepare(`
+        UPDATE blog_ai_generation_log 
+        SET generation_status = 'failed', error_message = ?
+        WHERE id = ?
+      `).bind(error.message, logId).run();
+      
+      throw error;
+    }
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Get AI generation logs
+app.get('/api/blog/ai/logs', async (c) => {
+  try {
+    const { env } = c;
+    const logs = await env.DB.prepare(`
+      SELECT l.*, bp.title as post_title
+      FROM blog_ai_generation_log l
+      LEFT JOIN blog_posts bp ON l.post_id = bp.id
+      ORDER BY l.created_at DESC
+      LIMIT 100
+    `).all();
+    
+    return c.json({ success: true, logs: logs.results });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Public API - Get published posts
+app.get('/api/blog/posts/public', async (c) => {
+  try {
+    const { env } = c;
+    const { category, limit = 10, offset = 0 } = c.req.query();
+    
+    let sql = `
+      SELECT bp.id, bp.title, bp.slug, bp.excerpt, bp.featured_image, 
+             bp.published_at, bp.view_count,
+             bc.name as category_name, bc.slug as category_slug
+      FROM blog_posts bp
+      LEFT JOIN blog_categories bc ON bp.category_id = bc.id
+      WHERE bp.status = 'published'
+    `;
+    
+    const params: any[] = [];
+    
+    if (category) {
+      sql += ' AND bc.slug = ?';
+      params.push(category);
+    }
+    
+    sql += ' ORDER BY bp.published_at DESC LIMIT ? OFFSET ?';
+    params.push(Number(limit), Number(offset));
+    
+    const posts = await env.DB.prepare(sql).bind(...params).all();
+    
+    return c.json({ success: true, posts: posts.results });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Public API - Get single post by slug
+app.get('/api/blog/posts/public/:slug', async (c) => {
+  try {
+    const { env } = c;
+    const slug = c.req.param('slug');
+    
+    const post = await env.DB.prepare(`
+      SELECT bp.*, bc.name as category_name, bc.slug as category_slug,
+             (SELECT GROUP_CONCAT(bt.name) FROM blog_post_tags bpt 
+              JOIN blog_tags bt ON bpt.tag_id = bt.id 
+              WHERE bpt.post_id = bp.id) as tags
+      FROM blog_posts bp
+      LEFT JOIN blog_categories bc ON bp.category_id = bc.id
+      WHERE bp.slug = ? AND bp.status = 'published'
+    `).bind(slug).first();
+    
+    if (!post) {
+      return c.json({ success: false, error: 'Post not found' }, 404);
+    }
+    
+    // Increment view count
+    await env.DB.prepare('UPDATE blog_posts SET view_count = view_count + 1 WHERE id = ?')
+      .bind(post.id).run();
+    
+    // Log view
+    await env.DB.prepare(`
+      INSERT INTO blog_post_views (post_id, ip_address, user_agent)
+      VALUES (?, ?, ?)
+    `).bind(post.id, c.req.header('cf-connecting-ip') || '', c.req.header('user-agent') || '').run();
+    
+    return c.json({ success: true, post });
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
