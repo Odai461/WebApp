@@ -1,197 +1,133 @@
-export function AdminAnalyticsTraffic() {
-  return `
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics - Traffic - Admin - SOFTWAREKING24</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --navy: #132C46;
-            --gold: #D9A50B;
-        }
-        body {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        }
-        .admin-header {
-            background: linear-gradient(135deg, var(--navy) 0%, #1a3a54 100%);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border-left: 4px solid var(--gold);
-        }
-        .chart-container {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 1.5rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="admin-header text-white p-6 mb-8">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold mb-2">
-                        <i class="fas fa-chart-line mr-3"></i>Analytics - Traffic
-                    </h1>
-                    <p class="text-blue-100">Webseitenbesucher und Traffic-Statistiken</p>
-                </div>
-                <a href="/admin" class="bg-white text-blue-900 px-6 py-2 rounded-lg hover:bg-blue-50 transition">
-                    <i class="fas fa-arrow-left mr-2"></i>Zurück
-                </a>
-            </div>
+import type { FC } from 'hono/jsx'
+
+export const AdminAnalyticsTraffic: FC = () => {
+  return (
+    <div class="admin-analytics-traffic">
+      <div class="admin-header">
+        <h2><i class="fas fa-chart-area"></i> Traffic Analytics</h2>
+        <select id="range-filter" class="form-control" style="width: 200px;" onchange="loadData()">
+          <option value="7">Letzte 7 Tage</option>
+          <option value="30">Letzte 30 Tage</option>
+          <option value="90">Letzte 90 Tage</option>
+        </select>
+      </div>
+
+      {/* Traffic Sources */}
+      <div class="admin-card">
+        <h3><i class="fas fa-share-alt"></i> Traffic-Quellen</h3>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Quelle</th>
+                <th>Sitzungen</th>
+                <th>Ø Dauer</th>
+                <th>Conversions</th>
+                <th>Umsatz</th>
+              </tr>
+            </thead>
+            <tbody id="sources-tbody">
+              <tr><td colspan="5" style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> Lade Daten...</td></tr>
+            </tbody>
+          </table>
         </div>
-    </div>
+      </div>
 
-    <div class="max-w-7xl mx-auto px-6 pb-12">
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="stat-card">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-gray-600 text-sm">Gesamtbesucher</span>
-                    <i class="fas fa-users text-blue-600 text-xl"></i>
-                </div>
-                <div class="text-3xl font-bold text-gray-800" id="totalVisitors">0</div>
-                <div class="text-sm text-green-600 mt-1">
-                    <i class="fas fa-arrow-up"></i> +12% vs. Vormonat
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-gray-600 text-sm">Seitenaufrufe</span>
-                    <i class="fas fa-eye text-purple-600 text-xl"></i>
-                </div>
-                <div class="text-3xl font-bold text-gray-800" id="pageViews">0</div>
-                <div class="text-sm text-green-600 mt-1">
-                    <i class="fas fa-arrow-up"></i> +8% vs. Vormonat
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-gray-600 text-sm">Bounce Rate</span>
-                    <i class="fas fa-percentage" style="color: var(--gold)"></i>
-                </div>
-                <div class="text-3xl font-bold text-gray-800" id="bounceRate">0%</div>
-                <div class="text-sm text-green-600 mt-1">
-                    <i class="fas fa-arrow-down"></i> -3% vs. Vormonat
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-gray-600 text-sm">Verweildauer</span>
-                    <i class="fas fa-clock text-green-600 text-xl"></i>
-                </div>
-                <div class="text-3xl font-bold text-gray-800" id="avgDuration">0m</div>
-                <div class="text-sm text-green-600 mt-1">
-                    <i class="fas fa-arrow-up"></i> +5% vs. Vormonat
-                </div>
-            </div>
+      {/* Campaigns */}
+      <div class="admin-card">
+        <h3><i class="fas fa-bullhorn"></i> Kampagnen Performance</h3>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Kampagne</th>
+                <th>Sitzungen</th>
+                <th>Conversions</th>
+                <th>Conv. Rate</th>
+                <th>Umsatz</th>
+              </tr>
+            </thead>
+            <tbody id="campaigns-tbody"></tbody>
+          </table>
         </div>
+      </div>
 
-        <!-- Traffic Chart -->
-        <div class="chart-container">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Traffic Verlauf (30 Tage)</h3>
-            <canvas id="trafficChart" height="80"></canvas>
+      {/* Top Referrers */}
+      <div class="admin-card">
+        <h3><i class="fas fa-external-link-alt"></i> Top Referrer</h3>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Referrer</th>
+                <th>Sitzungen</th>
+              </tr>
+            </thead>
+            <tbody id="referrers-tbody"></tbody>
+          </table>
         </div>
+      </div>
 
-        <!-- Top Pages -->
-        <div class="chart-container">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Seiten</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Seite</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Besucher</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Seitenaufrufe</th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Verweildauer</th>
-                        </tr>
-                    </thead>
-                    <tbody id="topPagesBody" class="divide-y divide-gray-200">
-                        <tr>
-                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">Lade Daten...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+      <style>{`
+        .admin-analytics-traffic { padding: 20px; }
+        .source-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .source-search { background: #dbeafe; color: #1e40af; }
+        .source-social { background: #fce7f3; color: #be123c; }
+        .source-direct { background: #e0e7ff; color: #4338ca; }
+        .source-email { background: #d1fae5; color: #065f46; }
+        .source-referral { background: #fef3c7; color: #92400e; }
+      `}</style>
 
-    <script>
-        // Sample data - in production, fetch from API
-        const trafficData = {
-            visitors: 12543,
-            pageViews: 45876,
-            bounceRate: 42.5,
-            avgDuration: 3.2
-        };
-
-        document.getElementById('totalVisitors').textContent = trafficData.visitors.toLocaleString();
-        document.getElementById('pageViews').textContent = trafficData.pageViews.toLocaleString();
-        document.getElementById('bounceRate').textContent = trafficData.bounceRate + '%';
-        document.getElementById('avgDuration').textContent = trafficData.avgDuration.toFixed(1) + 'm';
-
-        // Traffic Chart
-        const ctx = document.getElementById('trafficChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array.from({length: 30}, (_, i) => {
-                    const d = new Date();
-                    d.setDate(d.getDate() - (29 - i));
-                    return d.toLocaleDateString('de-DE', { month: 'short', day: 'numeric' });
-                }),
-                datasets: [{
-                    label: 'Besucher',
-                    data: Array.from({length: 30}, () => Math.floor(Math.random() * 500) + 300),
-                    borderColor: '#132C46',
-                    backgroundColor: 'rgba(19, 44, 70, 0.1)',
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { beginAtZero: true }
-                }
+      <script dangerouslySetInnerHTML={{ __html: `
+        async function loadData() {
+          const range = document.getElementById('range-filter').value;
+          try {
+            const response = await fetch('/api/analytics/traffic?range=' + range);
+            const data = await response.json();
+            if (data.success) {
+              // Traffic sources
+              const sourceIcons = { search: 'fa-search', social: 'fa-share-alt', direct: 'fa-compass', email: 'fa-envelope', referral: 'fa-link' };
+              document.getElementById('sources-tbody').innerHTML = (data.trafficSources || []).map(s => \`
+                <tr>
+                  <td>
+                    <i class="fas \${sourceIcons[s.traffic_source] || 'fa-question'}"></i>
+                    <span class="source-badge source-\${s.traffic_source}">\${s.traffic_source}</span>
+                  </td>
+                  <td>\${s.sessions}</td>
+                  <td>\${Math.round(s.avg_duration || 0)}s</td>
+                  <td>\${s.conversions || 0}</td>
+                  <td>€\${(s.revenue || 0).toFixed(2)}</td>
+                </tr>
+              \`).join('') || '<tr><td colspan="5" style="text-align: center; padding: 20px;">Keine Daten</td></tr>';
+              
+              // Campaigns
+              document.getElementById('campaigns-tbody').innerHTML = (data.campaigns || []).map(c => {
+                const convRate = c.sessions > 0 ? ((c.conversions / c.sessions) * 100).toFixed(2) : 0;
+                return \`
+                  <tr>
+                    <td><strong>\${c.traffic_campaign}</strong></td>
+                    <td>\${c.sessions}</td>
+                    <td>\${c.conversions || 0}</td>
+                    <td><strong>\${convRate}%</strong></td>
+                    <td><strong>€\${(c.revenue || 0).toFixed(2)}</strong></td>
+                  </tr>
+                \`;
+              }).join('') || '<tr><td colspan="5" style="text-align: center; padding: 20px;">Keine Kampagnen</td></tr>';
+              
+              // Top referrers
+              document.getElementById('referrers-tbody').innerHTML = (data.topReferrers || []).map(r => \`
+                <tr>
+                  <td><a href="\${r.referrer_url}" target="_blank" rel="noopener">\${r.referrer_url}</a></td>
+                  <td>\${r.sessions}</td>
+                </tr>
+              \`).join('') || '<tr><td colspan="2" style="text-align: center; padding: 20px;">Keine Referrer</td></tr>';
             }
-        });
-
-        // Top Pages
-        const topPages = [
-            { page: '/', visitors: 5432, views: 8765, duration: '4:23' },
-            { page: '/products', visitors: 3245, views: 6543, duration: '3:45' },
-            { page: '/cart', visitors: 2134, views: 3456, duration: '2:15' },
-            { page: '/contact', visitors: 1876, views: 2543, duration: '5:32' },
-            { page: '/faq', visitors: 1543, views: 2234, duration: '3:12' }
-        ];
-
-        const tbody = document.getElementById('topPagesBody');
-        tbody.innerHTML = topPages.map(p => \`
-            <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 font-medium text-gray-900">\${p.page}</td>
-                <td class="px-6 py-4 text-gray-600">\${p.visitors.toLocaleString()}</td>
-                <td class="px-6 py-4 text-gray-600">\${p.views.toLocaleString()}</td>
-                <td class="px-6 py-4 text-gray-600">\${p.duration}</td>
-            </tr>
-        \`).join('');
-    </script>
-</body>
-</html>
-  `;
+          } catch (error) {
+            console.error('Error:', error);
+          }
+        }
+        loadData();
+      ` }} ></script>
+    </div>
+  )
 }

@@ -25771,6 +25771,400 @@ app.post('/api/tax/calculate', async (c) => {
   }
 });
 
+// ============================================
+// ANALYTICS API ROUTES
+// ============================================
+
+// Analytics - Behavior Tracking
+app.get('/api/analytics/behavior', async (c) => {
+  try {
+    const { env } = c;
+    const range = c.req.query('range') || '7'; // days
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(range));
+    
+    // Top pages by views
+    const topPages = await env.DB.prepare(`
+      SELECT page_url, page_title, COUNT(*) as views,
+             AVG(duration_seconds) as avg_duration
+      FROM analytics_page_views
+      WHERE created_at >= ?
+      GROUP BY page_url
+      ORDER BY views DESC
+      LIMIT 10
+    `).bind(startDate.toISOString()).all();
+    
+    // Bounce rate
+    const bounceData = await env.DB.prepare(`
+      SELECT 
+        COUNT(*) as total_sessions,
+        SUM(is_bounce) as bounces
+      FROM analytics_sessions
+      WHERE created_at >= ?
+    `).bind(startDate.toISOString()).first();
+    
+    const bounceRate = bounceData && bounceData.total_sessions > 0
+      ? ((bounceData.bounces / bounceData.total_sessions) * 100).toFixed(2)
+      : 0;
+    
+    // Avg session duration
+    const avgDuration = await env.DB.prepare(`
+      SELECT AVG(duration_seconds) as avg_duration
+      FROM analytics_sessions
+      WHERE created_at >= ? AND duration_seconds > 0
+    `).bind(startDate.toISOString()).first();
+    
+    // Pages per session
+    const avgPages = await env.DB.prepare(`
+      SELECT AVG(pages_visited) as avg_pages
+      FROM analytics_sessions
+      WHERE created_at >= ?
+    `).bind(startDate.toISOString()).first();
+    
+    // User flow (most common paths)
+    const userFlow = await env.DB.prepare(`
+      SELECT session_id, GROUP_CONCAT(page_url, ' → ') as path, COUNT(*) as frequency
+      FROM analytics_page_views
+      WHERE created_at >= ?
+      GROUP BY session_id
+      ORDER BY frequency DESC
+      LIMIT 5
+    `).bind(startDate.toISOString()).all();
+    
+    return c.json({
+      success: true,
+      topPages: topPages.results || [],
+      bounceRate: parseFloat(bounceRate),
+      avgSessionDuration: avgDuration?.avg_duration || 0,
+      avgPagesPerSession: avgPages?.avg_pages || 0,
+      userFlow: userFlow.results || []
+    });
+  } catch (error: any) {
+    console.error('Error fetching behavior analytics:', error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Analytics - Conversion Funnel
+app.get('/api/analytics/conversion', async (c) => {
+  try {
+    const { env } = c;
+    const range = c.req.query('range') || '7';
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.setDate() - parseInt(range));
+    
+    // Funnel steps with completion rates
+    const funnelSteps = ['home', 'product_view', 'cart', 'checkout', 'purchase'];
+    const funnelData = [];
+    
+    for (const step of funnelSteps) {
+      const data = await env.DB.prepare(`
+        SELECT COUNT(DISTINCT session_id) as sessions
+        FROM analytics_funnel_steps
+        WHERE step_name = ? AND completed = 1 AND created_at >= ?
+      `).bind(step, startDate.toISOString()).first();
+      
+      funnelData.push({
+        step,
+        sessions: data?.sessions || 0
+      });
+    }
+    
+    // Calculate conversion rates
+    const totalSessions = funnelData[0]?.sessions || 1;
+    funnelData.forEach((item, index) => {
+      item.conversionRate = ((item.sessions / totalSessions) * 100).toFixed(2);
+      if (index > 0) {
+        item.dropOffRate = (((funnelData[index - 1].sessions - item.sessions) / funnelData[index - 1].sessions) * 100).toFixed(2);
+      }
+    });
+    
+    // Overall conversion rate
+    const conversionRate = funnelData[funnelData.length - 1]?.conversionRate || 0;
+    
+    // Cart abandonment rate
+    const cartAbandonment = funnelData[2]?.sessions > 0
+      ? (((funnelData[2].sessions - funnelData[funnelData.length - 1].sessions) / funnelData[2].sessions) * 100).toFixed(2)
+      : 0;
+    
+    // Avg time to convert
+    const avgTimeToConvert = await env.DB.prepare(`
+      SELECT AVG(duration_seconds) as avg_time
+      FROM analytics_sessions
+      WHERE converted = 1 AND created_at >= ?
+    `).bind(startDate.toISOString()).first();
+    
+    return c.json({
+      success: true,
+      funnelSteps: funnelData,
+      conversionRate: parseFloat(conversionRate),
+      cartAbandonment: parseFloat(cartAbandonment),
+      avgTimeToConvert: avgTimeToConvert?.avg_time || 0
+    });
+  } catch (error: any) {
+    console.error('Error fetching conversion analytics:', error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Analytics - Device Statistics
+app.get('/api/analytics/devices', async (c) => {
+  try {
+    const { env } = c;
+    const range = c.req.query('range') || '7';
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(range));
+    
+    // Device types
+    const deviceTypes = await env.DB.prepare(`
+      SELECT device_type, COUNT(*) as sessions,
+             AVG(duration_seconds) as avg_duration,
+             SUM(converted) as conversions
+      FROM analytics_sessions
+      WHERE created_at >= ?
+      GROUP BY device_type
+      ORDER BY sessions DESC
+    `).bind(startDate.toISOString()).all();
+    
+    // Browsers
+    const browsers = await env.DB.prepare(`
+      SELECT browser, COUNT(*) as sessions
+      FROM analytics_sessions
+      WHERE created_at >= ?
+      GROUP BY browser
+      ORDER BY sessions DESC
+      LIMIT 10
+    `).bind(startDate.toISOString()).all();
+    
+    // Operating systems
+    const operatingSystems = await env.DB.prepare(`
+      SELECT os, COUNT(*) as sessions
+      FROM analytics_sessions
+      WHERE created_at >= ?
+      GROUP BY os
+      ORDER BY sessions DESC
+      LIMIT 10
+    `).bind(startDate.toISOString()).all();
+    
+    // Screen resolutions
+    const resolutions = await env.DB.prepare(`
+      SELECT screen_resolution, COUNT(*) as sessions
+      FROM analytics_page_views
+      WHERE created_at >= ? AND screen_resolution IS NOT NULL
+      GROUP BY screen_resolution
+      ORDER BY sessions DESC
+      LIMIT 10
+    `).bind(startDate.toISOString()).all();
+    
+    return c.json({
+      success: true,
+      deviceTypes: deviceTypes.results || [],
+      browsers: browsers.results || [],
+      operatingSystems: operatingSystems.results || [],
+      resolutions: resolutions.results || []
+    });
+  } catch (error: any) {
+    console.error('Error fetching device analytics:', error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Analytics - Traffic Sources
+app.get('/api/analytics/traffic', async (c) => {
+  try {
+    const { env } = c;
+    const range = c.req.query('range') || '7';
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(range));
+    
+    // Traffic by source
+    const trafficSources = await env.DB.prepare(`
+      SELECT traffic_source, COUNT(*) as sessions,
+             AVG(duration_seconds) as avg_duration,
+             SUM(converted) as conversions,
+             SUM(conversion_value) as revenue
+      FROM analytics_sessions
+      WHERE created_at >= ?
+      GROUP BY traffic_source
+      ORDER BY sessions DESC
+    `).bind(startDate.toISOString()).all();
+    
+    // Traffic by medium
+    const trafficMedium = await env.DB.prepare(`
+      SELECT traffic_medium, COUNT(*) as sessions
+      FROM analytics_sessions
+      WHERE created_at >= ?
+      GROUP BY traffic_medium
+      ORDER BY sessions DESC
+    `).bind(startDate.toISOString()).all();
+    
+    // Top referrers
+    const topReferrers = await env.DB.prepare(`
+      SELECT referrer_url, COUNT(*) as sessions
+      FROM analytics_traffic_sources
+      WHERE created_at >= ? AND referrer_url IS NOT NULL
+      GROUP BY referrer_url
+      ORDER BY sessions DESC
+      LIMIT 10
+    `).bind(startDate.toISOString()).all();
+    
+    // Campaigns performance
+    const campaigns = await env.DB.prepare(`
+      SELECT s.traffic_campaign, COUNT(*) as sessions,
+             SUM(s.converted) as conversions,
+             SUM(s.conversion_value) as revenue
+      FROM analytics_sessions s
+      WHERE s.created_at >= ? AND s.traffic_campaign IS NOT NULL
+      GROUP BY s.traffic_campaign
+      ORDER BY sessions DESC
+      LIMIT 10
+    `).bind(startDate.toISOString()).all();
+    
+    return c.json({
+      success: true,
+      trafficSources: trafficSources.results || [],
+      trafficMedium: trafficMedium.results || [],
+      topReferrers: topReferrers.results || [],
+      campaigns: campaigns.results || []
+    });
+  } catch (error: any) {
+    console.error('Error fetching traffic analytics:', error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Analytics - Enhanced Dashboard
+app.get('/api/analytics/dashboard', async (c) => {
+  try {
+    const { env } = c;
+    const range = c.req.query('range') || '7';
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(range));
+    
+    // Total stats
+    const totalStats = await env.DB.prepare(`
+      SELECT 
+        COUNT(DISTINCT session_id) as total_sessions,
+        COUNT(DISTINCT user_id) as unique_users,
+        SUM(pages_visited) as total_pageviews,
+        SUM(converted) as conversions,
+        SUM(conversion_value) as revenue
+      FROM analytics_sessions
+      WHERE created_at >= ?
+    `).bind(startDate.toISOString()).first();
+    
+    // Daily trend
+    const dailyTrend = await env.DB.prepare(`
+      SELECT 
+        DATE(created_at) as date,
+        COUNT(*) as sessions,
+        SUM(converted) as conversions,
+        SUM(conversion_value) as revenue
+      FROM analytics_sessions
+      WHERE created_at >= ?
+      GROUP BY DATE(created_at)
+      ORDER BY date
+    `).bind(startDate.toISOString()).all();
+    
+    // Top events
+    const topEvents = await env.DB.prepare(`
+      SELECT event_type, event_category, COUNT(*) as count
+      FROM analytics_events
+      WHERE created_at >= ?
+      GROUP BY event_type, event_category
+      ORDER BY count DESC
+      LIMIT 10
+    `).bind(startDate.toISOString()).all();
+    
+    // Geographic distribution
+    const geographic = await env.DB.prepare(`
+      SELECT country, COUNT(*) as sessions,
+             SUM(converted) as conversions
+      FROM analytics_sessions
+      WHERE created_at >= ? AND country IS NOT NULL
+      GROUP BY country
+      ORDER BY sessions DESC
+      LIMIT 10
+    `).bind(startDate.toISOString()).all();
+    
+    return c.json({
+      success: true,
+      stats: totalStats || {},
+      dailyTrend: dailyTrend.results || [],
+      topEvents: topEvents.results || [],
+      geographic: geographic.results || []
+    });
+  } catch (error: any) {
+    console.error('Error fetching dashboard analytics:', error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Track page view (for frontend integration)
+app.post('/api/analytics/track/pageview', async (c) => {
+  try {
+    const { env } = c;
+    const data = await c.req.json();
+    
+    await env.DB.prepare(`
+      INSERT INTO analytics_page_views (
+        session_id, user_id, page_url, page_title, referrer,
+        user_agent, device_type, browser, os, duration_seconds
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      data.session_id,
+      data.user_id || null,
+      data.page_url,
+      data.page_title || '',
+      data.referrer || '',
+      data.user_agent || '',
+      data.device_type || 'desktop',
+      data.browser || '',
+      data.os || '',
+      data.duration_seconds || 0
+    ).run();
+    
+    return c.json({ success: true });
+  } catch (error: any) {
+    console.error('Error tracking page view:', error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
+// Track event (for frontend integration)
+app.post('/api/analytics/track/event', async (c) => {
+  try {
+    const { env } = c;
+    const data = await c.req.json();
+    
+    await env.DB.prepare(`
+      INSERT INTO analytics_events (
+        session_id, user_id, event_type, event_category, event_action,
+        event_label, event_value, page_url
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      data.session_id,
+      data.user_id || null,
+      data.event_type,
+      data.event_category || '',
+      data.event_action || '',
+      data.event_label || '',
+      data.event_value || null,
+      data.page_url || ''
+    ).run();
+    
+    return c.json({ success: true });
+  } catch (error: any) {
+    console.error('Error tracking event:', error);
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
+
 // END ENTERPRISE FEATURE ROUTES
 
 // ============================================
